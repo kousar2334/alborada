@@ -1,0 +1,51 @@
+<div class="listing-card">
+    <div class="listing-Img">
+        <div class="favorite-icon">
+            <a href="javascript:void(0)" class="click_to_favorite_add_remove" data-listing_id="{{ $ad->id }}">
+                <i class="lar la-heart icon favorite_add_icon"></i>
+            </a>
+        </div>
+        <a href="{{ route('ad.details.page', $ad->uid) }}" class="main-card-image">
+            <img src="{{ asset(getFilePath($ad->thumbnail_image)) }}" alt="{{ $ad->title }}" />
+        </a>
+    </div>
+    <div class="listing-body">
+        <div class="card-body-top">
+            <h4>
+                <a href="{{ route('ad.details.page', $ad->uid) }}"
+                    class="featureTittle head4 twoLine">{{ $ad->title }}</a>
+            </h4>
+        </div>
+
+        <p class="listing-title d-flex align-items-center gap-1">
+            <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M5.99984 7.83332C5.99984 8.36376 6.21055 8.87246 6.58562 9.24754C6.9607 9.62261 7.4694 9.83332 7.99984 9.83332C8.53027 9.83332 9.03898 9.62261 9.41405 9.24754C9.78912 8.87246 9.99984 8.36376 9.99984 7.83332C9.99984 7.30289 9.78912 6.79418 9.41405 6.41911C9.03898 6.04404 8.53027 5.83332 7.99984 5.83332C7.4694 5.83332 6.9607 6.04404 6.58562 6.41911C6.21055 6.79418 5.99984 7.30289 5.99984 7.83332Z"
+                    stroke="#64748B" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M11.7712 11.6047L8.94251 14.4333C8.6925 14.6831 8.35356 14.8234 8.00017 14.8234C7.64678 14.8234 7.30785 14.6831 7.05784 14.4333L4.22851 11.6047C3.48265 10.8588 2.97473 9.90845 2.76896 8.8739C2.5632 7.83934 2.66883 6.767 3.07251 5.79247C3.47618 4.81795 4.15977 3.98501 5.03683 3.39899C5.91388 2.81297 6.94502 2.50018 7.99984 2.50018C9.05466 2.50018 10.0858 2.81297 10.9629 3.39899C11.8399 3.98501 12.5235 4.81795 12.9272 5.79247C13.3308 6.767 13.4365 7.83934 13.2307 8.8739C13.0249 9.90845 12.517 10.8588 11.7712 11.6047Z"
+                    stroke="#64748B" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span
+                class="oneLine">{{ $ad->cityInfo ? $ad->cityInfo->translation('name') . ', ' . $ad->stateInfo?->translation('name') : 'Unknown Location' }}</span>
+        </p>
+
+        @if ($ad->is_featured == config('settings.general_status.active'))
+            <div class="btn-wrapper">
+                <span class="pro-btn2">
+                    <svg width="7" height="10" viewBox="0 0 7 10" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 0V3.88889H7L3 10V6.11111H0L4 0Z" fill="white" />
+                    </svg> FEATURED
+                </span>
+            </div>
+        @endif
+
+        <span class="listing-pricing d-flex justify-content-between align-items-center">
+            <span class="money">{{ format_amount($ad->price) }}</span>
+            <span class="date">
+                {{ $ad->created_at->diffForHumans() }}
+            </span>
+        </span>
+    </div>
+</div>
