@@ -6,19 +6,19 @@ services:
     build:
       context: ./docker/php
       dockerfile: Dockerfile
-    image: laravel_app:latest
-    container_name: app
+    image: alborada_app:latest
+    container_name: alborada_app
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
     depends_on:
       - db
     networks:
-      - classified
+      - alborada
 
   web:
     image: nginx:1.25-alpine
-    container_name: nginx
+    container_name: alborada_nginx
     ports:
       - "8080:80"
     volumes:
@@ -27,36 +27,36 @@ services:
     depends_on:
       - app
     networks:
-      - classified
+      - alborada
 
   db:
     image: mysql:8.0
-    container_name: mysql
+    container_name: alborada_mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: classified
-      MYSQL_USER: classified
+      MYSQL_DATABASE: alborada
+      MYSQL_USER: alborada
       MYSQL_PASSWORD: secret
     volumes:
       - dbdata:/var/lib/mysql
     ports:
       - "3306:3306"
     networks:
-      - classified
+      - alborada
 
   composer:
     image: composer:2
-    container_name: composer
+    container_name: alborada_composer
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
     networks:
-      - classified
+      - alborada
 
 volumes:
   dbdata:
 
 networks:
-  classified:
+  alborada:
     driver: bridge
