@@ -1,0 +1,72 @@
+Alborada Box IPTV Platform Feature List
+1. Website & Client Portal
+- Landing page with pricing, features, and CTA
+ - User registration & authentication
+ - Profile management
+ - Subscription dashboard
+ - Active/expired plans view
+ - Download instructions (apps & codes)
+ - FAQ and guides section
+ - Support ticket system
+2. Subscription & Plans
+- Multiple pricing plans (monthly, quarterly, yearly)
+ - Multi-connection support (2–4 devices)
+ - Upgrade/downgrade plans
+ - Trial support (optional)
+ - Expiry tracking
+3. Payment & Billing
+- Stripe payment gateway
+ - Automated invoicing
+ - Payment confirmation emails
+ - Auto-renewal system
+ - Webhook integration
+ - Payment links via email
+4. WHMCS Integration
+- Automated account provisioning
+ - Client management sync
+ - Invoice and billing sync
+ - API integration with Laravel
+5. IPTV Integration
+- Xtream Codes API integration
+ - M3U playlist support
+ - User line creation
+ - Status sync (active/expired)
+ - EPG (Electronic Program Guide) integration
+ - Categories: Live TV, Movies, Series
+6. Streaming Features
+- Adaptive bitrate (4K, HD, SD)
+ - Anti-freeze streaming
+ - Fast channel switching
+ - Catch-up TV (7 days)
+ - DVR recording support
+ - Multi-screen streaming (2–4)
+ - VPN compatibility
+7. App Compatibility
+- XCIPTV
+ - IPTV Smarters / Smarters Pro
+ - IBO Player
+ - TiviMate
+ - Smart TVs & Firestick support
+8. Reseller System
+- Reseller account creation
+ - Credit-based system
+ - Sub-user management
+ - Usage tracking
+ - Pricing control
+ - API-based automation
+
+9. Admin Panel
+- User management
+ - Subscription control
+ - Package configuration
+ - Payment logs
+ - API logs
+ - Manual overrides (activate/suspend users)
+ - Reports & analytics
+10. Email & Notifications
+ - SMTP integration
+ - Welcome email with credentials
+ - Payment confirmation emails
+ - Renewal reminders
+ - Expiry alerts
+
