@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
         rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
             --bg: #060608;
@@ -525,6 +526,7 @@
 
         .sec-label {
             display: inline-flex;
+            justify-content: center;
             align-items: center;
             gap: 8px;
             font-size: 0.75rem;
@@ -532,7 +534,7 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: var(--green);
-            margin-bottom: 16px;
+            margin: 0 auto 18px;
         }
 
         .sec-label::before {
@@ -560,6 +562,16 @@
             letter-spacing: -0.04em;
             line-height: 1.05;
             max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .sec-head p {
+            max-width: 680px;
+        }
+
+        .cta-banner .sec-label {
+            justify-content: center;
+            margin-bottom: 18px;
         }
 
         .sec-head p {
@@ -2429,6 +2441,7 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Hamburger menu
