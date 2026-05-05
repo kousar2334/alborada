@@ -14,7 +14,9 @@ use App\Http\Controllers\Backend\LanguageController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\NewsletterController;
 
-Route::get('/', [PageController::class, 'homePage'])->name('home');
+Route::get('/', function () {
+    return view('frontend.pages.home-iptv');
+})->name('home');
 Route::get('/contact', [ContactController::class, 'contactPage'])->name('contact');
 Route::post('/contact/send', [ContactController::class, 'sendMessage'])->name('contact.send');
 

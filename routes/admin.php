@@ -81,14 +81,13 @@ Route::prefix('admin')->group(function () {
         });
 
         /**
-
-        /**
-     * Media Management (shared picker — requires at least media view access)
-     */
-    Route::post('/upload-media-file', [MediaController::class, 'uploadMediaFile'])->name('upload.media.file')
-        ->middleware('can:Manage Media');
-    Route::post('/media-items-list', [MediaController::class, 'mediaList'])->name('media.file.list')
-        ->middleware('can:Manage Media');
-    Route::post('/selected-media-details', [MediaController::class, 'selectedMediaDetails'])->name('media.selected.file.details')
-        ->middleware('can:Manage Media');
+         * Media Management (shared picker — requires at least media view access)
+         */
+        Route::post('/upload-media-file', [MediaController::class, 'uploadMediaFile'])->name('upload.media.file')
+            ->middleware('can:Manage Media');
+        Route::post('/media-items-list', [MediaController::class, 'mediaList'])->name('media.file.list')
+            ->middleware('can:Manage Media');
+        Route::post('/selected-media-details', [MediaController::class, 'selectedMediaDetails'])->name('media.selected.file.details')
+            ->middleware('can:Manage Media');
+    });
 });
