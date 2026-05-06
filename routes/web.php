@@ -10,6 +10,8 @@ use App\Http\Controllers\Frontend\MemberAuthController;
 use App\Http\Controllers\Frontend\MessageController;
 use App\Http\Controllers\Frontend\AccountController;
 use App\Http\Controllers\Frontend\SubscriptionController;
+use App\Http\Controllers\Frontend\ResellerAuthController;
+use App\Http\Controllers\Frontend\ResellerController;
 use App\Http\Controllers\Backend\LanguageController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\NewsletterController;
@@ -113,4 +115,36 @@ Route::group(['middleware' => ['auth']], function () {
     Route::post('/membership/bank-payment', [SubscriptionController::class, 'bankPayment'])->name('membership.bank.payment');
     Route::post('/membership/initiate-payment', [SubscriptionController::class, 'initiatePayment'])->name('membership.initiate.payment');
 });
+// ── Customer Portal (alias routes for member system) ──────────────────────────
+Route::get('/customer/login', [MemberAuthController::class, 'memberLoginPage'])->name('customer.login')->middleware('guest');
+Route::get('/customer/register', [MemberAuthController::class, 'memberRegisterPage'])->name('customer.register')->middleware('guest');
+Route::get('/customer/dashboard', [MemberAuthController::class, 'memberDashboard'])->name('customer.dashboard')->middleware(['auth', 'customer']);
+
+// ── Reseller Portal ────────────────────────────────────────────────────────────
+Route::prefix('reseller')->group(function () {
+
+    // Guest-only auth
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [ResellerAuthController::class, 'loginPage'])->name('reseller.login');
+        Route::post('/login', [ResellerAuthController::class, 'loginAttempt'])->name('reseller.login.attempt');
+        Route::get('/register', [ResellerAuthController::class, 'registerPage'])->name('reseller.register');
+        Route::post('/register', [ResellerAuthController::class, 'register'])->name('reseller.register.submit');
+        Route::get('/forgot-password', [ResellerAuthController::class, 'forgotPasswordPage'])->name('reseller.forgot.password');
+        Route::post('/forgot-password', [ResellerAuthController::class, 'forgotPassword'])->name('reseller.forgot.password.submit');
+        Route::get('/reset-password/{token}', [ResellerAuthController::class, 'resetPasswordPage'])->name('reseller.reset.password');
+        Route::post('/reset-password', [ResellerAuthController::class, 'resetPassword'])->name('reseller.reset.password.submit');
+    });
+
+    // Authenticated reseller routes
+    Route::middleware(['auth', 'reseller'])->group(function () {
+        Route::get('/logout', [ResellerAuthController::class, 'logout'])->name('reseller.logout');
+        Route::get('/dashboard', [ResellerController::class, 'dashboard'])->name('reseller.dashboard');
+        Route::get('/clients', [ResellerController::class, 'clients'])->name('reseller.clients');
+        Route::post('/clients/add', [ResellerController::class, 'addClient'])->name('reseller.clients.add');
+        Route::get('/account', [ResellerController::class, 'account'])->name('reseller.account');
+        Route::put('/account/profile', [ResellerController::class, 'updateAccount'])->name('reseller.account.update');
+        Route::put('/account/password', [ResellerController::class, 'updatePassword'])->name('reseller.account.password');
+    });
+});
+
 require __DIR__ . '/admin.php';

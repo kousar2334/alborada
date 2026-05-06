@@ -81,6 +81,27 @@ Route::prefix('admin')->group(function () {
         });
 
         /**
+         * PRICING PLANS MODULE
+         */
+        Route::prefix('pricing-plans')->group(function () {
+            Route::get('/', [PricingPlanController::class, 'index'])->name('admin.pricing.plans.list');
+            Route::post('store', [PricingPlanController::class, 'store'])->name('admin.pricing.plans.store');
+            Route::post('edit', [PricingPlanController::class, 'edit'])->name('admin.pricing.plans.edit');
+            Route::post('update', [PricingPlanController::class, 'update'])->name('admin.pricing.plans.update');
+            Route::post('delete', [PricingPlanController::class, 'destroy'])->name('admin.pricing.plans.delete');
+        });
+
+        /**
+         * SUBSCRIPTIONS MODULE
+         */
+        Route::prefix('subscriptions')->group(function () {
+            Route::get('/', [SubscriptionController::class, 'index'])->name('admin.subscriptions.list');
+            Route::post('approve', [SubscriptionController::class, 'approve'])->name('admin.subscriptions.approve');
+            Route::post('reject', [SubscriptionController::class, 'reject'])->name('admin.subscriptions.reject');
+            Route::post('delete', [SubscriptionController::class, 'delete'])->name('admin.subscriptions.delete');
+        });
+
+        /**
          * Media Management (shared picker — requires at least media view access)
          */
         Route::post('/upload-media-file', [MediaController::class, 'uploadMediaFile'])->name('upload.media.file')

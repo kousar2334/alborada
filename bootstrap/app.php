@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\IsAdmin::class,
+            'admin'    => \App\Http\Middleware\IsAdmin::class,
+            'customer' => \App\Http\Middleware\IsCustomer::class,
+            'reseller' => \App\Http\Middleware\IsReseller::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             '/ad/impression',

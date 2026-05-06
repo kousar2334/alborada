@@ -5,8 +5,10 @@ return [
         'in_active' => 0,
     ],
     'user_type' => [
-        'admin'   => 1,
-        'member' => 2,
+        'admin'    => 1,
+        'member'   => 2,
+        'customer' => 2,
+        'reseller' => 3,
     ],
     'blog_status' => [
         'publish'   => 1,

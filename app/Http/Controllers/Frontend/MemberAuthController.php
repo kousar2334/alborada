@@ -46,7 +46,7 @@ class MemberAuthController extends Controller
             $user->password = Hash::make($request['password']);
             $user->save();
             toastNotification('success', 'Registration Completed', 'Success');
-            return to_route('member.login');
+            return to_route('customer.login');
         } catch (\Exception $e) {
             toastNotification('error', 'Registration failed', 'Error');
             return redirect()->back();
@@ -90,7 +90,7 @@ class MemberAuthController extends Controller
         $request->session()->regenerate();
 
         toastNotification('success', 'Login Successfully', 'Success');
-        return redirect()->route('member.dashboard');
+        return redirect()->route('customer.dashboard');
     }
 
 
@@ -100,7 +100,7 @@ class MemberAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         toastNotification('success', 'Logout Successfully', 'Success');
-        return to_route('member.login');
+        return to_route('customer.login');
     }
 
     public function forgotPasswordPage()
@@ -150,7 +150,7 @@ class MemberAuthController extends Controller
 
         if ($status === Password::PASSWORD_RESET) {
             toastNotification('success', 'Password reset successfully.', 'Success');
-            return to_route('member.login');
+            return to_route('customer.login');
         }
 
         return back()->withErrors(['email' => __($status)]);
@@ -170,7 +170,7 @@ class MemberAuthController extends Controller
             $socialUser = Socialite::driver($provider)->user();
         } catch (\Exception $e) {
             toastNotification('error', 'Social login failed. Please try again.', 'Error');
-            return to_route('member.login');
+            return to_route('customer.login');
         }
 
         $user = User::where('email', $socialUser->getEmail())->first();
@@ -189,14 +189,14 @@ class MemberAuthController extends Controller
 
         if ($user->status != config('settings.general_status.active')) {
             toastNotification('error', 'Your account is not active. Please contact administration.', 'Error');
-            return to_route('member.login');
+            return to_route('customer.login');
         }
 
         Auth::login($user, true);
         request()->session()->regenerate();
 
         toastNotification('success', 'Login Successfully', 'Success');
-        return to_route('member.dashboard');
+        return to_route('customer.dashboard');
     }
 
     public function memberDashboard(Request $request)

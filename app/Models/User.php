@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Ad;
+use App\Models\UserSubscription;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
@@ -26,8 +27,10 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'company_name',
         'type',
         'status',
+        'reseller_id',
         'social_provider',
         'social_id',
     ];
@@ -54,5 +57,25 @@ class User extends Authenticatable
     public function ads(): HasMany
     {
         return $this->hasMany(Ad::class, 'user_id');
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(UserSubscription::class, 'user_id');
+    }
+
+    public function resellerClients(): HasMany
+    {
+        return $this->hasMany(User::class, 'reseller_id');
+    }
+
+    public function isReseller(): bool
+    {
+        return $this->type === config('settings.user_type.reseller');
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->type === config('settings.user_type.customer');
     }
 }

@@ -9,7 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
         rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/web-assets/frontend/css/bootstrap.css" rel="stylesheet">
     <style>
         :root {
             --bg: #060608;
@@ -1895,6 +1895,613 @@
 
             .footer-col {}
         }
+
+        /* ─────────────────── NAV AUTH & RESELLER ─────────────────── */
+        .nav-auth {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .nav-link-reseller {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--green);
+            letter-spacing: 0.01em;
+            transition: color 0.2s;
+            padding: 0 4px;
+        }
+
+        .nav-link-reseller:hover { color: #00f07a; }
+
+        /* ─────────────────── PRICING TOGGLE ─────────────────── */
+        .pricing-toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--surface-2);
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            padding: 4px;
+            margin: 0 auto 40px;
+            width: fit-content;
+        }
+
+        .ptoggle-btn {
+            padding: 9px 22px;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: all 0.22s;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .ptoggle-btn.active {
+            background: var(--surface-3);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        }
+
+        .ptoggle-badge {
+            position: absolute;
+            top: -9px;
+            right: -4px;
+            background: var(--green);
+            color: #020a05;
+            font-size: 0.56rem;
+            font-weight: 800;
+            padding: 2px 5px;
+            border-radius: 999px;
+            letter-spacing: 0.06em;
+            line-height: 1.4;
+        }
+
+        .plan-savings {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,212,106,0.25);
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 0.06em;
+            margin-top: 6px;
+        }
+
+        .trial-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            background: rgba(232,0,10,0.1);
+            border: 1px solid rgba(232,0,10,0.25);
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #ff5a60;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .plan-expiry-note {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 14px;
+        }
+
+        .plan-expiry-note .expiry-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            flex-shrink: 0;
+        }
+
+        /* ─────────────────── PORTAL PREVIEW ─────────────────── */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 56px;
+            align-items: center;
+        }
+
+        .portal-mock {
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .portal-mock-bar {
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mock-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .mock-dot.red   { background: #e8000a; opacity: 0.7; }
+        .mock-dot.amber { background: #f59e0b; opacity: 0.7; }
+        .mock-dot.green { background: var(--green); opacity: 0.7; }
+
+        .mock-bar-label {
+            margin-left: 8px;
+            font-size: 0.75rem;
+            color: var(--muted-2);
+            font-weight: 500;
+        }
+
+        .portal-mock-body {
+            padding: 20px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .mock-stat-row {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+
+        .mock-stat-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+
+        .mock-stat-val {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.3rem;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .mock-stat-label {
+            font-size: 0.67rem;
+            color: var(--muted-2);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .mock-plan-row {
+            background: var(--surface-2);
+            border: 1px solid rgba(0,212,106,0.22);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mock-plan-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .mock-plan-exp { font-size: 0.75rem; color: var(--muted); }
+
+        .mock-plan-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,212,106,0.25);
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--green);
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .mock-plan-status::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 1.4s ease-in-out infinite;
+        }
+
+        .mock-m3u-row {
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .mock-m3u-label {
+            font-size: 0.7rem;
+            color: var(--muted-2);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .mock-m3u-url {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--green);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+
+        .mock-copy-btn {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 7px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface-2);
+            color: var(--muted);
+            cursor: default;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .portal-feature-list {
+            list-style: none;
+            display: grid;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .portal-feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .portal-feature-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--green-dim);
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .portal-feature-text strong {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .portal-feature-text span {
+            font-size: 0.83rem;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        /* ─────────────────── SETUP GUIDE ─────────────────── */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 18px;
+            margin-bottom: 36px;
+        }
+
+        .setup-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .setup-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-4px);
+        }
+
+        .setup-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--red-dim);
+            color: var(--red);
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .setup-platform-icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .setup-card h4 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .setup-steps-list {
+            list-style: none;
+            display: grid;
+            gap: 7px;
+        }
+
+        .setup-steps-list li {
+            font-size: 0.82rem;
+            color: var(--muted);
+            padding-left: 14px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .setup-steps-list li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .setup-cta-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* ─────────────────── RESELLER ─────────────────── */
+        .reseller-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 56px;
+            align-items: start;
+        }
+
+        .reseller-feat-list {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 36px;
+        }
+
+        .reseller-feat {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .reseller-feat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--red-dim);
+            color: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .reseller-feat-icon.g {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .reseller-feat-text strong {
+            display: block;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .reseller-feat-text p {
+            font-size: 0.83rem;
+            color: var(--muted);
+            line-height: 1.7;
+            font-weight: 300;
+            margin: 0;
+        }
+
+        .reseller-mock {
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .reseller-mock-header {
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .reseller-mock-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .reseller-credit-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: var(--green-dim);
+            border: 1px solid rgba(0,212,106,0.25);
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--green);
+            font-family: 'Syne', sans-serif;
+        }
+
+        .reseller-mock-body {
+            padding: 20px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .reseller-sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            transition: border-color 0.3s;
+        }
+
+        .reseller-sub-row:hover { border-color: var(--border-strong); }
+
+        .reseller-sub-name {
+            font-size: 0.83rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 1px;
+        }
+
+        .reseller-sub-expiry { font-size: 0.72rem; color: var(--muted-2); }
+
+        .reseller-status-active,
+        .reseller-status-exp {
+            display: inline-flex;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+
+        .reseller-status-active { background: var(--green-dim); color: var(--green); }
+        .reseller-status-exp    { background: var(--red-dim); color: #ff5a60; }
+
+        .reseller-mock-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reseller-api-note {
+            font-size: 0.75rem;
+            color: var(--muted-2);
+            font-family: monospace;
+        }
+
+        /* ─────────────────── RESPONSIVE: NEW SECTIONS ─────────────────── */
+        @media (max-width: 1100px) {
+            .portal-grid  { gap: 36px; }
+            .reseller-grid { gap: 36px; }
+        }
+
+        @media (max-width: 1024px) {
+            .portal-grid  { grid-template-columns: 1fr; gap: 40px; }
+            .setup-grid   { grid-template-columns: repeat(2,1fr); }
+            .reseller-grid { grid-template-columns: 1fr; gap: 40px; }
+
+            .nav-auth { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .mock-stat-row { grid-template-columns: repeat(3,1fr); }
+            .mock-m3u-url  { max-width: 120px; }
+            .setup-grid    { grid-template-columns: 1fr; }
+            .setup-cta-row { flex-direction: column; }
+            .setup-cta-row .btn { width: 100%; max-width: 320px; justify-content: center; }
+            .portal-feature-list li { gap: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .mock-stat-row { grid-template-columns: repeat(2,1fr); }
+            .pricing-toggle-wrap { flex-wrap: wrap; justify-content: center; }
+        }
+
+        /* ─────────────────── FOOTER 4 COLUMNS ─────────────────── */
+        .footer-grid {
+            grid-template-columns: 1.4fr repeat(3, 1fr) !important;
+        }
+
+        @media (max-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .footer-grid > div:first-child {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 </head>
 
@@ -1914,10 +2521,15 @@
                     <li><a href="#pricing">Pricing</a></li>
                     <li><a href="#devices">Devices</a></li>
                     <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#reseller" class="nav-link-reseller">Reseller</a></li>
                 </ul>
                 <div class="nav-ctas">
+                    <div class="nav-auth">
+                        <a href="{{ route('customer.login') }}" class="btn btn-ghost">Login</a>
+                        <a href="{{ route('customer.register') }}" class="btn btn-ghost">Register</a>
+                    </div>
                     <a href="#pricing" class="btn btn-ghost">View Plans</a>
-                    <a href="#pricing" class="btn btn-primary">Start Free Trial</a>
+                    <a href="{{ route('customer.register') }}" class="btn btn-primary">Start Free Trial</a>
                 </div>
                 <button class="hamburger" id="hamburger" aria-label="Open menu">
                     <span></span><span></span><span></span>
@@ -1933,10 +2545,12 @@
         <a href="#pricing" class="mobile-nav-link">Pricing</a>
         <a href="#devices" class="mobile-nav-link">Devices</a>
         <a href="#faq" class="mobile-nav-link">FAQ</a>
+        <a href="#reseller" class="mobile-nav-link" style="color:var(--green);">Reseller</a>
         <div class="mobile-menu-ctas">
-            <a href="#pricing" class="btn btn-outline btn-lg" style="width:100%;justify-content:center;">View Plans</a>
-            <a href="#pricing" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Start Free
-                Trial</a>
+            <a href="{{ route('customer.login') }}" class="btn btn-ghost btn-lg" style="width:100%;justify-content:center;">Login</a>
+            <a href="{{ route('customer.register') }}" class="btn btn-outline btn-lg" style="width:100%;justify-content:center;">Register</a>
+            <a href="#pricing" class="btn btn-ghost btn-lg" style="width:100%;justify-content:center;">View Plans</a>
+            <a href="{{ route('customer.register') }}" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">Start Free Trial</a>
         </div>
     </div>
 
@@ -2138,64 +2752,94 @@
                     <p>Choose the package that matches your needs. Instant activation. Cancel any time.</p>
                 </div>
 
-                <div class="pricing-grid">
+                <!-- Billing toggle -->
+                <div class="pricing-toggle-wrap" id="pricingToggle">
+                    <button class="ptoggle-btn active" data-period="monthly">Monthly</button>
+                    <button class="ptoggle-btn" data-period="quarterly">
+                        Quarterly <span class="ptoggle-badge">SAVE 15%</span>
+                    </button>
+                    <button class="ptoggle-btn" data-period="yearly">
+                        Yearly <span class="ptoggle-badge">SAVE 33%</span>
+                    </button>
+                </div>
+
+                <div class="pricing-grid" id="pricingGrid">
                     <!-- Basic -->
-                    <div class="price-card">
+                    <div class="price-card" data-plan="basic">
                         <div class="plan-badge basic">Basic</div>
                         <div class="plan-name">1 Device</div>
                         <div class="plan-price-row">
                             <div class="plan-price">$11<span style="font-size:1.6rem">.99</span></div>
                             <div class="plan-period">/ month</div>
                         </div>
+                        <div class="plan-savings" style="display:none;"></div>
                         <div class="plan-desc">Perfect for solo viewers who want the full library.</div>
                         <div class="plan-divider"></div>
                         <ul class="plan-features">
                             <li><span class="check">✓</span> 40K+ live channels</li>
-                            <li><span class="check">✓</span> 150K+ movies & series</li>
-                            <li><span class="check">✓</span> HD & 4K quality</li>
+                            <li><span class="check">✓</span> 150K+ movies &amp; series</li>
+                            <li><span class="check">✓</span> HD &amp; 4K quality</li>
                             <li><span class="check">✓</span> Standard support</li>
+                            <li><span class="check">✓</span> 1 concurrent screen</li>
                         </ul>
-                        <a href="#" class="btn btn-outline"
+                        <div class="plan-expiry-note">
+                            <span class="expiry-dot"></span> Expiry tracked in your dashboard
+                        </div>
+                        <div class="plan-divider"></div>
+                        <a href="{{ route('customer.register') }}" class="btn btn-outline"
                             style="width:100%; border-radius:12px; padding:13px;">Order Now</a>
                     </div>
 
                     <!-- Popular -->
-                    <div class="price-card featured">
+                    <div class="price-card featured" data-plan="popular">
+                        <div class="trial-badge">★ 7-Day Free Trial Available</div>
                         <div class="plan-badge popular">★ Most Popular</div>
                         <div class="plan-name">2 Devices</div>
                         <div class="plan-price-row">
                             <div class="plan-price">$19<span style="font-size:1.6rem">.99</span></div>
                             <div class="plan-period">/ month</div>
                         </div>
+                        <div class="plan-savings" style="display:none;"></div>
                         <div class="plan-desc">Ideal for couples or small households with multiple screens.</div>
                         <div class="plan-divider"></div>
                         <ul class="plan-features">
                             <li><span class="check">✓</span> All Basic features</li>
                             <li><span class="check">✓</span> Dual-screen streaming</li>
-                            <li><span class="check">✓</span> HD & 4K quality</li>
+                            <li><span class="check">✓</span> HD &amp; 4K quality</li>
                             <li><span class="check">✓</span> Priority support</li>
+                            <li><span class="check">✓</span> 2 concurrent screens</li>
                         </ul>
-                        <a href="#" class="btn btn-green"
+                        <div class="plan-expiry-note">
+                            <span class="expiry-dot"></span> Expiry tracked in your dashboard
+                        </div>
+                        <div class="plan-divider"></div>
+                        <a href="{{ route('customer.register') }}" class="btn btn-green"
                             style="width:100%; border-radius:12px; padding:13px;">Choose Plan</a>
                     </div>
 
                     <!-- Pro -->
-                    <div class="price-card">
+                    <div class="price-card" data-plan="pro">
                         <div class="plan-badge pro">Pro</div>
                         <div class="plan-name">4 Devices</div>
                         <div class="plan-price-row">
                             <div class="plan-price">$29<span style="font-size:1.6rem">.99</span></div>
                             <div class="plan-period">/ month</div>
                         </div>
+                        <div class="plan-savings" style="display:none;"></div>
                         <div class="plan-desc">Full household and business-ready multi-screen streaming.</div>
                         <div class="plan-divider"></div>
                         <ul class="plan-features">
                             <li><span class="check">✓</span> 4 concurrent streams</li>
                             <li><span class="check">✓</span> Advanced packages</li>
-                            <li><span class="check">✓</span> HD & 4K quality</li>
+                            <li><span class="check">✓</span> HD &amp; 4K quality</li>
                             <li><span class="check">✓</span> Business-grade service</li>
+                            <li><span class="check">✓</span> 4 concurrent screens</li>
                         </ul>
-                        <a href="#" class="btn btn-primary"
+                        <div class="plan-expiry-note">
+                            <span class="expiry-dot"></span> Expiry tracked in your dashboard
+                        </div>
+                        <div class="plan-divider"></div>
+                        <a href="{{ route('customer.register') }}" class="btn btn-primary"
                             style="width:100%; border-radius:12px; padding:13px;">Get Started</a>
                     </div>
                 </div>
@@ -2256,6 +2900,98 @@
 
         <div class="section-divider"></div>
 
+        <!-- ── PORTAL PREVIEW ── -->
+        <section id="portal">
+            <div class="wrap">
+                <div class="sec-label">Client Portal</div>
+                <div class="portal-grid">
+                    <!-- Mock dashboard -->
+                    <div class="portal-mock">
+                        <div class="portal-mock-bar">
+                            <div class="mock-dot red"></div>
+                            <div class="mock-dot amber"></div>
+                            <div class="mock-dot green"></div>
+                            <span class="mock-bar-label">dashboard.alborada.tv</span>
+                        </div>
+                        <div class="portal-mock-body">
+                            <div class="mock-stat-row">
+                                <div class="mock-stat-card">
+                                    <div class="mock-stat-val" style="color:var(--green)">Active</div>
+                                    <div class="mock-stat-label">Plan Status</div>
+                                </div>
+                                <div class="mock-stat-card">
+                                    <div class="mock-stat-val">2</div>
+                                    <div class="mock-stat-label">Screens</div>
+                                </div>
+                                <div class="mock-stat-card">
+                                    <div class="mock-stat-val">47d</div>
+                                    <div class="mock-stat-label">Remaining</div>
+                                </div>
+                            </div>
+                            <div class="mock-plan-row">
+                                <div>
+                                    <div class="mock-plan-name">2 Devices — Quarterly</div>
+                                    <div class="mock-plan-exp">Expires: Aug 22, 2026</div>
+                                </div>
+                                <div class="mock-plan-status">Live</div>
+                            </div>
+                            <div class="mock-m3u-row">
+                                <div>
+                                    <div class="mock-m3u-label">M3U Playlist URL</div>
+                                    <div class="mock-m3u-url">http://stream.alborada.tv/get.php?username=…</div>
+                                </div>
+                                <button class="mock-copy-btn">Copy</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Feature list -->
+                    <div>
+                        <div class="sec-head" style="align-items:flex-start;text-align:left;margin-bottom:28px;">
+                            <h2>Your streaming portal, all in one place</h2>
+                            <p>Log in to manage active subscriptions, copy your M3U codes, track expiry dates, and open support tickets — from one clean dashboard.</p>
+                        </div>
+                        <ul class="portal-feature-list">
+                            <li>
+                                <div class="portal-feature-icon">👤</div>
+                                <div class="portal-feature-text">
+                                    <strong>Profile &amp; Account</strong>
+                                    <span>Update your email, password and contact details any time.</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="portal-feature-icon">📋</div>
+                                <div class="portal-feature-text">
+                                    <strong>Subscription History</strong>
+                                    <span>See active, expired and past plans with full expiry tracking.</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="portal-feature-icon">🔗</div>
+                                <div class="portal-feature-text">
+                                    <strong>M3U &amp; Credentials</strong>
+                                    <span>Instantly copy your M3U URL and login credentials to any player.</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="portal-feature-icon">🎧</div>
+                                <div class="portal-feature-text">
+                                    <strong>Support Tickets</strong>
+                                    <span>Submit and track support requests directly from your account.</span>
+                                </div>
+                            </li>
+                        </ul>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                            <a href="{{ route('customer.login') }}" class="btn btn-primary btn-lg">Login to Portal</a>
+                            <a href="{{ route('customer.register') }}" class="btn btn-ghost btn-lg">Create Account</a>
+                            <a href="{{ route('reseller.login') }}" class="btn btn-outline btn-lg" style="border-color:rgba(0,212,106,.4);color:#00d46a;">Reseller Login</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
         <!-- ── DEVICES ── -->
         <section id="devices">
             <div class="wrap">
@@ -2285,6 +3021,58 @@
                         <h4>Desktop</h4>
                         <p>VLC, Kodi, TiviMate and all major IPTV players.</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <!-- ── SETUP GUIDE ── -->
+        <section id="setup">
+            <div class="wrap">
+                <div class="sec-label">Download &amp; Setup</div>
+                <div class="sec-head centered">
+                    <h2>Get streaming in three steps</h2>
+                    <p>Works with every IPTV player. Your M3U code is ready the moment your subscription activates.</p>
+                </div>
+                <div class="setup-grid">
+                    <div class="setup-card">
+                        <span class="setup-platform-icon">📱</span>
+                        <div class="setup-step-num">01</div>
+                        <h4>TiviMate — Android &amp; Firestick</h4>
+                        <ul class="setup-steps-list">
+                            <li>Install TiviMate from Play Store or Firestick store</li>
+                            <li>Open app → Add Playlist → M3U URL</li>
+                            <li>Paste your Alborada M3U link from the portal</li>
+                            <li>Tap Finish — channels load automatically</li>
+                        </ul>
+                    </div>
+                    <div class="setup-card">
+                        <span class="setup-platform-icon">🖥️</span>
+                        <div class="setup-step-num">02</div>
+                        <h4>VLC / Kodi — Desktop &amp; Mac</h4>
+                        <ul class="setup-steps-list">
+                            <li>Open VLC → Media → Open Network Stream</li>
+                            <li>Paste your M3U URL and press Play</li>
+                            <li>For Kodi: use PVR IPTV Simple Client addon</li>
+                            <li>Enter M3U URL in addon settings and enable</li>
+                        </ul>
+                    </div>
+                    <div class="setup-card">
+                        <span class="setup-platform-icon">📺</span>
+                        <div class="setup-step-num">03</div>
+                        <h4>Smart TV — Samsung &amp; LG</h4>
+                        <ul class="setup-steps-list">
+                            <li>Install Smart IPTV app from your TV app store</li>
+                            <li>Visit siptv.eu on a computer</li>
+                            <li>Enter your TV MAC address and M3U URL</li>
+                            <li>Reload the app — your channels appear</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="setup-cta-row" style="justify-content:center;">
+                    <a href="{{ route('contact') }}" class="btn btn-ghost btn-lg">Contact Support for Help</a>
+                    <a href="{{ route('customer.login') }}" class="btn btn-outline btn-lg">Get My M3U Code</a>
                 </div>
             </div>
         </section>
@@ -2381,6 +3169,97 @@
             </div>
         </section>
 
+        <div class="section-divider"></div>
+
+        <!-- ── RESELLER ── -->
+        <section id="reseller">
+            <div class="wrap">
+                <div class="sec-label">Reseller Program</div>
+                <div class="reseller-grid">
+                    <!-- Features -->
+                    <div>
+                        <div class="sec-head" style="align-items:flex-start;text-align:left;margin-bottom:28px;">
+                            <h2>Grow a business on our infrastructure</h2>
+                            <p>Buy credits, provision sub-accounts for your clients, and manage everything from one reseller dashboard. REST API access included.</p>
+                        </div>
+                        <div class="reseller-feat-list">
+                            <div class="reseller-feat">
+                                <div class="reseller-feat-icon">💳</div>
+                                <div class="reseller-feat-text">
+                                    <strong>Credit-Based System</strong>
+                                    <p>Top up your reseller wallet. Each subscription you create deducts credits — no monthly fees, no surprise invoices.</p>
+                                </div>
+                            </div>
+                            <div class="reseller-feat">
+                                <div class="reseller-feat-icon g">👥</div>
+                                <div class="reseller-feat-text">
+                                    <strong>Sub-User Management</strong>
+                                    <p>Create, renew and suspend client accounts from your panel. Full visibility on active vs. expired lines.</p>
+                                </div>
+                            </div>
+                            <div class="reseller-feat">
+                                <div class="reseller-feat-icon">⚙️</div>
+                                <div class="reseller-feat-text">
+                                    <strong>API Automation</strong>
+                                    <p>Use our REST API to automate provisioning, renewals and status checks. Build your own front-end on top.</p>
+                                </div>
+                            </div>
+                            <div class="reseller-feat">
+                                <div class="reseller-feat-icon g">📈</div>
+                                <div class="reseller-feat-text">
+                                    <strong>Bulk Pricing Tiers</strong>
+                                    <p>Higher credit top-ups unlock better wholesale rates — the more you sell, the lower your cost per line.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ route('reseller.register') }}" class="btn btn-primary btn-lg">Become a Reseller</a>
+                        <a href="{{ route('reseller.login') }}" class="btn btn-ghost btn-lg">Reseller Login</a>
+                    </div>
+                    <!-- Mock reseller panel -->
+                    <div class="reseller-mock">
+                        <div class="reseller-mock-header">
+                            <span class="reseller-mock-title">Reseller Dashboard</span>
+                            <span class="reseller-credit-pill">💳 Credits: 142</span>
+                        </div>
+                        <div class="reseller-mock-body">
+                            <div class="reseller-sub-row">
+                                <div>
+                                    <div class="reseller-sub-name">client_john_doe</div>
+                                    <div class="reseller-sub-expiry">Exp: Jul 15, 2026 · 2 screens</div>
+                                </div>
+                                <span class="reseller-status-active">Active</span>
+                            </div>
+                            <div class="reseller-sub-row">
+                                <div>
+                                    <div class="reseller-sub-name">client_sara_k</div>
+                                    <div class="reseller-sub-expiry">Exp: Jun 30, 2026 · 1 screen</div>
+                                </div>
+                                <span class="reseller-status-active">Active</span>
+                            </div>
+                            <div class="reseller-sub-row">
+                                <div>
+                                    <div class="reseller-sub-name">client_omar_77</div>
+                                    <div class="reseller-sub-expiry">Exp: May 01, 2026 · 4 screens</div>
+                                </div>
+                                <span class="reseller-status-exp">Expired</span>
+                            </div>
+                            <div class="reseller-sub-row">
+                                <div>
+                                    <div class="reseller-sub-name">client_lena_m</div>
+                                    <div class="reseller-sub-expiry">Exp: Aug 12, 2026 · 2 screens</div>
+                                </div>
+                                <span class="reseller-status-active">Active</span>
+                            </div>
+                        </div>
+                        <div class="reseller-mock-footer">
+                            <span class="reseller-api-note">GET /api/reseller/lines</span>
+                            <a href="{{ route('contact') }}" class="btn btn-ghost" style="font-size:0.78rem;padding:7px 14px;">Request API Access</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ── CTA ── -->
         <section>
             <div class="wrap">
@@ -2392,8 +3271,8 @@
                         <p>Join thousands of viewers who switched to the most reliable IPTV service available. Instant
                             activation. No contracts.</p>
                         <div class="cta-buttons">
-                            <a href="#pricing" class="btn btn-primary btn-lg">View Plans</a>
-                            <a href="#faq" class="btn btn-outline btn-lg">Read FAQ</a>
+                            <a href="{{ route('pricing.plans') }}" class="btn btn-primary btn-lg">View Plans</a>
+                            <a href="{{ route('contact') }}" class="btn btn-outline btn-lg">Contact Support</a>
                         </div>
                     </div>
                 </div>
@@ -2423,10 +3302,17 @@
                 </div>
                 <div class="footer-col">
                     <h5>Support</h5>
-                    <a href="#">Contact Us</a>
-                    <a href="#">Setup Guide</a>
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Privacy Policy</a>
+                    <a href="{{ route('contact') }}">Contact Us</a>
+                    <a href="#setup">Setup Guide</a>
+                    <a href="#reseller">Reseller Program</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+                <div class="footer-col">
+                    <h5>Account</h5>
+                    <a href="{{ route('customer.login') }}">Login</a>
+                    <a href="{{ route('customer.register') }}">Register</a>
+                    <a href="{{ route('member.dashboard') }}">Dashboard</a>
+                    <a href="{{ route('member.subscriptions') }}">My Subscriptions</a>
                 </div>
             </div>
 
@@ -2441,7 +3327,8 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/web-assets/frontend/js/jquery-3.7.1.min.js"></script>
+    <script src="/web-assets/frontend/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Hamburger menu
@@ -2533,6 +3420,61 @@
                 el => {
                     cardObserver.observe(el);
                 });
+
+            // ── PRICING TOGGLE ──
+            (function() {
+                var pricing = {
+                    monthly: {
+                        basic:   { price: '$11<span style="font-size:1.6rem">.99</span>', period: '/ month', savings: null },
+                        popular: { price: '$19<span style="font-size:1.6rem">.99</span>', period: '/ month', savings: null },
+                        pro:     { price: '$29<span style="font-size:1.6rem">.99</span>', period: '/ month', savings: null }
+                    },
+                    quarterly: {
+                        basic:   { price: '$30<span style="font-size:1.6rem">.57</span>', period: '/ 3 months', savings: 'Save 15%' },
+                        popular: { price: '$50<span style="font-size:1.6rem">.97</span>', period: '/ 3 months', savings: 'Save 15%' },
+                        pro:     { price: '$76<span style="font-size:1.6rem">.47</span>', period: '/ 3 months', savings: 'Save 15%' }
+                    },
+                    yearly: {
+                        basic:   { price: '$96<span style="font-size:1.6rem">.00</span>', period: '/ year', savings: 'Save 33%' },
+                        popular: { price: '$159<span style="font-size:1.6rem">.84</span>', period: '/ year', savings: 'Save 33%' },
+                        pro:     { price: '$239<span style="font-size:1.6rem">.88</span>', period: '/ year', savings: 'Save 33%' }
+                    }
+                };
+
+                function applyPeriod(period) {
+                    ['basic', 'popular', 'pro'].forEach(function(plan) {
+                        var card = document.querySelector('[data-plan="' + plan + '"]');
+                        if (!card) return;
+                        var data      = pricing[period][plan];
+                        var priceEl   = card.querySelector('.plan-price');
+                        var periodEl  = card.querySelector('.plan-period');
+                        var savingsEl = card.querySelector('.plan-savings');
+                        if (priceEl)  priceEl.innerHTML  = data.price;
+                        if (periodEl) periodEl.textContent = data.period;
+                        if (savingsEl) {
+                            if (data.savings) {
+                                savingsEl.textContent  = data.savings;
+                                savingsEl.style.display = 'inline-flex';
+                            } else {
+                                savingsEl.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+
+                var toggleWrap = document.getElementById('pricingToggle');
+                if (toggleWrap) {
+                    var btns = toggleWrap.querySelectorAll('.ptoggle-btn');
+                    btns.forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            btns.forEach(function(b) { b.classList.remove('active'); });
+                            btn.classList.add('active');
+                            applyPeriod(btn.getAttribute('data-period'));
+                        });
+                    });
+                }
+            })();
+
         });
     </script>
 </body>
