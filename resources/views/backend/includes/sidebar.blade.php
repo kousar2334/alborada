@@ -47,6 +47,24 @@
                     </li>
                 @endcan
 
+                {{-- Pricing Plans --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.pricing.plans.list') }}"
+                        class="nav-link {{ Request::routeIs('admin.pricing.plans.list') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-tags"></i>
+                        <p>{{ __tr('Pricing Plans') }}</p>
+                    </a>
+                </li>
+
+                {{-- Subscriptions --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.subscriptions.list') }}"
+                        class="nav-link {{ Request::routeIs('admin.subscriptions.list') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-crown"></i>
+                        <p>{{ __tr('Subscriptions') }}</p>
+                    </a>
+                </li>
+
                 {{-- Media --}}
                 @can('Manage Media')
                     <li class="nav-item">

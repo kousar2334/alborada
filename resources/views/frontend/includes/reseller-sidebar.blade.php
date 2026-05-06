@@ -1,0 +1,65 @@
+<aside class="dashboard-sidebar" id="resellerSidebar">
+
+    <button class="sidebar-close-btn" onclick="toggleSidebar()">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="sidebar-user">
+        @if (auth()->user()->image)
+            <img src="{{ asset(getFilePath(auth()->user()->image)) }}" alt="{{ auth()->user()->name }}"
+                class="sidebar-user-img">
+        @else
+            <div class="sidebar-avatar" style="background:linear-gradient(135deg,#00d46a22,#00d46a44);color:#00d46a;">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </div>
+        @endif
+        <div>
+            <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
+            <div class="sidebar-user-role" style="color:#00d46a;">
+                <i class="fa-solid fa-store" style="font-size:.7rem;"></i> Reseller
+            </div>
+            @if(auth()->user()->company_name)
+                <div style="font-size:0.72rem;color:var(--muted-2);margin-top:2px;">
+                    {{ auth()->user()->company_name }}
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <nav>
+        <ul class="sidebar-menu">
+            <li class="mt-2">
+                <a href="{{ route('reseller.dashboard') }}"
+                    class="{{ Request::routeIs('reseller.dashboard') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-gauge-high"></i></span>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('reseller.clients') }}"
+                    class="{{ Request::routeIs(['reseller.clients', 'reseller.clients.add']) ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-users"></i></span>
+                    My Clients
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('reseller.account') }}"
+                    class="{{ Request::routeIs('reseller.account') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-user-gear"></i></span>
+                    Account
+                </a>
+            </li>
+        </ul>
+
+        <hr class="sidebar-divider">
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('reseller.logout') }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                    Logout
+                </a>
+            </li>
+        </ul>
+    </nav>
+</aside>
