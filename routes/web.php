@@ -58,6 +58,7 @@ Route::get('/ad/custom-fields', [AdController::class, 'getCustomFields'])->name(
 Route::get('/ad/countries', [AdController::class, 'getCountries'])->name('ad.countries');
 Route::get('/ad/states', [AdController::class, 'getStates'])->name('ad.states');
 Route::get('/ad/cities', [AdController::class, 'getCities'])->name('ad.cities');
+Route::get('/products/{category_id?}', fn () => to_route('ad.listing.page'))->name('products.page');
 Route::get('ads/{category_slug?}', [AdController::class, 'adListingPage'])->name('ad.listing.page');
 Route::get('/ads/details/{slug}', [AdController::class, 'adDetailsPage'])->name('ad.details.page');
 
@@ -111,6 +112,7 @@ Route::group(['middleware' => ['auth']], function () {
     // Subscriptions
     Route::get('/member/subscriptions', [SubscriptionController::class, 'mySubscriptions'])->name('member.subscriptions');
     Route::post('/membership/buy', [SubscriptionController::class, 'buy'])->name('membership.buy');
+    Route::get('/membership/buy/free', [SubscriptionController::class, 'buy'])->name('membership.buy.free');
     Route::get('/membership/confirm/{planId}', [SubscriptionController::class, 'confirm'])->name('subscription.confirm');
     Route::post('/membership/bank-payment', [SubscriptionController::class, 'bankPayment'])->name('membership.bank.payment');
     Route::post('/membership/initiate-payment', [SubscriptionController::class, 'initiatePayment'])->name('membership.initiate.payment');
