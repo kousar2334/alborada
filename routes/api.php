@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\UtilityController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ResellerController;
+use App\Http\Middleware\LogApiRequest;
 //api/classified/v1
 Route::group(['prefix' => 'classified/v1'], function () {
     Route::post('parent-categories', [AdsController::class, 'parentCategories']);
@@ -54,4 +56,14 @@ Route::group(['prefix' => 'classified/v1'], function () {
             Route::post('delete', [ChatController::class, 'deleteChat']);
         });
     });
+});
+
+// Reseller API (Sanctum token-based)
+Route::prefix('reseller/v1')->middleware(['auth:sanctum', LogApiRequest::class])->group(function () {
+    Route::get('/clients',            [ResellerController::class, 'listClients']);
+    Route::post('/clients/create',    [ResellerController::class, 'createClient']);
+    Route::post('/clients/suspend',   [ResellerController::class, 'suspendClient']);
+    Route::post('/clients/reactivate',[ResellerController::class, 'reactivateClient']);
+    Route::get('/credits',            [ResellerController::class, 'creditBalance']);
+    Route::get('/plans',              [ResellerController::class, 'availablePlans']);
 });

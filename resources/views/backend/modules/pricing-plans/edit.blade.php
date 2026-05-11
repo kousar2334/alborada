@@ -62,6 +62,57 @@
             </div>
         </div>
 
+        <hr><h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
+
+        <div class="form-row">
+            <div class="form-group col-lg-4">
+                <label class="black font-14">{{ __tr('Max Connections') }} *</label>
+                <input type="number" name="max_connections" class="form-control" min="1" max="99"
+                    value="{{ $plan->max_connections }}" placeholder="1">
+            </div>
+            <div class="form-group col-lg-4">
+                <label class="black font-14">{{ __tr('Streaming Quality') }} *</label>
+                <select name="streaming_quality" class="form-control">
+                    @foreach (['SD', 'HD', 'FHD', '4K'] as $q)
+                        <option value="{{ $q }}" {{ $plan->streaming_quality == $q ? 'selected' : '' }}>{{ $q }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-lg-4">
+                <label class="black font-14">{{ __tr('Catch-up Days') }} *</label>
+                <input type="number" name="catchup_days" class="form-control" min="0"
+                    value="{{ $plan->catchup_days }}" placeholder="0">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('DVR Enabled') }}</label>
+                <select name="dvr_enabled" class="form-control">
+                    <option value="0" {{ !$plan->dvr_enabled ? 'selected' : '' }}>{{ __tr('No') }}</option>
+                    <option value="1" {{ $plan->dvr_enabled ? 'selected' : '' }}>{{ __tr('Yes') }}</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Trial Plan') }}</label>
+                <select name="is_trial" class="form-control">
+                    <option value="0" {{ !$plan->is_trial ? 'selected' : '' }}>{{ __tr('No') }}</option>
+                    <option value="1" {{ $plan->is_trial ? 'selected' : '' }}>{{ __tr('Yes') }}</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Trial Days') }}</label>
+                <input type="number" name="trial_days" class="form-control" min="1"
+                    value="{{ $plan->trial_days }}" placeholder="{{ __tr('Leave empty if not trial') }}">
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Sort Order') }}</label>
+                <input type="number" name="sort_order" class="form-control" min="0"
+                    value="{{ $plan->sort_order }}" placeholder="0">
+            </div>
+        </div>
+
+        <hr>
         <div class="form-row">
             <div class="form-group col-lg-4">
                 <label class="black font-14">{{ __tr('Membership Badge') }}</label>

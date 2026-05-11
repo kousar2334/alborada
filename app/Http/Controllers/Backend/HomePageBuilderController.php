@@ -15,14 +15,21 @@ use Illuminate\View\View;
 class HomePageBuilderController extends Controller
 {
     private array $defaultSections = [
-        'banner' => 'Banner',
-        'categories' => 'Categories',
-        'top_listings' => 'Top Listings',
-        'promo' => 'Promo',
-        'pricing_plans' => 'Pricing Plans',
-        'featured_ads' => 'Featured Ads',
-        'recent_listings' => 'Recent Listings',
-        'ad_slot' => 'Advertisement Slot',
+        'hero'       => 'Hero',
+        'about'      => 'About',
+        'categories' => 'Content Categories',
+        'features'   => 'Features',
+        'pricing'    => 'Pricing Plans',
+        'reviews'    => 'Reviews',
+        'portal'     => 'Client Portal Preview',
+        'devices'    => 'Compatible Devices',
+        'setup'      => 'How to Order',
+        'why'        => 'Why Choose Us',
+        'channels'   => 'Channel Lineup',
+        'faq'        => 'FAQ',
+        'reseller'   => 'Reseller Program',
+        'cta'        => 'CTA Banner',
+        'newsletter' => 'Newsletter',
     ];
 
     public function index(Request $request): View

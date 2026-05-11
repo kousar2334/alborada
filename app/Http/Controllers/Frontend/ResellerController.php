@@ -136,4 +136,40 @@ class ResellerController extends Controller
         toastNotification('success', 'Password updated successfully.', 'Success');
         return redirect()->back();
     }
+
+    public function credits()
+    {
+        $reseller = Auth::user();
+        $logs = $reseller->creditLogs()->with('client')->latest()->paginate(20);
+
+        return view('frontend.pages.reseller.credits', compact('reseller', 'logs'));
+    }
+
+    public function apiKeys()
+    {
+        $reseller = Auth::user();
+        $tokens   = $reseller->tokens()->latest()->get();
+
+        return view('frontend.pages.reseller.api-keys', compact('reseller', 'tokens'));
+    }
+
+    public function createApiToken(Request $request)
+    {
+        $request->validate(['token_name' => 'required|string|max:100']);
+
+        $token = Auth::user()->createToken($request->token_name)->plainTextToken;
+
+        return redirect()->route('reseller.api.keys')
+            ->with('new_token', $token)
+            ->with('success', 'API token created. Copy it now — it will not be shown again.');
+    }
+
+    public function revokeApiToken(Request $request)
+    {
+        $request->validate(['token_id' => 'required|integer']);
+
+        Auth::user()->tokens()->where('id', $request->token_id)->delete();
+
+        return back()->with('success', 'API token revoked.');
+    }
 }

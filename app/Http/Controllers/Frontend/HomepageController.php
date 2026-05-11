@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers\Frontend;
+
+use App\Http\Controllers\Controller;
+use App\Models\HomePageSection;
+use App\Models\PricingPlan;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\View\View;
+
+class HomepageController extends Controller
+{
+    public function index(): View
+    {
+        $sections = $this->activeSections();
+        $plans    = PricingPlan::where('status', 1)
+            ->orderBy('sort_order')
+            ->orderBy('price')
+            ->get();
+
+        return view('frontend.pages.home-iptv', compact('sections', 'plans'));
+    }
+
+    private function activeSections(): array
+    {
+        $defaults = [
+            'hero'       => ['title' => 'Hero', 'sort_order' => 10],
+            'about'      => ['title' => 'About', 'sort_order' => 20],
+            'categories' => ['title' => 'Content Categories', 'sort_order' => 30],
+            'features'   => ['title' => 'Features', 'sort_order' => 40],
+            'pricing'    => ['title' => 'Pricing Plans', 'sort_order' => 50],
+            'reviews'    => ['title' => 'Reviews', 'sort_order' => 60],
+            'portal'     => ['title' => 'Client Portal Preview', 'sort_order' => 70],
+            'devices'    => ['title' => 'Compatible Devices', 'sort_order' => 80],
+            'setup'      => ['title' => 'How to Order', 'sort_order' => 90],
+            'why'        => ['title' => 'Why Choose Us', 'sort_order' => 100],
+            'channels'   => ['title' => 'Channel Lineup', 'sort_order' => 110],
+            'faq'        => ['title' => 'FAQ', 'sort_order' => 120],
+            'reseller'   => ['title' => 'Reseller Program', 'sort_order' => 130],
+            'cta'        => ['title' => 'CTA Banner', 'sort_order' => 140],
+            'newsletter' => ['title' => 'Newsletter', 'sort_order' => 150],
+        ];
+
+        if (!Schema::hasTable('home_page_sections')) {
+            return collect($defaults)->mapWithKeys(fn($v, $k) => [
+                $k => (object) ['key' => $k, 'title' => $v['title'], 'is_active' => true, 'sort_order' => $v['sort_order']],
+            ])->all();
+        }
+
+        foreach ($defaults as $key => $data) {
+            HomePageSection::firstOrCreate(
+                ['key' => $key],
+                ['title' => $data['title'], 'sort_order' => $data['sort_order'], 'is_active' => true]
+            );
+        }
+
+        return HomePageSection::orderBy('sort_order')
+            ->get()
+            ->keyBy('key')
+            ->all();
+    }
+}

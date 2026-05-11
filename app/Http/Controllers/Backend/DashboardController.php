@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Blog;
 use App\Models\BlogCategory;
+use App\Models\Invoice;
 use App\Models\Media;
 use App\Models\Menu;
 use App\Models\Page;
+use App\Models\SupportTicket;
 use App\Models\User;
+use App\Models\UserSubscription;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -25,6 +28,19 @@ class DashboardController extends Controller
         $total_pages      = Page::count();
         $total_media      = Media::count();
         $total_menus      = Menu::count();
+
+        $active_subscriptions  = UserSubscription::where('status', 'active')->count();
+        $expiring_soon         = UserSubscription::where('status', 'active')
+            ->whereBetween('expires_at', [now(), now()->addDays(7)])
+            ->count();
+        $monthly_revenue       = Invoice::where('status', 'paid')
+            ->whereMonth('paid_at', now()->month)
+            ->whereYear('paid_at', now()->year)
+            ->sum('total_amount');
+        $pending_tickets       = SupportTicket::whereIn('status', [
+            \App\Models\SupportTicket::STATUS_NEW,
+            \App\Models\SupportTicket::STATUS_IN_PROGRESS,
+        ])->count();
 
         $latest_members = User::latest()->take(10)->get();
 
@@ -81,7 +97,11 @@ class DashboardController extends Controller
             'monthly_members_data',
             'monthly_blogs_data',
             'category_labels',
-            'category_data'
+            'category_data',
+            'active_subscriptions',
+            'expiring_soon',
+            'monthly_revenue',
+            'pending_tickets'
         ));
     }
 }

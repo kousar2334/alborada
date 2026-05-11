@@ -250,6 +250,60 @@
                     </li>
                 @endcan
 
+                {{-- Support Tickets --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.tickets.index') }}"
+                        class="nav-link {{ Request::routeIs(['admin.tickets.*']) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-ticket-alt"></i>
+                        <p>{{ __tr('Support Tickets') }}</p>
+                    </a>
+                </li>
+
+                {{-- Resellers --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.resellers.index') }}"
+                        class="nav-link {{ Request::routeIs(['admin.resellers.*']) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-store"></i>
+                        <p>{{ __tr('Resellers') }}</p>
+                    </a>
+                </li>
+
+                {{-- Reports --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.reports.index') }}"
+                        class="nav-link {{ Request::routeIs(['admin.reports.*']) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-chart-bar"></i>
+                        <p>{{ __tr('Reports') }}</p>
+                    </a>
+                </li>
+
+                {{-- API Logs --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.api.logs') }}"
+                        class="nav-link {{ Request::routeIs('admin.api.logs') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-stream"></i>
+                        <p>{{ __tr('API Logs') }}</p>
+                    </a>
+                </li>
+
+                {{-- Payment Settings --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.payment.settings') }}"
+                        class="nav-link {{ Request::routeIs('admin.payment.settings') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-credit-card"></i>
+                        <p>{{ __tr('Payment Settings') }}</p>
+                    </a>
+                </li>
+
+                {{-- IPTV Settings --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.system.settings.iptv') }}"
+                        class="nav-link {{ Request::routeIs('admin.system.settings.iptv') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-tv"></i>
+                        <p>{{ __tr('IPTV Settings') }}</p>
+                    </a>
+                </li>
+
                 {{-- System --}}
                 @canany(['Update Environment', 'Update SMTP', 'Manage Social Login'])
                     <li class="nav-item">

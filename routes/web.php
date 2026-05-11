@@ -15,10 +15,12 @@ use App\Http\Controllers\Frontend\ResellerController;
 use App\Http\Controllers\Backend\LanguageController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\NewsletterController;
+use App\Http\Controllers\Frontend\StripeWebhookController;
+use App\Http\Controllers\Frontend\SupportTicketController;
+use App\Http\Controllers\Frontend\SetupGuideController;
+use App\Http\Controllers\Frontend\HomepageController;
 
-Route::get('/', function () {
-    return view('frontend.pages.home-iptv');
-})->name('home');
+Route::get('/', [HomepageController::class, 'index'])->name('home');
 Route::get('/contact', [ContactController::class, 'contactPage'])->name('contact');
 Route::post('/contact/send', [ContactController::class, 'sendMessage'])->name('contact.send');
 
@@ -49,6 +51,12 @@ Route::post('/membership/ssl-success', [SubscriptionController::class, 'sslSucce
 Route::post('/membership/ssl-fail', [SubscriptionController::class, 'sslFail'])->name('subscription.ssl.fail');
 Route::post('/membership/ssl-cancel', [SubscriptionController::class, 'sslCancel'])->name('subscription.ssl.cancel');
 Route::post('/membership/ssl-ipn', [SubscriptionController::class, 'sslIpn'])->name('subscription.ssl.ipn');
+
+// Stripe webhook (no auth, no CSRF)
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
+
+// Payment link (public token-based URL)
+Route::get('/pay/{token}', [SubscriptionController::class, 'paymentLinkRedirect'])->name('payment.link');
 
 //Listing Routes
 Route::get('/post/ad', [AdController::class, 'addPostPage'])->name('ad.post.page');
@@ -116,6 +124,21 @@ Route::group(['middleware' => ['auth']], function () {
     Route::get('/membership/confirm/{planId}', [SubscriptionController::class, 'confirm'])->name('subscription.confirm');
     Route::post('/membership/bank-payment', [SubscriptionController::class, 'bankPayment'])->name('membership.bank.payment');
     Route::post('/membership/initiate-payment', [SubscriptionController::class, 'initiatePayment'])->name('membership.initiate.payment');
+    Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
+    Route::get('/membership/stripe/success', [SubscriptionController::class, 'stripeSuccess'])->name('membership.stripe.success');
+
+    // Support tickets
+    Route::prefix('member/support')->group(function () {
+        Route::get('/', [SupportTicketController::class, 'index'])->name('member.tickets.index');
+        Route::get('/create', [SupportTicketController::class, 'create'])->name('member.tickets.create');
+        Route::post('/store', [SupportTicketController::class, 'store'])->name('member.tickets.store');
+        Route::get('/{ticketNumber}', [SupportTicketController::class, 'show'])->name('member.tickets.show');
+        Route::post('/{ticketNumber}/reply', [SupportTicketController::class, 'reply'])->name('member.tickets.reply');
+        Route::post('/{ticketNumber}/close', [SupportTicketController::class, 'close'])->name('member.tickets.close');
+    });
+
+    // Setup guide
+    Route::get('/member/setup-guide', [SetupGuideController::class, 'index'])->name('member.setup.guide');
 });
 // ── Customer Portal (alias routes for member system) ──────────────────────────
 Route::get('/customer/login', [MemberAuthController::class, 'memberLoginPage'])->name('customer.login')->middleware('guest');
@@ -146,6 +169,10 @@ Route::prefix('reseller')->group(function () {
         Route::get('/account', [ResellerController::class, 'account'])->name('reseller.account');
         Route::put('/account/profile', [ResellerController::class, 'updateAccount'])->name('reseller.account.update');
         Route::put('/account/password', [ResellerController::class, 'updatePassword'])->name('reseller.account.password');
+        Route::get('/credits', [ResellerController::class, 'credits'])->name('reseller.credits');
+        Route::get('/api-keys', [ResellerController::class, 'apiKeys'])->name('reseller.api.keys');
+        Route::post('/api-keys/create', [ResellerController::class, 'createApiToken'])->name('reseller.api.keys.create');
+        Route::post('/api-keys/revoke', [ResellerController::class, 'revokeApiToken'])->name('reseller.api.keys.revoke');
     });
 });
 

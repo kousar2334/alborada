@@ -32,10 +32,11 @@
                                         <th>{{ __tr('Title') }}</th>
                                         <th>{{ __tr('Duration') }}</th>
                                         <th>{{ __tr('Price') }}</th>
-                                        <th>{{ __tr('Ad Posting Quantity') }}</th>
-                                        <th>{{ __tr('Featured') }}</th>
-                                        <th>{{ __tr('Gallery Images') }}</th>
-                                        <th>{{ __tr('Membership Badge') }}</th>
+                                        <th>{{ __tr('Connections') }}</th>
+                                        <th>{{ __tr('Quality') }}</th>
+                                        <th>{{ __tr('Catch-up') }}</th>
+                                        <th>{{ __tr('DVR') }}</th>
+                                        <th>{{ __tr('Trial') }}</th>
                                         <th>{{ __tr('Status') }}</th>
                                         <th class="text-right">{{ __tr('Action') }}</th>
                                     </tr>
@@ -47,14 +48,21 @@
                                             <td>{{ $plan->title }}</td>
                                             <td>{{ $plan->duration_days }} {{ __tr('days') }}</td>
                                             <td>{{ $plan->price }}</td>
-                                            <td>{{ $plan->listing_quantity }}</td>
-                                            <td>{{ $plan->featured_listing_quantity }}</td>
-                                            <td>{{ $plan->gallery_image_quantity }}</td>
+                                            <td>{{ $plan->max_connections }}</td>
+                                            <td><span class="badge badge-info">{{ $plan->streaming_quality }}</span></td>
+                                            <td>{{ $plan->catchup_days }} {{ __tr('days') }}</td>
                                             <td>
-                                                @if ($plan->membership_badge == 1)
-                                                    <p class="badge badge-success">{{ __tr('Enabled') }}</p>
+                                                @if ($plan->dvr_enabled)
+                                                    <span class="badge badge-success">{{ __tr('Yes') }}</span>
                                                 @else
-                                                    <p class="badge badge-secondary">{{ __tr('Disabled') }}</p>
+                                                    <span class="badge badge-secondary">{{ __tr('No') }}</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($plan->is_trial)
+                                                    <span class="badge badge-warning">{{ __tr('Trial') }}</span>
+                                                @else
+                                                    <span class="badge badge-light">{{ __tr('No') }}</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -158,6 +166,54 @@
                                 </div>
                             </div>
 
+                            <hr><h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
+
+                            <div class="form-row">
+                                <div class="form-group col-lg-4">
+                                    <label class="black font-14">{{ __tr('Max Connections') }} *</label>
+                                    <input type="number" name="max_connections" class="form-control" min="1" max="99" value="1">
+                                </div>
+                                <div class="form-group col-lg-4">
+                                    <label class="black font-14">{{ __tr('Streaming Quality') }} *</label>
+                                    <select name="streaming_quality" class="form-control">
+                                        <option value="SD">SD</option>
+                                        <option value="HD" selected>HD</option>
+                                        <option value="FHD">FHD</option>
+                                        <option value="4K">4K</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-lg-4">
+                                    <label class="black font-14">{{ __tr('Catch-up Days') }} *</label>
+                                    <input type="number" name="catchup_days" class="form-control" min="0" value="0">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('DVR Enabled') }}</label>
+                                    <select name="dvr_enabled" class="form-control">
+                                        <option value="0">{{ __tr('No') }}</option>
+                                        <option value="1">{{ __tr('Yes') }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Trial Plan') }}</label>
+                                    <select name="is_trial" class="form-control">
+                                        <option value="0">{{ __tr('No') }}</option>
+                                        <option value="1">{{ __tr('Yes') }}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Trial Days') }}</label>
+                                    <input type="number" name="trial_days" class="form-control" min="1" placeholder="{{ __tr('Leave empty if not trial') }}">
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Sort Order') }}</label>
+                                    <input type="number" name="sort_order" class="form-control" min="0" value="0">
+                                </div>
+                            </div>
+
+                            <hr>
                             <div class="form-row">
                                 <div class="form-group col-lg-4">
                                     <label class="black font-14">{{ __tr('Membership Badge') }}</label>

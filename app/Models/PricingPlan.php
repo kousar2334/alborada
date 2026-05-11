@@ -19,11 +19,20 @@ class PricingPlan extends Model
         'gallery_image_quantity',
         'membership_badge',
         'status',
+        'max_connections',
+        'streaming_quality',
+        'catchup_days',
+        'dvr_enabled',
+        'is_trial',
+        'trial_days',
+        'sort_order',
     ];
 
     protected $casts = [
         'price'             => 'float',
         'membership_badge'  => 'boolean',
+        'dvr_enabled'       => 'boolean',
+        'is_trial'          => 'boolean',
     ];
 
     public function pricing_plan_translations(): HasMany

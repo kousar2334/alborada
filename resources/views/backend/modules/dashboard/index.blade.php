@@ -91,6 +91,46 @@
                 </div>
             </div>
 
+            {{-- ===== Row 3: IPTV Stats ===== --}}
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-crown"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Active Subscriptions') }}</span>
+                            <span class="info-box-number">{{ number_format($active_subscriptions) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-hourglass-half"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Expiring in 7 Days') }}</span>
+                            <span class="info-box-number">{{ number_format($expiring_soon) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-teal elevation-1"><i class="fas fa-dollar-sign"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Revenue This Month') }}</span>
+                            <span class="info-box-number">${{ number_format($monthly_revenue, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-ticket-alt"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Open Tickets') }}</span>
+                            <span class="info-box-number">{{ number_format($pending_tickets) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- ===== Charts Row 1 ===== --}}
             <div class="row">
                 <div class="col-md-6 d-flex">

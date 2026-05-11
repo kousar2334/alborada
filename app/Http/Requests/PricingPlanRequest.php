@@ -24,6 +24,13 @@ class PricingPlanRequest extends FormRequest
             'gallery_image_quantity'     => $isTranslation ? 'sometimes' : 'required|integer|min:0',
             'membership_badge'           => 'nullable|in:0,1',
             'status'                     => $isTranslation ? 'sometimes' : 'required|in:0,1',
+            'max_connections'            => $isTranslation ? 'sometimes' : 'required|integer|min:1|max:99',
+            'streaming_quality'          => $isTranslation ? 'sometimes' : 'required|in:SD,HD,FHD,4K',
+            'catchup_days'               => $isTranslation ? 'sometimes' : 'required|integer|min:0',
+            'dvr_enabled'                => 'nullable|in:0,1',
+            'is_trial'                   => 'nullable|in:0,1',
+            'trial_days'                 => 'nullable|integer|min:1',
+            'sort_order'                 => 'nullable|integer|min:0',
         ];
     }
 

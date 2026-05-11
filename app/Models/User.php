@@ -33,6 +33,12 @@ class User extends Authenticatable
         'reseller_id',
         'social_provider',
         'social_id',
+        'credits',
+        'markup_percentage',
+        'xtream_username',
+        'xtream_password',
+        'whmcs_client_id',
+        'stripe_customer_id',
     ];
 
     /**
@@ -77,5 +83,46 @@ class User extends Authenticatable
     public function isCustomer(): bool
     {
         return $this->type === config('settings.user_type.customer');
+    }
+
+    public function creditLogs(): HasMany
+    {
+        return $this->hasMany(ResellerCreditLog::class, 'reseller_id');
+    }
+
+    public function deductCredits(float $amount, string $description, ?int $clientUserId = null): bool
+    {
+        if ($this->credits < $amount) {
+            return false;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($amount, $description, $clientUserId) {
+            $this->decrement('credits', $amount);
+            ResellerCreditLog::create([
+                'reseller_id'  => $this->id,
+                'user_id'      => $clientUserId,
+                'type'         => 'debit',
+                'amount'       => $amount,
+                'balance_after' => $this->credits,
+                'description'  => $description,
+            ]);
+        });
+
+        return true;
+    }
+
+    public function addCredits(float $amount, string $description): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($amount, $description) {
+            $this->increment('credits', $amount);
+            ResellerCreditLog::create([
+                'reseller_id'  => $this->id,
+                'user_id'      => null,
+                'type'         => 'credit',
+                'amount'       => $amount,
+                'balance_after' => $this->credits + $amount,
+                'description'  => $description,
+            ]);
+        });
     }
 }

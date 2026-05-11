@@ -137,6 +137,63 @@
                     </form>
                 </div>
 
+                {{-- Stripe Settings --}}
+                <div class="col-lg-6 mb-4">
+                    <form action="{{ route('admin.payment.settings.update') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="section" value="stripe">
+                        <div class="card card-outline card-info h-100">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fab fa-stripe mr-2"></i>
+                                    {{ __tr('Stripe (Card Payments)') }}
+                                </h3>
+                                <div class="card-tools">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input" id="stripe_enabled"
+                                            name="stripe_enabled" value="1"
+                                            {{ get_setting('stripe_enabled', 0) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="stripe_enabled">Enable</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>{{ __tr('Publishable Key') }}</label>
+                                    <input type="text" name="stripe_public_key" class="form-control"
+                                        value="{{ get_setting('stripe_public_key') }}" placeholder="pk_live_...">
+                                </div>
+                                <div class="form-group">
+                                    <label>{{ __tr('Secret Key') }}</label>
+                                    <input type="password" name="stripe_secret_key" class="form-control"
+                                        value="{{ get_setting('stripe_secret_key') }}"
+                                        placeholder="sk_live_..." autocomplete="new-password">
+                                </div>
+                                <div class="form-group">
+                                    <label>{{ __tr('Webhook Secret') }}</label>
+                                    <input type="password" name="stripe_webhook_secret" class="form-control"
+                                        value="{{ get_setting('stripe_webhook_secret') }}"
+                                        placeholder="whsec_..." autocomplete="new-password">
+                                    <small class="form-text text-muted">
+                                        {{ __tr('Set webhook endpoint to:') }} <code>{{ url('/stripe/webhook') }}</code>
+                                    </small>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>{{ __tr('Currency') }}</label>
+                                    <input type="text" name="stripe_currency" class="form-control"
+                                        value="{{ get_setting('stripe_currency', 'usd') }}" placeholder="usd" maxlength="10">
+                                    <small class="form-text text-muted">e.g. usd, eur, gbp (lowercase)</small>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-save mr-1"></i> {{ __tr('Save Stripe Settings') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
             </div>
         </div>
     </section>

@@ -33,6 +33,10 @@ use App\Http\Controllers\Backend\HomePageBuilderController;
 use App\Http\Controllers\Backend\NewsletterController as BackendNewsletterController;
 use App\Http\Controllers\Backend\PaymentSettingsController;
 use App\Http\Controllers\Backend\BankPaymentController;
+use App\Http\Controllers\Backend\SupportTicketController as AdminSupportTicketController;
+use App\Http\Controllers\Backend\ResellerManagementController;
+use App\Http\Controllers\Backend\ReportController;
+use App\Http\Controllers\Backend\ApiLogController;
 
 Route::prefix('admin')->group(function () {
 
@@ -134,6 +138,7 @@ Route::prefix('admin')->group(function () {
             Route::post('approve', [SubscriptionController::class, 'approve'])->name('admin.subscriptions.approve');
             Route::post('reject', [SubscriptionController::class, 'reject'])->name('admin.subscriptions.reject');
             Route::post('delete', [SubscriptionController::class, 'delete'])->name('admin.subscriptions.delete');
+            Route::post('send-payment-link', [SubscriptionController::class, 'sendPaymentLink'])->name('admin.subscriptions.send.payment.link');
         });
 
         /**
@@ -408,7 +413,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/bank-payments/approve', MissingModuleController::class)->name('admin.bank.payments.approve');
         Route::post('/bank-payments/reject', MissingModuleController::class)->name('admin.bank.payments.reject');
 
-        Route::match(['GET', 'POST'], '/payment-settings/update', MissingModuleController::class)->name('admin.payment.settings.update');
+        Route::get('/payment-settings', [PaymentSettingsController::class, 'index'])->name('admin.payment.settings');
+        Route::post('/payment-settings/update', [PaymentSettingsController::class, 'update'])->name('admin.payment.settings.update');
 
         Route::get('/contact-messages', MissingModuleController::class)->name('admin.contact.us.message.list');
         Route::post('/contact-messages/reply', MissingModuleController::class)->name('admin.contact.us.message.reply');
@@ -479,6 +485,49 @@ Route::prefix('admin')->group(function () {
             Route::get('/settings/share-options', MissingModuleController::class)->name('classified.settings.share.options.list');
             Route::post('/settings/share-options/status', MissingModuleController::class)->name('classified.settings.share.options.status.update');
         });
+
+        /**
+         * Support Tickets
+         */
+        Route::prefix('support/tickets')->group(function () {
+            Route::get('/', [AdminSupportTicketController::class, 'index'])->name('admin.tickets.index');
+            Route::get('/{id}', [AdminSupportTicketController::class, 'show'])->name('admin.tickets.show');
+            Route::post('/{id}/reply', [AdminSupportTicketController::class, 'reply'])->name('admin.tickets.reply');
+            Route::post('/assign', [AdminSupportTicketController::class, 'assign'])->name('admin.tickets.assign');
+            Route::post('/status', [AdminSupportTicketController::class, 'updateStatus'])->name('admin.tickets.status');
+        });
+
+        /**
+         * Reseller Management
+         */
+        Route::prefix('resellers')->group(function () {
+            Route::get('/', [ResellerManagementController::class, 'index'])->name('admin.resellers.index');
+            Route::post('/top-up', [ResellerManagementController::class, 'topUpCredits'])->name('admin.resellers.top.up');
+            Route::get('/{id}/logs', [ResellerManagementController::class, 'creditLogs'])->name('admin.resellers.credit.logs');
+        });
+
+        /**
+         * Reports & Analytics
+         */
+        Route::prefix('reports')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('admin.reports.index');
+            Route::get('/revenue-chart', [ReportController::class, 'revenueChart'])->name('admin.reports.revenue.chart');
+            Route::get('/subscribers-chart', [ReportController::class, 'activeSubscribersChart'])->name('admin.reports.subscribers.chart');
+            Route::get('/expiring-soon', [ReportController::class, 'expiringSoon'])->name('admin.reports.expiring.soon');
+            Route::get('/reseller-performance', [ReportController::class, 'resellerPerformance'])->name('admin.reports.reseller.performance');
+            Route::get('/export', [ReportController::class, 'exportCsv'])->name('admin.reports.export');
+        });
+
+        /**
+         * API Logs
+         */
+        Route::get('/api-logs', [ApiLogController::class, 'index'])->name('admin.api.logs');
+
+        /**
+         * IPTV Settings
+         */
+        Route::get('/system/settings/iptv', [SettingController::class, 'iptvSettings'])->name('admin.system.settings.iptv');
+        Route::post('/system/settings/iptv/update', [SettingController::class, 'iptvSettingsUpdate'])->name('admin.system.settings.iptv.update');
 
         /**
          * Media Management (shared picker — requires at least media view access)

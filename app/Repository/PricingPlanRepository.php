@@ -38,6 +38,13 @@ class PricingPlanRepository
             $plan->gallery_image_quantity = $data['gallery_image_quantity'];
             $plan->membership_badge = $data['membership_badge'] ?? 0;
             $plan->status = $data['status'];
+            $plan->max_connections = $data['max_connections'] ?? 1;
+            $plan->streaming_quality = $data['streaming_quality'] ?? 'HD';
+            $plan->catchup_days = $data['catchup_days'] ?? 0;
+            $plan->dvr_enabled = $data['dvr_enabled'] ?? 0;
+            $plan->is_trial = $data['is_trial'] ?? 0;
+            $plan->trial_days = $data['trial_days'] ?? null;
+            $plan->sort_order = $data['sort_order'] ?? 0;
             $plan->save();
 
             DB::commit();
@@ -76,6 +83,13 @@ class PricingPlanRepository
                 $plan->gallery_image_quantity = $request['gallery_image_quantity'];
                 $plan->membership_badge = $request['membership_badge'] ?? 0;
                 $plan->status = $request['status'];
+                $plan->max_connections = $request['max_connections'] ?? 1;
+                $plan->streaming_quality = $request['streaming_quality'] ?? 'HD';
+                $plan->catchup_days = $request['catchup_days'] ?? 0;
+                $plan->dvr_enabled = $request['dvr_enabled'] ?? 0;
+                $plan->is_trial = $request['is_trial'] ?? 0;
+                $plan->trial_days = $request['trial_days'] ?? null;
+                $plan->sort_order = $request['sort_order'] ?? 0;
                 $plan->save();
             }
 

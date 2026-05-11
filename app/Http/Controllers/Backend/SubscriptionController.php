@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProvisionSubscriptionJob;
+use App\Models\PaymentLink;
+use App\Models\PricingPlan;
 use App\Models\UserSubscription;
 use App\Notifications\SubscriptionApproved;
 use App\Notifications\SubscriptionRejected;
@@ -18,7 +21,7 @@ class SubscriptionController extends Controller
             $search = $request->q;
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -60,6 +63,10 @@ class SubscriptionController extends Controller
             $subscription->user->notify(new SubscriptionApproved($subscription));
         }
 
+        if (get_setting('iptv_provisioning_enabled', 0)) {
+            dispatch(new ProvisionSubscriptionJob($subscription));
+        }
+
         return redirect()->route('admin.subscriptions.list')
             ->with('success', __tr('Subscription approved and activated successfully'));
     }
@@ -91,5 +98,29 @@ class SubscriptionController extends Controller
 
         return redirect()->route('admin.subscriptions.list')
             ->with('success', __tr('Subscription deleted successfully'));
+    }
+
+    public function sendPaymentLink(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'plan_id' => 'required|integer|exists:pricing_plans,id',
+        ]);
+
+        $user = \App\Models\User::findOrFail($request->user_id);
+        $plan = PricingPlan::findOrFail($request->plan_id);
+
+        $link = PaymentLink::create([
+            'user_id'    => $user->id,
+            'plan_id'    => $plan->id,
+            'expires_at' => now()->addDays(3),
+        ]);
+
+        $paymentUrl = route('payment.link', $link->token);
+
+        \Illuminate\Support\Facades\Mail::to($user->email)
+            ->queue(new \App\Mail\PaymentLinkMail($user, $paymentUrl, $plan));
+
+        return back()->with('success', __tr('Payment link sent to ') . $user->email);
     }
 }

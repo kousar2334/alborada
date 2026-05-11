@@ -129,4 +129,30 @@ class SettingController extends Controller
             return redirect()->back();
         }
     }
+
+    public function iptvSettings(): View
+    {
+        return view('backend.modules.settings.iptv-settings');
+    }
+
+    public function iptvSettingsUpdate(Request $request): RedirectResponse
+    {
+        $settings = [
+            'xtream_base_url'           => $request->input('xtream_base_url', ''),
+            'xtream_admin_username'     => $request->input('xtream_admin_username', ''),
+            'xtream_admin_password'     => $request->input('xtream_admin_password', ''),
+            'whmcs_api_url'             => $request->input('whmcs_api_url', ''),
+            'whmcs_api_identifier'      => $request->input('whmcs_api_identifier', ''),
+            'whmcs_api_secret'          => $request->input('whmcs_api_secret', ''),
+            'iptv_provisioning_enabled' => $request->input('iptv_provisioning_enabled', 0),
+            'whmcs_sync_enabled'        => $request->input('whmcs_sync_enabled', 0),
+        ];
+
+        foreach ($settings as $key => $value) {
+            set_setting($key, $value);
+        }
+
+        toastNotification('success', __tr('IPTV settings updated successfully'));
+        return back();
+    }
 }
