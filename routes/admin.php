@@ -282,13 +282,6 @@ Route::prefix('admin')->group(function () {
                 ->middleware('can:Manage Home Builder');
         });
 
-        /**
-         * Registered placeholders for backend modules whose controllers are absent in this checkout.
-         */
-        Route::match(['GET', 'POST'], '/bank-payments', MissingModuleController::class)->name('admin.bank.payments');
-        Route::post('/bank-payments/approve', MissingModuleController::class)->name('admin.bank.payments.approve');
-        Route::post('/bank-payments/reject', MissingModuleController::class)->name('admin.bank.payments.reject');
-
         Route::get('/payment-settings', [PaymentSettingsController::class, 'index'])->name('admin.payment.settings');
         Route::post('/payment-settings/update', [PaymentSettingsController::class, 'update'])->name('admin.payment.settings.update');
 

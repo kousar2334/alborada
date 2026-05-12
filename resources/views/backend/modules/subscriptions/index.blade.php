@@ -40,11 +40,7 @@
                     <div class="small-box bg-warning">
                         <div class="inner">
                             <h3>{{ $stats['pending'] }}</h3>
-                            <p>Pending
-                                @if ($stats['bank_pending'] > 0)
-                                    <small>({{ $stats['bank_pending'] }} bank)</small>
-                                @endif
-                            </p>
+                            <p>Pending</p>
                         </div>
                         <div class="icon"><i class="fas fa-clock"></i></div>
                     </div>
@@ -85,13 +81,8 @@
                                     </select>
                                     <select name="method" class="form-control form-control-sm" style="width: auto;">
                                         <option value="">{{ __tr('All Methods') }}</option>
-                                        <option value="sslcommerz"
-                                            {{ request('method') === 'sslcommerz' ? 'selected' : '' }}>SSLCommerz</option>
-                                        <option value="bank_transfer"
-                                            {{ request('method') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer
-                                        </option>
-                                        <option value="trial" {{ request('method') === 'trial' ? 'selected' : '' }}>Trial
-                                        </option>
+                                        <option value="stripe" {{ request('method') === 'stripe' ? 'selected' : '' }}>Stripe</option>
+                                        <option value="trial" {{ request('method') === 'trial' ? 'selected' : '' }}>Trial</option>
                                     </select>
                                     <button type="submit" class="btn btn-primary btn-sm">{{ __tr('Search') }}</button>
                                     @if (request('q') || request('status') || request('method'))
@@ -120,7 +111,7 @@
                                 </thead>
                                 <tbody>
                                     @forelse ($subscriptions as $key => $sub)
-                                        <tr @if ($sub->payment_method === 'bank_transfer' && $sub->status === 'pending') class="table-warning" @endif>
+                                        <tr>
                                             <td>{{ $subscriptions->firstItem() + $key }}</td>
                                             <td>
                                                 <strong>{{ $sub->user->name ?? '—' }}</strong><br>
@@ -138,12 +129,10 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                @if ($sub->payment_method === 'sslcommerz')
-                                                    <span class="badge badge-info">SSLCommerz</span>
-                                                @elseif ($sub->payment_method === 'bank_transfer')
-                                                    <span class="badge badge-primary">Bank Transfer</span>
+                                                @if ($sub->payment_method === 'stripe')
+                                                    <span class="badge badge-info">Stripe</span>
                                                 @else
-                                                    <span class="badge badge-secondary">Trial</span>
+                                                    <span class="badge badge-secondary">{{ ucfirst($sub->payment_method ?? 'Trial') }}</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -189,29 +178,6 @@
                                             </td>
                                             <td>{{ $sub->created_at->format('M d, Y') }}</td>
                                             <td class="text-right" style="white-space: nowrap;">
-                                                {{-- Bank transfer pending: show approve/reject --}}
-                                                @if ($sub->payment_method === 'bank_transfer' && $sub->status === 'pending')
-                                                    @if ($sub->bank_slip)
-                                                        <a href="{{ asset('storage/' . $sub->bank_slip) }}" target="_blank"
-                                                            class="btn btn-info btn-sm" title="{{ __tr('View Slip') }}">
-                                                            <i class="fas fa-file-image"></i>
-                                                        </a>
-                                                    @endif
-                                                    <button class="btn btn-success btn-sm approve-item"
-                                                        data-id="{{ $sub->id }}"
-                                                        data-name="{{ $sub->user->name ?? '' }}"
-                                                        data-plan="{{ $sub->plan->title ?? '' }}"
-                                                        title="{{ __tr('Approve') }}">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
-                                                    <button class="btn btn-warning btn-sm reject-item"
-                                                        data-id="{{ $sub->id }}"
-                                                        data-name="{{ $sub->user->name ?? '' }}"
-                                                        data-plan="{{ $sub->plan->title ?? '' }}"
-                                                        title="{{ __tr('Reject') }}">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                @endif
                                                 <button class="btn btn-danger btn-sm delete-item"
                                                     data-id="{{ $sub->id }}">
                                                     <i class="fas fa-trash"></i>
@@ -238,83 +204,6 @@
             </div>
         </div>
     </section>
-
-    {{-- Approve Modal --}}
-    <div class="modal fade" id="approve-modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h4 class="modal-title h6">
-                        <i class="fas fa-check-circle mr-2"></i>{{ __tr('Approve Subscription') }}
-                    </h4>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form method="POST" action="{{ route('admin.subscriptions.approve') }}">
-                    @csrf
-                    <input type="hidden" id="approve-item-id" name="id">
-                    <div class="modal-body">
-                        <p class="mb-3">
-                            {{ __tr('Approve bank transfer for') }}
-                            <strong id="approve-member-name"></strong> &mdash;
-                            {{ __tr('plan') }} <strong id="approve-plan-name"></strong>?
-                        </p>
-                        <div class="form-group mb-0">
-                            <label>{{ __tr('Admin Note (optional, sent to user)') }}</label>
-                            <textarea name="admin_note" class="form-control" rows="2" placeholder="e.g. Payment verified successfully."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
-                            data-dismiss="modal">{{ __tr('Cancel') }}</button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check mr-1"></i> {{ __tr('Approve & Activate') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {{-- Reject Modal --}}
-    <div class="modal fade" id="reject-modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h4 class="modal-title h6">
-                        <i class="fas fa-times-circle mr-2"></i>{{ __tr('Reject Subscription') }}
-                    </h4>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form method="POST" action="{{ route('admin.subscriptions.reject') }}">
-                    @csrf
-                    <input type="hidden" id="reject-item-id" name="id">
-                    <div class="modal-body">
-                        <p class="mb-3">
-                            {{ __tr('Reject bank transfer for') }}
-                            <strong id="reject-member-name"></strong> &mdash;
-                            {{ __tr('plan') }} <strong id="reject-plan-name"></strong>?
-                        </p>
-                        <div class="form-group mb-0">
-                            <label>{{ __tr('Rejection Reason (sent to user via notification & email)') }}</label>
-                            <textarea name="admin_note" class="form-control" rows="2"
-                                placeholder="e.g. Payment slip could not be verified."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary"
-                            data-dismiss="modal">{{ __tr('Cancel') }}</button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-times mr-1"></i> {{ __tr('Reject') }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     {{-- Delete Confirmation Modal --}}
     <div class="modal fade" id="delete-item-modal">
@@ -352,19 +241,6 @@
                 $('#delete-item-modal').modal('show');
             });
 
-            $('.approve-item').on('click', function() {
-                $('#approve-item-id').val($(this).data('id'));
-                $('#approve-member-name').text($(this).data('name'));
-                $('#approve-plan-name').text($(this).data('plan'));
-                $('#approve-modal').modal('show');
-            });
-
-            $('.reject-item').on('click', function() {
-                $('#reject-item-id').val($(this).data('id'));
-                $('#reject-member-name').text($(this).data('name'));
-                $('#reject-plan-name').text($(this).data('plan'));
-                $('#reject-modal').modal('show');
-            });
         })(jQuery);
     </script>
 @endsection

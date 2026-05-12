@@ -40,12 +40,6 @@ Route::get('/blog/{permalink}', [BlogController::class, 'blogDetails'])->name('f
 Route::post('/blog/{permalink}/comment', [BlogController::class, 'storeComment'])->name('frontend.blog.comment.store');
 
 
-// SSLCommerz callbacks (no auth middleware — called by gateway)
-Route::post('/membership/ssl-success', [SubscriptionController::class, 'sslSuccess'])->name('subscription.ssl.success');
-Route::post('/membership/ssl-fail', [SubscriptionController::class, 'sslFail'])->name('subscription.ssl.fail');
-Route::post('/membership/ssl-cancel', [SubscriptionController::class, 'sslCancel'])->name('subscription.ssl.cancel');
-Route::post('/membership/ssl-ipn', [SubscriptionController::class, 'sslIpn'])->name('subscription.ssl.ipn');
-
 // Stripe webhook (no auth, no CSRF)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
@@ -94,9 +88,7 @@ Route::group(['middleware' => ['auth', 'customer']], function () {
     Route::post('/membership/buy', [SubscriptionController::class, 'buy'])->name('membership.buy');
     Route::get('/membership/buy/free', [SubscriptionController::class, 'buy'])->name('membership.buy.free');
     Route::get('/membership/confirm/{planId}', [SubscriptionController::class, 'confirm'])->name('subscription.confirm');
-    Route::post('/membership/bank-payment', [SubscriptionController::class, 'bankPayment'])->name('membership.bank.payment');
-    Route::post('/membership/initiate-payment', [SubscriptionController::class, 'initiatePayment'])->name('membership.initiate.payment');
-    Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
+Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
     Route::get('/membership/stripe/success', [SubscriptionController::class, 'stripeSuccess'])->name('membership.stripe.success');
 
     // Support tickets

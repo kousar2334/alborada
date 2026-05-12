@@ -104,9 +104,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($sub->payment_method === 'sslcommerz')
-                                        <span class="sub-method-badge sub-method-sslcommerz">SSLCommerz</span>
-                                    @elseif ($sub->payment_method === 'stripe')
+                                    @if ($sub->payment_method === 'stripe')
                                         <span class="sub-method-badge" style="background:#635bff;color:#fff;">Stripe</span>
                                     @elseif ($sub->payment_method === 'credits')
                                         <span class="sub-method-badge" style="background:#0d9488;color:#fff;">Credits</span>

@@ -30,17 +30,16 @@ class SubscriptionController extends Controller
         }
 
         if ($request->filled('method')) {
-            $query->where('payment_method', $request->method);
+            $query->where('payment_method', $request->input('method'));
         }
 
         $subscriptions = $query->paginate(20)->withQueryString();
 
         $stats = [
-            'total'        => UserSubscription::count(),
-            'active'       => UserSubscription::where('status', 'active')->count(),
-            'pending'      => UserSubscription::where('status', 'pending')->count(),
-            'bank_pending' => UserSubscription::where('status', 'pending')->where('payment_method', 'bank_transfer')->count(),
-            'expired'      => UserSubscription::where('status', 'active')->where('expires_at', '<', now())->count(),
+            'total'   => UserSubscription::count(),
+            'active'  => UserSubscription::where('status', 'active')->count(),
+            'pending' => UserSubscription::where('status', 'pending')->count(),
+            'expired' => UserSubscription::where('status', 'active')->where('expires_at', '<', now())->count(),
         ];
 
         return view('backend.modules.subscriptions.index', compact('subscriptions', 'stats'));
