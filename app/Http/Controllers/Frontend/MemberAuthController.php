@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Models\Chat;
-use App\Models\ChatMessage;
-use App\Models\SavedAd;
+use App\Models\AppDownloaderCode;
+use App\Models\FeaturedContent;
+use App\Models\Invoice;
+use App\Models\SupportTicket;
 use App\Models\User;
+use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MemberLoginRequest;
@@ -197,33 +199,55 @@ class MemberAuthController extends Controller
     public function memberDashboard(Request $request)
     {
         $userId = Auth::id();
-        $activeStatus = config('settings.general_status.active');
 
-        $totalListings  = Ad::where('user_id', $userId)->count();
-        $activeListings = Ad::where('user_id', $userId)->where('status', $activeStatus)->count();
-        $totalFavourites = SavedAd::where('user_id', $userId)->count();
+        $activeSubscription = UserSubscription::where('user_id', $userId)
+            ->where('status', 'active')
+            ->with('plan')
+            ->latest()
+            ->first();
 
-        $totalMessages = Chat::where('sender_id', $userId)
-            ->orWhere('receiver_id', $userId)
+        $daysRemaining = $activeSubscription && $activeSubscription->expires_at
+            ? max(0, now()->diffInDays($activeSubscription->expires_at, false))
+            : 0;
+
+        $openTickets = SupportTicket::where('user_id', $userId)
+            ->whereIn('status', ['NEW', 'IN_PROGRESS', 'RE_OPEN'])
             ->count();
 
-        $unreadMessages = ChatMessage::whereHas('chat', function ($q) use ($userId) {
-            $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
-        })->where('sender_id', '!=', $userId)->where('is_read', false)->count();
-
-        $recentListings = Ad::where('user_id', $userId)
-            ->with(['categoryInfo', 'cityInfo'])
+        $recentInvoices = Invoice::where('user_id', $userId)
             ->latest()
             ->take(5)
             ->get();
 
+        $downloaderCodes = AppDownloaderCode::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $featuredContent = FeaturedContent::where('is_active', true)
+            ->orderBy('sort_order')
+            ->take(6)
+            ->get();
+
+        $xtreamBaseUrl = rtrim(get_setting('xtream_base_url', ''), '/');
+
         return view('frontend.pages.member.dashboard.index', compact(
-            'totalListings',
-            'activeListings',
-            'totalFavourites',
-            'totalMessages',
-            'unreadMessages',
-            'recentListings'
+            'activeSubscription',
+            'daysRemaining',
+            'openTickets',
+            'recentInvoices',
+            'downloaderCodes',
+            'featuredContent',
+            'xtreamBaseUrl'
         ));
+    }
+
+    public function downloadApp()
+    {
+        $downloaderCodes = AppDownloaderCode::where('is_active', true)
+            ->orderBy('sort_order')
+            ->get()
+            ->groupBy('device_type');
+
+        return view('frontend.pages.member.download-app', compact('downloaderCodes'));
     }
 }

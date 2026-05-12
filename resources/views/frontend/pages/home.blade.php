@@ -172,6 +172,49 @@
 
         <div class="section-divider"></div>
 
+        {{-- ── FEATURED CONTENT ── --}}
+        @if ((!isset($sections['featured_content']) || $sections['featured_content']->is_active) && $featuredContent->count())
+            <section id="featured-content">
+                <div class="wrap">
+                    <div class="sec-label" style="justify-content:center;">{{ p_trans('home_featured_label', null, "What's Streaming") }}</div>
+                    <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(1.8rem,2.8vw,2.4rem);text-align:center;margin-bottom:12px;">
+                        {{ p_trans('home_featured_heading', null, 'Movies, Series & Live Events') }}
+                    </h2>
+                    <p style="text-align:center;color:var(--muted);margin-bottom:40px;max-width:540px;margin-left:auto;margin-right:auto;">
+                        {{ p_trans('home_featured_desc', null, 'Get access to thousands of titles. Preview what is available on your Alborada Box subscription.') }}
+                    </p>
+                    <div style="display:flex;gap:20px;overflow-x:auto;padding-bottom:12px;scrollbar-width:thin;">
+                        @foreach($featuredContent as $fc)
+                            <div style="min-width:200px;max-width:200px;flex-shrink:0;border-radius:14px;overflow:hidden;background:var(--main-color-two,#111);border:1px solid rgba(255,255,255,.07);position:relative;">
+                                @if($fc->badge_text)
+                                    <span style="position:absolute;top:10px;left:10px;background:var(--primary-color);color:#fff;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:4px;z-index:2;letter-spacing:.5px;">{{ $fc->badge_text }}</span>
+                                @endif
+                                @if($fc->thumbnail)
+                                    <img src="{{ asset($fc->thumbnail) }}" alt="{{ $fc->title }}" style="width:100%;height:130px;object-fit:cover;display:block;">
+                                @else
+                                    <div style="width:100%;height:130px;background:linear-gradient(135deg,rgba(204,0,0,.2),rgba(10,10,10,1));display:flex;align-items:center;justify-content:center;">
+                                        <i class="fas {{ $fc->type_icon }}" style="font-size:2.5rem;color:rgba(204,0,0,.4);"></i>
+                                    </div>
+                                @endif
+                                <div style="padding:12px;">
+                                    <div style="font-size:.7rem;color:var(--primary-color);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">{{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
+                                    <div style="font-size:.9rem;font-weight:700;line-height:1.3;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $fc->title }}</div>
+                                    @if($fc->youtube_embed_id)
+                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}" target="_blank" rel="noopener"
+                                           style="display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:var(--primary-color);font-weight:700;text-decoration:none;padding:5px 12px;border:1px solid var(--primary-color);border-radius:6px;">
+                                            <i class="fas fa-play" style="font-size:.6rem;"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <div class="section-divider"></div>
+
         {{-- ── CONTENT CATEGORIES ── --}}
         @if (!isset($sections['categories']) || $sections['categories']->is_active)
             <section id="categories">
@@ -356,6 +399,51 @@
                             </div>
                         </div>
                     @endif
+                </div>
+            </section>
+        @endif
+
+        <div class="section-divider"></div>
+
+        {{-- ── UPCOMING EVENTS ── --}}
+        @if ((!isset($sections['upcoming_events']) || $sections['upcoming_events']->is_active) && $upcomingEvents->count())
+            <section id="upcoming-events" style="padding:60px 0;background:linear-gradient(135deg,rgba(10,10,10,1) 0%,rgba(26,0,0,.6) 100%);">
+                <div class="wrap">
+                    <div class="sec-label" style="justify-content:center;">
+                        <i class="fas fa-trophy" style="color:var(--primary-color);margin-right:6px;"></i>
+                        {{ p_trans('home_events_label', null, 'Live Sports') }}
+                    </div>
+                    <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(1.8rem,2.8vw,2.4rem);text-align:center;margin-bottom:40px;">
+                        {{ p_trans('home_events_heading', null, 'Upcoming Live Events') }}
+                    </h2>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+                        @foreach($upcomingEvents as $ev)
+                            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(204,0,0,.2);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;">
+                                @if($ev->thumbnail)
+                                    <img src="{{ asset($ev->thumbnail) }}" alt="{{ $ev->title }}" style="width:70px;height:70px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+                                @else
+                                    <div style="width:70px;height:70px;border-radius:10px;background:rgba(204,0,0,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fas fa-trophy" style="font-size:1.8rem;color:var(--primary-color);"></i>
+                                    </div>
+                                @endif
+                                <div style="flex:1;min-width:0;">
+                                    @if($ev->badge_text)
+                                        <span style="background:var(--primary-color);color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;">{{ $ev->badge_text }}</span>
+                                    @endif
+                                    <div style="font-weight:700;font-size:.95rem;margin:4px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $ev->title }}</div>
+                                    @if($ev->genre)
+                                        <div style="font-size:.75rem;color:rgba(255,255,255,.5);">{{ $ev->genre }}</div>
+                                    @endif
+                                    @if($ev->event_date)
+                                        <div style="font-size:.78rem;color:var(--main-color-three,#00d46a);font-weight:600;margin-top:4px;">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            {{ $ev->event_date->format('M d, Y') }}
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             </section>
         @endif

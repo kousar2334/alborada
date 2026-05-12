@@ -17,7 +17,7 @@
         @endif
         <div>
             <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-            <div class="sidebar-user-role">{{ __tr('Customer') }}</div>
+            <div class="sidebar-user-role" style="color:#00d46a;">{{ __tr('Alborada Box Member') }}</div>
         </div>
     </div>
 
@@ -32,38 +32,45 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('member.my.listings') }}"
-                    class="{{ Request::routeIs('member.my.listings') ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-list-ul"></i></span>
-                    {{ __tr('My Ads') }}
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('member.favourites') }}"
-                    class="{{ Request::routeIs('member.favourites') ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-heart"></i></span>
-                    {{ __tr('Favorites') }}
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('member.messages.index') }}"
-                    class="{{ Request::routeIs(['member.messages.index', 'member.messages.show']) ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-comments"></i></span>
-                    {{ __tr('Messages') }}
-                </a>
-            </li>
-            <li>
                 <a href="{{ route('member.subscriptions') }}"
                     class="{{ Request::routeIs('member.subscriptions') ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-crown"></i></span>
-                    {{ __tr('Subscriptions') }}
+                    <span class="sidebar-icon"><i class="fa-solid fa-satellite-dish"></i></span>
+                    {{ __tr('My Subscription') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('member.download.app') }}"
+                    class="{{ Request::routeIs('member.download.app') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-download"></i></span>
+                    {{ __tr('Download App') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('member.setup.guide') }}"
+                    class="{{ Request::routeIs('member.setup.guide') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-tv"></i></span>
+                    {{ __tr('Setup Guide') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('member.support.index') }}"
+                    class="{{ Request::routeIs(['member.support.index', 'member.support.create', 'member.support.show']) ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-headset"></i></span>
+                    {{ __tr('Support') }}
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('member.subscriptions') }}#invoices"
+                    class="">
+                    <span class="sidebar-icon"><i class="fa-solid fa-receipt"></i></span>
+                    {{ __tr('Billing & Invoices') }}
                 </a>
             </li>
             <li>
                 <a href="{{ route('member.account') }}"
                     class="{{ Request::routeIs('member.account') ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-user"></i></span>
-                    {{ __tr('Account') }}
+                    <span class="sidebar-icon"><i class="fa-solid fa-user-gear"></i></span>
+                    {{ __tr('My Account') }}
                 </a>
             </li>
         </ul>

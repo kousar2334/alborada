@@ -155,4 +155,18 @@ class SettingController extends Controller
         toastNotification('success', __tr('IPTV settings updated successfully'));
         return back();
     }
+
+    public function chatWidget()
+    {
+        return view('backend.modules.settings.chat-widget');
+    }
+
+    public function updateChatWidget(Request $request)
+    {
+        set_setting('chat_widget_enabled', $request->boolean('chat_widget_enabled') ? 1 : 0);
+        set_setting('chat_widget_code', $request->input('chat_widget_code', ''));
+
+        toastNotification('success', __tr('Chat widget settings updated.'));
+        return back();
+    }
 }

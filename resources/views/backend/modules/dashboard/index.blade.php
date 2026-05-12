@@ -1,6 +1,5 @@
 @extends('backend.layouts.dashboard_layout')
 @section('page-content')
-    <!--Page Header-->
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -15,90 +14,36 @@
             </div>
         </div>
     </div>
-    <!--End page header-->
 
     <section class="content">
         <div class="container-fluid">
 
-            {{-- ===== Row 1: Platform Stats ===== --}}
+            {{-- ===== Row 1: Live IPTV KPIs ===== --}}
             <div class="row">
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="info-box mb-3">
-                        <span class="info-box-icon bg-teal elevation-1"><i class="fas fa-users"></i></span>
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-satellite-dish"></i></span>
                         <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Members') }}</span>
-                            <span class="info-box-number">{{ number_format($total_members) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-secondary elevation-1"><i class="fas fa-th-large"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Categories') }}</span>
-                            <span class="info-box-number">{{ number_format($total_categories) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-indigo elevation-1"><i class="fas fa-blog"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Blogs') }}</span>
-                            <span class="info-box-number">{{ number_format($total_blogs) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-dark elevation-1"><i class="fas fa-file-alt"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Pages') }}</span>
-                            <span class="info-box-number">{{ number_format($total_pages) }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ===== Row 2: Content & Messages ===== --}}
-            <div class="row">
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-photo-video"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Media') }}</span>
-                            <span class="info-box-number">{{ number_format($total_media) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-list"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Total Menus') }}</span>
-                            <span class="info-box-number">{{ number_format($total_menus) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-lime elevation-1"><i class="fas fa-tags"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Blog Categories') }}</span>
-                            <span class="info-box-number">{{ number_format($total_categories) }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ===== Row 3: IPTV Stats ===== --}}
-            <div class="row">
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-crown"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Active Subscriptions') }}</span>
+                            <span class="info-box-text">{{ __tr('Active Lines') }}</span>
                             <span class="info-box-number">{{ number_format($active_subscriptions) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-teal elevation-1"><i class="fas fa-dollar-sign"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Revenue This Month') }}</span>
+                            <span class="info-box-number">{{ get_setting('currency_symbol','$') }}{{ number_format($monthly_revenue, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-user-plus"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('New Members Today') }}</span>
+                            <span class="info-box-number">{{ number_format($new_members_today) }}</span>
                         </div>
                     </div>
                 </div>
@@ -111,27 +56,93 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {{-- ===== Row 2: Operations KPIs ===== --}}
+            <div class="row">
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="info-box mb-3">
-                        <span class="info-box-icon bg-teal elevation-1"><i class="fas fa-dollar-sign"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">{{ __tr('Revenue This Month') }}</span>
-                            <span class="info-box-number">${{ number_format($monthly_revenue, 2) }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box mb-3">
-                        <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-ticket-alt"></i></span>
+                        <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-ticket"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">{{ __tr('Open Tickets') }}</span>
                             <span class="info-box-number">{{ number_format($pending_tickets) }}</span>
                         </div>
                     </div>
                 </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-orange elevation-1"><i class="fas fa-wifi"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Buffering Reports') }}</span>
+                            <span class="info-box-number">{{ number_format($buffering_tickets) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-indigo elevation-1"><i class="fas fa-clock"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Pending Payments') }}</span>
+                            <span class="info-box-number">{{ number_format($pending_subscriptions) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-secondary elevation-1"><i class="fas fa-store"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Total Resellers') }}</span>
+                            <span class="info-box-number">{{ number_format($total_resellers) }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {{-- ===== Charts Row 1 ===== --}}
+            {{-- ===== Row 3: Total Members ===== --}}
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-dark elevation-1"><i class="fas fa-users"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Total Members') }}</span>
+                            <span class="info-box-number">{{ number_format($total_members) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fas fa-chart-line"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">{{ __tr('Total Revenue (All Time)') }}</span>
+                            <span class="info-box-number">{{ get_setting('currency_symbol','$') }}{{ number_format($total_revenue, 2) }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <a href="{{ route('admin.subscriptions.index') }}" style="text-decoration:none;">
+                        <div class="info-box mb-3">
+                            <span class="info-box-icon bg-lime elevation-1"><i class="fas fa-list-check"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">{{ __tr('Manage Subscriptions') }}</span>
+                                <span class="info-box-number" style="font-size:.9rem;">{{ __tr('View All') }} →</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <a href="{{ route('admin.support.tickets') }}" style="text-decoration:none;">
+                        <div class="info-box mb-3">
+                            <span class="info-box-icon bg-red elevation-1" style="background:#dc3545!important;"><i class="fas fa-headset"></i></span>
+                            <div class="info-box-content">
+                                <span class="info-box-text">{{ __tr('Support Center') }}</span>
+                                <span class="info-box-number" style="font-size:.9rem;">{{ __tr('View Tickets') }} →</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            {{-- ===== Charts ===== --}}
             <div class="row">
                 <div class="col-md-6 d-flex">
                     <div class="card flex-fill">
@@ -146,66 +157,52 @@
                 <div class="col-md-6 d-flex">
                     <div class="card flex-fill">
                         <div class="card-header">
-                            <h3 class="card-title">{{ __tr('New Blogs (Last 12 Months)') }}</h3>
+                            <h3 class="card-title">{{ __tr('Monthly Revenue (Last 12 Months)') }}</h3>
                         </div>
                         <div class="card-body">
-                            <canvas id="monthlyBlogsChart" style="height:280px;"></canvas>
+                            <canvas id="monthlyRevenueChart" style="height:280px;"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- ===== Charts Row 2 ===== --}}
+            {{-- ===== Recent Subscriptions ===== --}}
             <div class="row">
-                <div class="col-md-6 d-flex">
-                    <div class="card flex-fill">
-                        <div class="card-header">
-                            <h3 class="card-title">{{ __tr('Blogs by Category') }}</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="categoryDoughnutChart" style="height:280px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 d-flex">
-                    <div class="card flex-fill">
-                        <div class="card-header">
-                            <h3 class="card-title">{{ __tr('Overview Stats') }}</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="overviewPieChart" style="height:280px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">{{ __tr('Latest Members') }}</h3>
+                            <h3 class="card-title">{{ __tr('Recent Subscriptions') }}</h3>
+                            <div class="card-tools">
+                                <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-sm btn-primary">{{ __tr('View All') }}</a>
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             <table class="table table-striped table-sm">
                                 <thead>
                                     <tr>
-                                        <th>{{ __tr('Name') }}</th>
-                                        <th>{{ __tr('Email') }}</th>
-                                        <th>{{ __tr('Phone') }}</th>
-                                        <th>{{ __tr('Joined Date') }}</th>
+                                        <th>{{ __tr('Member') }}</th>
+                                        <th>{{ __tr('Plan') }}</th>
+                                        <th>{{ __tr('Amount') }}</th>
+                                        <th>{{ __tr('Status') }}</th>
+                                        <th>{{ __tr('Expires') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($latest_members as $member)
+                                    @forelse($recent_subscriptions as $sub)
                                         <tr>
-                                            <td>{{ $member->name }}</td>
-                                            <td>{{ $member->email }}</td>
-                                            <td>{{ $member->phone ?? 'N/A' }}</td>
-                                            <td>{{ $member->created_at->format('M d, Y') }}</td>
+                                            <td>{{ $sub->user?->name ?? '—' }}</td>
+                                            <td>{{ $sub->plan?->title ?? '—' }}</td>
+                                            <td>{{ format_amount($sub->amount) }}</td>
+                                            <td>
+                                                <span class="badge badge-{{ $sub->status === 'active' ? 'success' : ($sub->status === 'pending' ? 'warning' : 'secondary') }}">
+                                                    {{ ucfirst($sub->status) }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $sub->expires_at?->format('M d, Y') ?? '—' }}</td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center">{{ __tr('No members found') }}</td>
+                                            <td colspan="5" class="text-center">{{ __tr('No subscriptions yet') }}</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -214,6 +211,38 @@
                     </div>
                 </div>
 
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ __tr('New Members') }}</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __tr('Name') }}</th>
+                                        <th>{{ __tr('Joined') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($latest_members as $member)
+                                        <tr>
+                                            <td>
+                                                <div style="font-size:.85rem;font-weight:600;">{{ $member->name }}</div>
+                                                <div style="font-size:.75rem;color:#6c757d;">{{ $member->email }}</div>
+                                            </td>
+                                            <td style="font-size:.75rem;color:#6c757d;">{{ $member->created_at->diffForHumans() }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="2" class="text-center">{{ __tr('No members') }}</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -224,12 +253,6 @@
     <script src="{{ asset('public/web-assets/backend/plugins/chart.js/chart.umd.min.js') }}"></script>
     <script>
         $(function() {
-            const chartColors = [
-                '#17a2b8', '#28a745', '#ffc107', '#dc3545',
-                '#6610f2', '#fd7e14', '#20c997', '#e83e8c'
-            ];
-
-            // Monthly Members Line Chart
             new Chart(document.getElementById('monthlyMembersChart').getContext('2d'), {
                 type: 'line',
                 data: {
@@ -239,219 +262,25 @@
                         data: {!! json_encode($monthly_members_data) !!},
                         borderColor: '#28a745',
                         backgroundColor: 'rgba(40,167,69,0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#28a745'
+                        fill: true, tension: 0.4, pointBackgroundColor: '#28a745'
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
+                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ display:false } } }
             });
 
-            // Monthly Blogs Line Chart
-            new Chart(document.getElementById('monthlyBlogsChart').getContext('2d'), {
-                type: 'line',
+            new Chart(document.getElementById('monthlyRevenueChart').getContext('2d'), {
+                type: 'bar',
                 data: {
                     labels: {!! json_encode($monthly_labels) !!},
                     datasets: [{
-                        label: '{{ __tr('New Blogs') }}',
-                        data: {!! json_encode($monthly_blogs_data) !!},
-                        borderColor: '#007bff',
-                        backgroundColor: 'rgba(0,123,255,0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#007bff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            // Category Doughnut Chart
-            new Chart(document.getElementById('categoryChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($category_labels) !!},
-                    datasets: [{
-                        data: {!! json_encode($category_data) !!},
-                        backgroundColor: chartColors,
+                        label: '{{ __tr('Revenue') }}',
+                        data: {!! json_encode($monthly_revenue_data) !!},
+                        backgroundColor: 'rgba(220,53,69,0.7)',
+                        borderColor: '#dc3545',
                         borderWidth: 1
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        });
-    </script>
-
-    </div>
-    </section>
-@endsection
-
-@section('page-script')
-    <script src="{{ asset('public/web-assets/backend/plugins/chart.js/chart.umd.min.js') }}"></script>
-    <script>
-        $(function() {
-            const chartColors = [
-                '#17a2b8', '#28a745', '#ffc107', '#dc3545',
-                '#6610f2', '#fd7e14', '#20c997', '#e83e8c'
-            ];
-
-            // Monthly Members Line Chart
-            new Chart(document.getElementById('monthlyMembersChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($monthly_labels) !!},
-                    datasets: [{
-                        label: '{{ __tr('New Members') }}',
-                        data: {!! json_encode($monthly_members_data) !!},
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40,167,69,0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#28a745'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            // Monthly Blogs Line Chart
-            new Chart(document.getElementById('monthlyBlogsChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: {!! json_encode($monthly_labels) !!},
-                    datasets: [{
-                        label: '{{ __tr('New Blogs') }}',
-                        data: {!! json_encode($monthly_blogs_data) !!},
-                        borderColor: '#6610f2',
-                        backgroundColor: 'rgba(102,16,242,0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#6610f2'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
-            });
-
-            // Blogs by Category Doughnut
-            new Chart(document.getElementById('categoryDoughnutChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: {!! json_encode($category_labels) !!},
-                    datasets: [{
-                        data: {!! json_encode($category_data) !!},
-                        backgroundColor: chartColors
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-
-            // Overview Pie Chart
-            new Chart(document.getElementById('overviewPieChart').getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: [
-                        '{{ __tr('Members') }}',
-                        '{{ __tr('Blogs') }}',
-                        '{{ __tr('Pages') }}',
-                        '{{ __tr('Media') }}'
-                    ],
-                    datasets: [{
-                        data: [
-                            {{ $total_members }},
-                            {{ $total_blogs }},
-                            {{ $total_pages }},
-                            {{ $total_media }}
-                        ],
-                        backgroundColor: ['#28a745', '#6610f2', '#dc3545', '#17a2b8']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
+                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ display:false } } }
             });
         });
     </script>

@@ -23,6 +23,8 @@ use App\Http\Controllers\Backend\SupportTicketController as AdminSupportTicketCo
 use App\Http\Controllers\Backend\ResellerManagementController;
 use App\Http\Controllers\Backend\ReportController;
 use App\Http\Controllers\Backend\ApiLogController;
+use App\Http\Controllers\Backend\AppDownloaderCodeController;
+use App\Http\Controllers\Backend\FeaturedContentController;
 
 Route::prefix('admin')->group(function () {
 
@@ -364,5 +366,34 @@ Route::prefix('admin')->group(function () {
             ->middleware('can:Manage Media');
         Route::post('/selected-media-details', [MediaController::class, 'selectedMediaDetails'])->name('media.selected.file.details')
             ->middleware('can:Manage Media');
+
+        // ── App Downloader Codes ──────────────────────────────────────────────
+        Route::resource('downloader-codes', AppDownloaderCodeController::class)
+            ->except(['show'])
+            ->names([
+                'index'   => 'admin.downloader-codes.index',
+                'store'   => 'admin.downloader-codes.store',
+                'edit'    => 'admin.downloader-codes.edit',
+                'update'  => 'admin.downloader-codes.update',
+                'destroy' => 'admin.downloader-codes.destroy',
+            ]);
+        Route::post('/downloader-codes/{downloaderCode}/toggle', [AppDownloaderCodeController::class, 'toggleStatus'])
+            ->name('admin.downloader-codes.toggle');
+
+        // ── Featured Content ──────────────────────────────────────────────────
+        Route::resource('featured-content', FeaturedContentController::class)
+            ->except(['show'])
+            ->names([
+                'index'   => 'admin.featured-content.index',
+                'create'  => 'admin.featured-content.create',
+                'store'   => 'admin.featured-content.store',
+                'edit'    => 'admin.featured-content.edit',
+                'update'  => 'admin.featured-content.update',
+                'destroy' => 'admin.featured-content.destroy',
+            ]);
+
+        // ── Chat Widget Settings ──────────────────────────────────────────────
+        Route::get('/settings/chat-widget', [SettingController::class, 'chatWidget'])->name('admin.settings.chat-widget');
+        Route::post('/settings/chat-widget/update', [SettingController::class, 'updateChatWidget'])->name('admin.settings.chat-widget.update');
     });
 });

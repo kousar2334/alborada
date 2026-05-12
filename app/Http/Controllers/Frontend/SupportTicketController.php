@@ -22,32 +22,53 @@ class SupportTicketController extends Controller
         return view('frontend.pages.member.tickets.index', compact('tickets'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('frontend.pages.member.tickets.create');
+        $prefill = [];
+
+        if ($request->query('type') === 'buffering') {
+            $prefill = [
+                'subject'    => 'Buffering Issue Report',
+                'priority'   => 'high',
+                'department' => 'buffering',
+                'is_buffering' => true,
+            ];
+        }
+
+        return view('frontend.pages.member.tickets.create', compact('prefill'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'subject'    => 'required|string|max:255',
-            'priority'   => 'required|in:low,normal,high,urgent',
-            'department' => 'nullable|string|max:100',
-            'message'    => 'required|string|min:10',
+            'subject'      => 'required|string|max:255',
+            'priority'     => 'required|in:low,normal,high,urgent',
+            'department'   => 'nullable|string|max:100',
+            'message'      => 'required|string|min:10',
+            'device_type'  => 'nullable|string|max:50',
+            'channel_name' => 'nullable|string|max:100',
         ]);
 
         $ticket = SupportTicket::create([
             'user_id'    => Auth::id(),
             'subject'    => x_clean($request->subject),
             'priority'   => $request->priority,
-            'department' => $request->department,
+            'department' => $request->department ?? 'general',
             'status'     => SupportTicket::STATUS_NEW,
         ]);
 
+        // Build message — append buffering meta if provided
+        $message = x_clean($request->message);
+        if ($request->filled('device_type') || $request->filled('channel_name')) {
+            $message .= "\n\n--- Device Info ---\n";
+            if ($request->filled('device_type'))  $message .= "Device: {$request->device_type}\n";
+            if ($request->filled('channel_name')) $message .= "Channel: {$request->channel_name}\n";
+        }
+
         TicketReply::create([
-            'ticket_id'     => $ticket->id,
-            'user_id'       => Auth::id(),
-            'message'       => x_clean($request->message),
+            'ticket_id'      => $ticket->id,
+            'user_id'        => Auth::id(),
+            'message'        => $message,
             'is_staff_reply' => false,
         ]);
 

@@ -26,6 +26,11 @@
     @include('frontend.includes.script')
     @yield('js')
 
+    {{-- AI / Live Chat Widget --}}
+    @if(get_setting('chat_widget_enabled') && get_setting('chat_widget_code'))
+        {!! get_setting('chat_widget_code') !!}
+    @endif
+
 </body>
 
 </html>

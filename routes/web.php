@@ -111,6 +111,9 @@ Route::group(['middleware' => ['auth', 'customer']], function () {
 
     // Setup guide
     Route::get('/member/setup-guide', [SetupGuideController::class, 'index'])->name('member.setup.guide');
+
+    // Download App
+    Route::get('/member/download-app', [MemberAuthController::class, 'downloadApp'])->name('member.download.app');
 });
 // ── Customer Portal (alias routes for member system) ──────────────────────────
 Route::get('/customer/login', [MemberAuthController::class, 'memberLoginPage'])->name('customer.login')->middleware('guest');
@@ -142,6 +145,8 @@ Route::prefix('reseller')->group(function () {
         Route::put('/account/profile', [ResellerController::class, 'updateAccount'])->name('reseller.account.update');
         Route::put('/account/password', [ResellerController::class, 'updatePassword'])->name('reseller.account.password');
         Route::get('/credits', [ResellerController::class, 'credits'])->name('reseller.credits');
+        Route::post('/credits/topup-request', [ResellerController::class, 'requestCreditTopup'])->name('reseller.credits.topup');
+        Route::post('/credits/transfer', [ResellerController::class, 'transferCredits'])->name('reseller.credits.transfer');
         Route::get('/api-keys', [ResellerController::class, 'apiKeys'])->name('reseller.api.keys');
         Route::post('/api-keys/create', [ResellerController::class, 'createApiToken'])->name('reseller.api.keys.create');
         Route::post('/api-keys/revoke', [ResellerController::class, 'revokeApiToken'])->name('reseller.api.keys.revoke');

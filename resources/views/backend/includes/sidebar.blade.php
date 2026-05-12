@@ -304,6 +304,33 @@
                     </a>
                 </li>
 
+                {{-- App Downloader Codes --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.downloader-codes.index') }}"
+                        class="nav-link {{ Request::routeIs('admin.downloader-codes.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-download"></i>
+                        <p>{{ __tr('App Codes') }}</p>
+                    </a>
+                </li>
+
+                {{-- Featured Content --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.featured-content.index') }}"
+                        class="nav-link {{ Request::routeIs('admin.featured-content.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-film"></i>
+                        <p>{{ __tr('Featured Content') }}</p>
+                    </a>
+                </li>
+
+                {{-- Chat Widget --}}
+                <li class="nav-item">
+                    <a href="{{ route('admin.settings.chat-widget') }}"
+                        class="nav-link {{ Request::routeIs('admin.settings.chat-widget') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-comments"></i>
+                        <p>{{ __tr('Chat Widget') }}</p>
+                    </a>
+                </li>
+
                 {{-- System --}}
                 @canany(['Update Environment', 'Update SMTP', 'Manage Social Login'])
                     <li class="nav-item">

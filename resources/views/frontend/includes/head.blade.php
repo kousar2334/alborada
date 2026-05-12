@@ -14,19 +14,19 @@
 
     <style>
         :root {
-            --primary-color: {{ get_setting('site_primary_color', '#260ac4') }};
-            --primary-color-dark: {{ get_setting('site_primary_color_dark', '#e84e1b') }};
-            --primary-color-light: {{ get_setting('site_primary_color_light', '#ff9a5c') }};
-            --primary-color-lighter: {{ get_setting('site_primary_color_lighter', '#ffb347') }};
-            --primary-color-shadow: {{ get_setting('site_primary_color_shadow', '#f766310f') }};
+            --primary-color: {{ get_setting('site_primary_color', '#cc0000') }};
+            --primary-color-dark: {{ get_setting('site_primary_color_dark', '#990000') }};
+            --primary-color-light: {{ get_setting('site_primary_color_light', '#ff3333') }};
+            --primary-color-lighter: {{ get_setting('site_primary_color_lighter', '#ff6666') }};
+            --primary-color-shadow: {{ get_setting('site_primary_color_shadow', '#cc000018') }};
 
             --main-color-one: var(--primary-color);
-            --main-color-two: {{ get_setting('site_main_color_two', '#524eb7') }};
-            --main-color-three: {{ get_setting('site_main_color_three', '#00cad5') }};
+            --main-color-two: {{ get_setting('site_main_color_two', '#111111') }};
+            --main-color-three: {{ get_setting('site_main_color_three', '#00d46a') }};
 
-            --heading-color: {{ get_setting('site_heading_color', '#333333') }};
-            --secondary-color: {{ get_setting('site_base_color', '#fba260') }};
-            --header-color: {{ get_setting('site_header_color', '#fff4ed') }};
+            --heading-color: {{ get_setting('site_heading_color', '#1a1a1a') }};
+            --secondary-color: {{ get_setting('site_base_color', '#00d46a') }};
+            --header-color: {{ get_setting('site_header_color', '#0a0a0a') }};
         }
     </style>
 

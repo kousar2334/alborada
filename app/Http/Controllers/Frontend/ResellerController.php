@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Models\ResellerCreditLog;
 use App\Models\User;
 use App\Models\UserSubscription;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class ResellerController extends Controller
 {
@@ -31,6 +33,12 @@ class ResellerController extends Controller
             ->where('status', 'active')
             ->sum('amount');
 
+        $expiringClients = UserSubscription::whereIn('user_id', $clientIds)
+            ->where('status', 'active')
+            ->whereBetween('expires_at', [now(), now()->addDays(7)])
+            ->with('user')
+            ->get();
+
         $recentClients = User::where('reseller_id', $reseller->id)
             ->with(['subscriptions' => function ($q) {
                 $q->where('status', 'active')->where('expires_at', '>', now())->latest()->limit(1);
@@ -45,6 +53,7 @@ class ResellerController extends Controller
             'activeClients',
             'activeSubscriptions',
             'totalRevenue',
+            'expiringClients',
             'recentClients'
         ));
     }
@@ -139,10 +148,79 @@ class ResellerController extends Controller
 
     public function credits()
     {
-        $reseller = Auth::user();
-        $logs = $reseller->creditLogs()->with('client')->latest()->paginate(20);
+        $reseller    = Auth::user();
+        $logs        = $reseller->creditLogs()->with('client')->latest()->paginate(20);
+        $subResellers = User::where('reseller_id', $reseller->id)->where('type', 1)->get();
 
-        return view('frontend.pages.reseller.credits', compact('reseller', 'logs'));
+        return view('frontend.pages.reseller.credits', compact('reseller', 'logs', 'subResellers'));
+    }
+
+    public function requestCreditTopup(Request $request)
+    {
+        $request->validate([
+            'amount'  => 'required|numeric|min:1|max:10000',
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $reseller = Auth::user();
+
+        // Notify admin via email
+        $adminEmail = get_setting('admin_email', config('mail.from.address'));
+        Mail::raw(
+            "Credit top-up request from reseller: {$reseller->name} ({$reseller->email})\n\nAmount requested: \${$request->amount}\n\nMessage: {$request->message}",
+            function ($m) use ($adminEmail, $reseller) {
+                $m->to($adminEmail)
+                  ->subject("Credit Top-Up Request from {$reseller->name}");
+            }
+        );
+
+        toastNotification('success', __tr('Top-up request sent to admin. You will be contacted shortly.'));
+        return back();
+    }
+
+    public function transferCredits(Request $request)
+    {
+        $request->validate([
+            'sub_reseller_id' => 'required|integer|exists:users,id',
+            'amount'          => 'required|numeric|min:1',
+        ]);
+
+        $reseller    = Auth::user();
+        $subReseller = User::where('id', $request->sub_reseller_id)
+            ->where('reseller_id', $reseller->id)
+            ->where('type', 1)
+            ->firstOrFail();
+
+        if ($reseller->credits < $request->amount) {
+            toastNotification('error', __tr('Insufficient credits.'));
+            return back();
+        }
+
+        $reseller->deductCredits($request->amount);
+        $subReseller->addCredits($request->amount);
+
+        // Log for reseller
+        ResellerCreditLog::create([
+            'reseller_id'   => $reseller->id,
+            'user_id'       => $subReseller->id,
+            'type'          => 'debit',
+            'amount'        => $request->amount,
+            'balance_after' => $reseller->fresh()->credits,
+            'description'   => "Transfer to sub-reseller: {$subReseller->name}",
+        ]);
+
+        // Log for sub-reseller
+        ResellerCreditLog::create([
+            'reseller_id'   => $subReseller->id,
+            'user_id'       => $reseller->id,
+            'type'          => 'credit',
+            'amount'        => $request->amount,
+            'balance_after' => $subReseller->fresh()->credits,
+            'description'   => "Transfer from reseller: {$reseller->name}",
+        ]);
+
+        toastNotification('success', __tr('Credits transferred successfully.'));
+        return back();
     }
 
     public function apiKeys()
