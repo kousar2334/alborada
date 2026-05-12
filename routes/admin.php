@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Backend\AdsController;
-use App\Http\Controllers\Backend\TagController;
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\MenuController;
 use App\Http\Controllers\Backend\PageController;
@@ -11,28 +9,16 @@ use App\Http\Controllers\Backend\MediaController;
 use App\Http\Controllers\Backend\MemberController;
 use App\Http\Controllers\Backend\SettingController;
 use App\Http\Controllers\Backend\UtilityController;
-use App\Http\Controllers\Backend\CategoryController;
 use App\Http\Controllers\Backend\LanguageController;
-use App\Http\Controllers\Backend\LocationController;
 use App\Http\Controllers\Backend\UserAuthController;
-use App\Http\Controllers\Backend\ConditionController;
-use App\Http\Controllers\Backend\ContactUsController;
 use App\Http\Controllers\Backend\DashboardController;
-use App\Http\Controllers\Backend\CustomFieldController;
 use App\Http\Controllers\Backend\SiteSettingController;
 use App\Http\Controllers\Backend\NotificationController;
 use App\Http\Controllers\Backend\MissingModuleController;
 use App\Http\Controllers\Backend\PricingPlanController;
-use App\Http\Controllers\Backend\ClassifiedSettingController;
-use App\Http\Controllers\Backend\AdReportController;
-use App\Http\Controllers\Backend\ReportReasonController;
-use App\Http\Controllers\Backend\ConversationController;
 use App\Http\Controllers\Backend\SubscriptionController;
-use App\Http\Controllers\Backend\AdvertisementController;
 use App\Http\Controllers\Backend\HomePageBuilderController;
-use App\Http\Controllers\Backend\NewsletterController as BackendNewsletterController;
 use App\Http\Controllers\Backend\PaymentSettingsController;
-use App\Http\Controllers\Backend\BankPaymentController;
 use App\Http\Controllers\Backend\SupportTicketController as AdminSupportTicketController;
 use App\Http\Controllers\Backend\ResellerManagementController;
 use App\Http\Controllers\Backend\ReportController;
@@ -54,8 +40,6 @@ Route::prefix('admin')->group(function () {
 
         // Dashboard AJAX stats
         Route::post('business-stats', [DashboardController::class, 'businessStats'])->name('business.stats')
-            ->middleware('can:View Dashboard');
-        Route::post('ad--posting-stats', [DashboardController::class, 'adStats'])->name('reports.ad.chart')
             ->middleware('can:View Dashboard');
         Route::post('member-registration-stats', [DashboardController::class, 'memberStats'])->name('reports.member.chart')
             ->middleware('can:View Dashboard');
@@ -297,116 +281,6 @@ Route::prefix('admin')->group(function () {
         });
 
         /**
-         * CLASSIFIED ADS MODULES
-         */
-        Route::prefix('classified/ads')->group(function () {
-            Route::prefix('categories')->group(function () {
-                Route::get('/', [CategoryController::class, 'categories'])->name('classified.ads.categories.list')
-                    ->middleware('can:Manage Ad Categories');
-                Route::post('/store', [CategoryController::class, 'categoryStore'])->name('classified.ads.categories.store')
-                    ->middleware('can:Create Ad Category');
-                Route::post('/edit', [CategoryController::class, 'categoryEdit'])->name('classified.ads.categories.edit')
-                    ->middleware('can:Edit Ad Category');
-                Route::get('/{id}/edit', [CategoryController::class, 'categoryEditPage'])->name('classified.ads.categories.edit.page')
-                    ->middleware('can:Edit Ad Category');
-                Route::post('/update', [CategoryController::class, 'categoryUpdate'])->name('classified.ads.categories.update')
-                    ->middleware('can:Edit Ad Category');
-                Route::post('/delete', [CategoryController::class, 'categoryDelete'])->name('classified.ads.categories.delete')
-                    ->middleware('can:Delete Ad Category');
-                Route::get('/options', [CategoryController::class, 'CategoryOption'])->name('classified.ads.categories.options')
-                    ->middleware('can:Manage Ad Categories');
-            });
-
-            Route::prefix('conditions')->group(function () {
-                Route::get('/', [ConditionController::class, 'conditions'])->name('classified.ads.condition.list')
-                    ->middleware('can:Manage Conditions');
-                Route::post('/store', [ConditionController::class, 'storeCondition'])->name('classified.ads.condition.store')
-                    ->middleware('can:Create Condition');
-                Route::post('/edit', [ConditionController::class, 'editCondition'])->name('classified.ads.condition.edit')
-                    ->middleware('can:Edit Condition');
-                Route::get('/{id}/edit', [ConditionController::class, 'editConditionPage'])->name('classified.ads.condition.edit.page')
-                    ->middleware('can:Edit Condition');
-                Route::post('/update', [ConditionController::class, 'updateCondition'])->name('classified.ads.condition.update')
-                    ->middleware('can:Edit Condition');
-                Route::post('/delete', [ConditionController::class, 'deleteCondition'])->name('classified.ads.condition.delete')
-                    ->middleware('can:Delete Condition');
-            });
-
-            Route::prefix('tags')->group(function () {
-                Route::get('/', [TagController::class, 'tags'])->name('classified.ads.tag.list')
-                    ->middleware('can:Manage Tags');
-                Route::post('/store', [TagController::class, 'storeTag'])->name('classified.ads.tag.store')
-                    ->middleware('can:Create Tag');
-                Route::post('/update', [TagController::class, 'updateTag'])->name('classified.ads.tag.update')
-                    ->middleware('can:Edit Tag');
-                Route::post('/delete', [TagController::class, 'deleteTag'])->name('classified.ads.tag.delete')
-                    ->middleware('can:Delete Tag');
-                Route::get('/options', [TagController::class, 'tagOption'])->name('classified.ads.tag.options')
-                    ->middleware('can:Manage Tags');
-            });
-
-            Route::prefix('custom-fields')->group(function () {
-                Route::get('/', [CustomFieldController::class, 'customFields'])->name('classified.ads.custom.field.list')
-                    ->middleware('can:Manage Custom Fields');
-                Route::post('/store', [CustomFieldController::class, 'storeCustomField'])->name('classified.ads.custom.field.store')
-                    ->middleware('can:Create Custom Field');
-                Route::post('/edit', [CustomFieldController::class, 'editCustomField'])->name('classified.ads.custom.field.edit')
-                    ->middleware('can:Edit Custom Field');
-                Route::get('/{id}/edit', [CustomFieldController::class, 'editCustomFieldPage'])->name('classified.ads.custom.field.edit.page')
-                    ->middleware('can:Edit Custom Field');
-                Route::post('/update', [CustomFieldController::class, 'updateCustomField'])->name('classified.ads.custom.field.update')
-                    ->middleware('can:Edit Custom Field');
-                Route::post('/delete', [CustomFieldController::class, 'deleteCustomField'])->name('classified.ads.custom.field.delete')
-                    ->middleware('can:Delete Custom Field');
-                Route::post('/assign-category', [CustomFieldController::class, 'assignCategory'])->name('classified.ads.custom.field.assign.category')
-                    ->middleware('can:Edit Custom Field');
-                Route::get('/{id}/options', [CustomFieldController::class, 'customFieldOptions'])->name('classified.ads.custom.field.options')
-                    ->middleware('can:Manage Custom Fields');
-                Route::post('/options/store', [CustomFieldController::class, 'customFieldOptionStore'])->name('classified.ads.custom.field.options.store')
-                    ->middleware('can:Create Custom Field');
-                Route::post('/options/edit', [CustomFieldController::class, 'customFieldOptionEdit'])->name('classified.ads.custom.field.options.edit')
-                    ->middleware('can:Edit Custom Field');
-                Route::get('/options/{id}/edit', [CustomFieldController::class, 'editOptionPage'])->name('classified.ads.custom.field.options.edit.page')
-                    ->middleware('can:Edit Custom Field');
-                Route::post('/options/update', [CustomFieldController::class, 'customFieldOptionUpdate'])->name('classified.ads.custom.field.options.update')
-                    ->middleware('can:Edit Custom Field');
-                Route::post('/options/delete', [CustomFieldController::class, 'customFieldOptionDelete'])->name('classified.ads.custom.field.options.delete')
-                    ->middleware('can:Delete Custom Field');
-            });
-
-            Route::prefix('report-reasons')->group(function () {
-                Route::get('/', [ReportReasonController::class, 'index'])->name('classified.ads.report.reasons.list')
-                    ->middleware('can:Manage Report Reasons');
-                Route::post('/store', [ReportReasonController::class, 'store'])->name('classified.ads.report.reasons.store')
-                    ->middleware('can:Create Report Reason');
-                Route::get('/{id}/edit', [ReportReasonController::class, 'edit'])->name('classified.ads.report.reasons.edit')
-                    ->middleware('can:Edit Report Reason');
-                Route::post('/update', [ReportReasonController::class, 'update'])->name('classified.ads.report.reasons.update')
-                    ->middleware('can:Edit Report Reason');
-                Route::post('/delete', [ReportReasonController::class, 'delete'])->name('classified.ads.report.reasons.delete')
-                    ->middleware('can:Delete Report Reason');
-            });
-        });
-
-        /**
-         * ADVERTISEMENTS
-         */
-        Route::prefix('advertisements')->group(function () {
-            Route::get('/', [AdvertisementController::class, 'index'])->name('admin.advertisement.list')
-                ->middleware('can:Manage Advertisements');
-            Route::post('/store', [AdvertisementController::class, 'store'])->name('admin.advertisement.store')
-                ->middleware('can:Create Advertisement');
-            Route::post('/edit', [AdvertisementController::class, 'edit'])->name('admin.advertisement.edit')
-                ->middleware('can:Edit Advertisement');
-            Route::post('/update', [AdvertisementController::class, 'update'])->name('admin.advertisement.update')
-                ->middleware('can:Edit Advertisement');
-            Route::post('/delete', [AdvertisementController::class, 'delete'])->name('admin.advertisement.delete')
-                ->middleware('can:Delete Advertisement');
-            Route::get('/{id}/analytics', [AdvertisementController::class, 'analytics'])->name('admin.advertisement.analytics')
-                ->middleware('can:Manage Advertisements');
-        });
-
-        /**
          * Registered placeholders for backend modules whose controllers are absent in this checkout.
          */
         Route::match(['GET', 'POST'], '/bank-payments', MissingModuleController::class)->name('admin.bank.payments');
@@ -432,58 +306,6 @@ Route::prefix('admin')->group(function () {
             Route::post('/campaigns/delete', MissingModuleController::class)->name('admin.newsletter.campaigns.delete');
             Route::get('/campaigns/{id}/stats', MissingModuleController::class)->name('admin.newsletter.campaigns.stats');
             Route::post('/subscribers/delete', MissingModuleController::class)->name('admin.newsletter.subscribers.delete');
-        });
-
-        Route::prefix('classified')->group(function () {
-            Route::get('/ads/{id}/edit', MissingModuleController::class)->name('classified.ads.edit');
-            Route::post('/ads/update', MissingModuleController::class)->name('classified.ads.update');
-            Route::get('/ads/get-states', MissingModuleController::class)->name('classified.ads.get.states');
-            Route::get('/ads/get-cities', MissingModuleController::class)->name('classified.ads.get.cities');
-
-            Route::get('/ads/reports', MissingModuleController::class)->name('classified.ads.reports.list');
-            Route::post('/ads/reports/status', MissingModuleController::class)->name('classified.ads.reports.status');
-            Route::post('/ads/reports/delete', MissingModuleController::class)->name('classified.ads.reports.delete');
-
-            Route::get('/locations/countries', MissingModuleController::class)->name('classified.locations.country.list');
-            Route::post('/locations/countries/store', MissingModuleController::class)->name('classified.locations.country.store');
-            Route::post('/locations/countries/edit', MissingModuleController::class)->name('classified.locations.country.edit');
-            Route::post('/locations/countries/update', MissingModuleController::class)->name('classified.locations.country.update');
-            Route::post('/locations/countries/delete', MissingModuleController::class)->name('classified.locations.country.delete');
-
-            Route::get('/locations/states', MissingModuleController::class)->name('classified.locations.state.list');
-            Route::post('/locations/states/store', MissingModuleController::class)->name('classified.locations.state.store');
-            Route::post('/locations/states/edit', MissingModuleController::class)->name('classified.locations.state.edit');
-            Route::post('/locations/states/update', MissingModuleController::class)->name('classified.locations.state.update');
-            Route::post('/locations/states/delete', MissingModuleController::class)->name('classified.locations.state.delete');
-
-            Route::get('/locations/cities', MissingModuleController::class)->name('classified.locations.city.list');
-            Route::post('/locations/cities/store', MissingModuleController::class)->name('classified.locations.city.store');
-            Route::post('/locations/cities/edit', MissingModuleController::class)->name('classified.locations.city.edit');
-            Route::post('/locations/cities/update', MissingModuleController::class)->name('classified.locations.city.update');
-            Route::post('/locations/cities/delete', MissingModuleController::class)->name('classified.locations.city.delete');
-
-            Route::get('/settings/general', MissingModuleController::class)->name('classified.settings.general');
-            Route::get('/settings/member', MissingModuleController::class)->name('classified.settings.member');
-            Route::get('/settings/currency', MissingModuleController::class)->name('classified.settings.currency');
-            Route::get('/settings/ads', MissingModuleController::class)->name('classified.settings.ads');
-            Route::get('/settings/map', MissingModuleController::class)->name('classified.settings.map');
-            Route::post('/settings/update', MissingModuleController::class)->name('classified.settings.update');
-            Route::post('/member-settings/update', MissingModuleController::class)->name('classified.member.settings.update');
-
-            Route::get('/settings/safety-tips', MissingModuleController::class)->name('classified.settings.safety.tips.list');
-            Route::post('/settings/safety-tips/store', MissingModuleController::class)->name('classified.settings.safety.tips.store');
-            Route::get('/settings/safety-tips/{id}/edit', MissingModuleController::class)->name('classified.settings.safety.tips.edit');
-            Route::post('/settings/safety-tips/update', MissingModuleController::class)->name('classified.settings.safety.tips.update');
-            Route::post('/settings/safety-tips/delete', MissingModuleController::class)->name('classified.settings.safety.tips.delete');
-
-            Route::get('/settings/quick-sell-tips', MissingModuleController::class)->name('classified.settings.quick.sell.tips.list');
-            Route::post('/settings/quick-sell-tips/store', MissingModuleController::class)->name('classified.settings.quick.sell.tips.store');
-            Route::get('/settings/quick-sell-tips/{id}/edit', MissingModuleController::class)->name('classified.settings.quick.sell.tips.edit');
-            Route::post('/settings/quick-sell-tips/update', MissingModuleController::class)->name('classified.settings.quick.sell.tips.update');
-            Route::post('/settings/quick-sell-tips/delete', MissingModuleController::class)->name('classified.settings.quick.sell.tips.delete');
-
-            Route::get('/settings/share-options', MissingModuleController::class)->name('classified.settings.share.options.list');
-            Route::post('/settings/share-options/status', MissingModuleController::class)->name('classified.settings.share.options.status.update');
         });
 
         /**

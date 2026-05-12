@@ -1,10 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Frontend\AdController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\PageController;
-use App\Http\Controllers\Backend\AdvertisementController;
 use App\Http\Controllers\Frontend\LocationController;
 use App\Http\Controllers\Frontend\MemberAuthController;
 use App\Http\Controllers\Frontend\MessageController;
@@ -28,10 +26,6 @@ Route::post('/contact/send', [ContactController::class, 'sendMessage'])->name('c
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
 Route::get('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 Route::get('/newsletter/track/open/{campaign}/{subscriber}', [NewsletterController::class, 'trackOpen'])->name('newsletter.track.open');
-
-// Advertisement tracking (public, lightweight)
-Route::post('/ad/impression', [AdvertisementController::class, 'trackImpression'])->name('ad.track.impression');
-Route::post('/ad/click', [AdvertisementController::class, 'trackClick'])->name('ad.track.click');
 
 // Language Switcher (frontend public route)
 Route::get('/language/switch/{code}', [LanguageController::class, 'setSessionLanguage'])->name('frontend.language.switch');
@@ -58,18 +52,6 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name
 // Payment link (public token-based URL)
 Route::get('/pay/{token}', [SubscriptionController::class, 'paymentLinkRedirect'])->name('payment.link');
 
-//Listing Routes
-Route::get('/post/ad', [AdController::class, 'addPostPage'])->name('ad.post.page');
-Route::post('/post/ad', [AdController::class, 'storeAd'])->name('ad.store');
-Route::get('/ad/subcategories', [AdController::class, 'getSubcategories'])->name('ad.subcategories');
-Route::get('/ad/custom-fields', [AdController::class, 'getCustomFields'])->name('ad.custom.fields');
-Route::get('/ad/countries', [AdController::class, 'getCountries'])->name('ad.countries');
-Route::get('/ad/states', [AdController::class, 'getStates'])->name('ad.states');
-Route::get('/ad/cities', [AdController::class, 'getCities'])->name('ad.cities');
-Route::get('/products/{category_id?}', fn () => to_route('ad.listing.page'))->name('products.page');
-Route::get('ads/{category_slug?}', [AdController::class, 'adListingPage'])->name('ad.listing.page');
-Route::get('/ads/details/{slug}', [AdController::class, 'adDetailsPage'])->name('ad.details.page');
-
 //Location Routes
 Route::get('/state/list', [LocationController::class, 'stateListofCountry'])->name('location.country.states.options');
 Route::get('/city/list', [LocationController::class, 'cityListofState'])->name('location.state.cities.options');
@@ -94,16 +76,6 @@ Route::group(['middleware' => ['guest']], function () {
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/member/logout', [MemberAuthController::class, 'memberLogout'])->name('member.logout');
     Route::get('/member/dashboard', [MemberAuthController::class, 'memberDashboard'])->name('member.dashboard');
-    Route::get('/member/my-listings', [AdController::class, 'myListings'])->name('member.my.listings');
-    Route::get('/member/ad/edit/{uid}', [AdController::class, 'editAd'])->name('member.ad.edit');
-    Route::post('/member/ad/update/{uid}', [AdController::class, 'updateAd'])->name('member.ad.update');
-
-    // Favorites
-    Route::post('/ad/favorite/toggle', [AdController::class, 'toggleFavourite'])->name('ad.favorite.toggle');
-    Route::get('/member/favourites', [AdController::class, 'myFavourites'])->name('member.favourites');
-
-    // Reports
-    Route::post('/ad/report', [AdController::class, 'reportAd'])->name('ad.report');
 
     // Messaging
     Route::get('/member/messages', [MessageController::class, 'index'])->name('member.messages.index');
