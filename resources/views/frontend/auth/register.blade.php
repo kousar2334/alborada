@@ -69,9 +69,10 @@
                     @endif
                 </div>
 
+
                 <div class="form-group mb-20">
                     <label>{{ __tr('Phone Number') }}</label>
-                    <input type="text" class="input-style" name="phone" placeholder="{{ __tr('Enter your phone') }}"
+                    <input type="text" class="input-style" name="phone" placeholder="{{ __tr('Enter your phone number') }}"
                         value="{{ old('phone') }}">
                     @if ($errors->has('phone'))
                         <p class="invalid-feedback d-block">{{ $errors->first('phone') }}</p>

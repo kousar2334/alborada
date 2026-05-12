@@ -208,14 +208,6 @@
                     @enderror
                 </div>
 
-                <div class="form-group mb-20">
-                    <label>{{ __tr('Phone Number') }}</label>
-                    <input type="text" name="phone" class="input-style @error('phone') is-invalid @enderror"
-                        value="{{ old('phone', $user->phone) }}" placeholder="{{ __tr('+1 234 567 8900') }}">
-                    @error('phone')
-                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
-                </div>
 
                 <div class="form-group mb-0">
                     <button type="submit" class="cmn-btn">

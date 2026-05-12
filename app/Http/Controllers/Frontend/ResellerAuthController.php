@@ -27,14 +27,12 @@ class ResellerAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where(function ($q) use ($request) {
-            $q->where('email', $request->email)
-              ->orWhere('phone', $request->email);
-        })->where('type', config('settings.user_type.reseller'))->first();
+        $user = User::where('email', $request->email)
+            ->where('type', config('settings.user_type.reseller'))->first();
 
         if (!$user) {
             throw ValidationException::withMessages([
-                'login_error' => 'No reseller account found with this email/phone.',
+                'login_error' => 'No reseller account found with this email.',
             ]);
         }
 

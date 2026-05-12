@@ -56,18 +56,16 @@ class MemberAuthController extends Controller
 
     public function loginAttempt(MemberLoginRequest $request): RedirectResponse
     {
-        // Find user by email or phone
-        $user = User::where(function ($query) use ($request) {
-            $query->where('email', $request->username)
-                ->orWhere('phone', $request->username);
-        })
-            ->where('type', config('settings.user_type.member'))
+        $user = User::where('type', config('settings.user_type.member'))
+            ->where(function ($q) use ($request) {
+                $q->where('email', $request->username)
+                  ->orWhere('phone', $request->username);
+            })
             ->first();
 
-        // Check if user exists
         if (!$user) {
             throw ValidationException::withMessages([
-                'login_error' => 'No account found with this email/phone'
+                'login_error' => 'No account found with this email'
             ]);
         }
 

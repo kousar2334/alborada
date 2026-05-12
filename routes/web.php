@@ -73,7 +73,7 @@ Route::group(['middleware' => ['guest']], function () {
     Route::get('/member/social/{provider}/callback', [MemberAuthController::class, 'socialCallback'])->name('member.social.callback');
 });
 
-Route::group(['middleware' => ['auth']], function () {
+Route::group(['middleware' => ['auth', 'customer']], function () {
     Route::get('/member/logout', [MemberAuthController::class, 'memberLogout'])->name('member.logout');
     Route::get('/member/dashboard', [MemberAuthController::class, 'memberDashboard'])->name('member.dashboard');
 

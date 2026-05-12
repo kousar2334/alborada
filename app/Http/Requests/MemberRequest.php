@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Http\FormRequest;
 
 class MemberRequest extends FormRequest
@@ -22,23 +21,21 @@ class MemberRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function rules(Request $request)
+    public function rules(): array
     {
-        if ($request->has('id') && $request['id'] != null) {
+        if ($this->has('id') && $this->input('id') != null) {
             return [
-                'name' => 'required|max:250',
-                'phone' => 'required|phone:BD|max:250|unique:users,phone,' . $request->id,
-                'email' => 'required|max:250|email|unique:App\Models\User,email,' . $request->id
-            ];
-        } else {
-            return [
-                'name' => 'required|max:250',
-                'password' => 'required|confirmed|min:6|max:250',
-                'phone' => 'required|phone:BD|max:250|unique:users,phone',
-                'email' => 'required|max:250|email|unique:App\Models\User,email',
-                // 'terms_conditions' => 'accepted'
+                'name'  => 'required|max:250',
+                'email' => 'required|max:250|email|unique:App\Models\User,email,' . $this->input('id'),
             ];
         }
+
+        return [
+            'name'     => 'required|max:250',
+            'email'    => 'required|max:250|email|unique:App\Models\User,email',
+            'phone'    => 'required|string|max:20',
+            'password' => 'required|confirmed|min:6|max:250',
+        ];
     }
     /**
      * Get the error messages for the defined validation rules.
@@ -52,12 +49,12 @@ class MemberRequest extends FormRequest
             'password.required' => __tr('Password is required'),
             'password.confirmed' => __tr('Password does not match'),
             'password.min' => __tr('Password is too short'),
-            'phone.required' => __tr('Phone is required'),
-            'phone.phone' => __tr('Incorrect phone number'),
-            'phone.unique' => __tr('Phone is already used'),
+
             'email.required' => __tr('Email is required'),
-            'email.email' => __tr('Incorrect email'),
-            'email.unique' => __tr('Email is already used'),
+            'email.email'    => __tr('Incorrect email'),
+            'email.unique'   => __tr('Email is already used'),
+
+            'phone.required' => __tr('Phone number is required'),
         ];
     }
 }
