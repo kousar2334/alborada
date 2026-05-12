@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\FeaturedContent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class FeaturedContentController extends Controller
 {
@@ -23,12 +22,6 @@ class FeaturedContentController extends Controller
     public function store(Request $request)
     {
         $data = $this->validate($request);
-
-        if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('featured', 'public');
-            $data['thumbnail'] = 'storage/' . $path;
-        }
-
         FeaturedContent::create($data);
         toastNotification('success', __tr('Featured content added successfully.'));
         return redirect()->route('admin.featured-content.index');
@@ -43,10 +36,7 @@ class FeaturedContentController extends Controller
     {
         $data = $this->validate($request);
 
-        if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('featured', 'public');
-            $data['thumbnail'] = 'storage/' . $path;
-        } else {
+        if (empty($data['thumbnail'])) {
             unset($data['thumbnail']);
         }
 
@@ -67,7 +57,7 @@ class FeaturedContentController extends Controller
         return $request->validate([
             'title'       => 'required|string|max:200',
             'subtitle'    => 'nullable|string|max:300',
-            'thumbnail'   => 'nullable|image|max:2048',
+            'thumbnail'   => 'nullable|string|max:500',
             'trailer_url' => 'nullable|string|max:500',
             'type'        => 'required|in:movie,series,sports_event,new_release',
             'genre'       => 'nullable|string|max:100',
