@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Models\Ad;
 use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\SavedAd;
@@ -40,7 +39,6 @@ class MemberAuthController extends Controller
             $user = new User();
             $user->name = $request['name'];
             $user->email = $request['email'];
-            $user->phone = $request['phone'];
             $user->type = config('settings.user_type.member');
             $user->status = config('settings.general_status.active');
             $user->password = Hash::make($request['password']);
@@ -58,8 +56,7 @@ class MemberAuthController extends Controller
     {
         $user = User::where('type', config('settings.user_type.member'))
             ->where(function ($q) use ($request) {
-                $q->where('email', $request->username)
-                  ->orWhere('phone', $request->username);
+                $q->where('email', $request->username);
             })
             ->first();
 
