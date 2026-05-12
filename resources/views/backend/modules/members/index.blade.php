@@ -71,7 +71,7 @@
                                             <th>{{ __tr('Email') }}</th>
                                             <th>{{ __tr('Email Verified') }}</th>
                                             <th>{{ __tr('Phone') }}</th>
-                                            <th>{{ __tr('No. of Ads') }}</th>
+                                            <th>{{ __tr('Subscriptions') }}</th>
                                             <th>{{ __tr('Status') }}</th>
                                             <th class="text-center">{{ __tr('Actions') }}</th>
                                         </tr>
@@ -100,7 +100,7 @@
                                                         @endif
                                                     </td>
                                                     <td>{{ $member->phone }}</td>
-                                                    <td>{{ $member->ads->count() }}</td>
+                                                    <td>{{ $member->subscriptions->count() }}</td>
                                                     <td>
                                                         @if ($member->status == config('settings.general_status.active'))
                                                             <p class="badge badge-success">{{ __tr('Active') }}</p>
