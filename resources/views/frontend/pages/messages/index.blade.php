@@ -17,8 +17,8 @@
                     <div class="empty-state">
                         <i class="las la-comments"></i>
                         <p>{{ __tr('No conversations yet.') }}</p>
-                        <a href="{{ route('ad.listing.page') }}"
-                            class="btn btn-primary btn-sm mt-2">{{ __tr('Browse Ads') }}</a>
+                        <a href="{{ url('/') }}"
+                            class="btn btn-primary btn-sm mt-2">{{ __tr('Go to Home') }}</a>
                     </div>
                 @else
                     <ul class="msg-list">

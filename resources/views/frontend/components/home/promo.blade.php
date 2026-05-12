@@ -13,7 +13,7 @@
                     {{ p_trans('home_promo_text', null, 'List your pre-loved or new items in minutes, or browse thousands of ads to find exactly what you need — all in one place.') }}
                 </p>
                 <div class="d-flex flex-wrap gap-3 justify-content-center">
-                    <a href="{{ route('ad.post.page') }}" class="promo-btn-primary">
+                    <a href="{{ '#pricing' }}" class="promo-btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                             viewBox="0 0 16 16">
                             <path
@@ -21,7 +21,7 @@
                         </svg>
                         {{ p_trans('home_promo_btn_primary', null, 'Post Your Ad') }}
                     </a>
-                    <a href="{{ route('ad.listing.page') }}" class="promo-btn-outline">
+                    <a href="{{ url('/') }}" class="promo-btn-outline">
                         {{ p_trans('home_promo_btn_secondary', null, 'Browse Ads') }}
                     </a>
                 </div>

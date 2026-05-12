@@ -27,10 +27,7 @@
                         <p class="chat-header-name">{{ $other->name ?? __tr('Unknown') }}</p>
                         @if ($chat->ad)
                             <p class="chat-header-sub">
-                                <a href="{{ route('ad.details.page', $chat->ad->uid) }}" target="_blank"
-                                    class="chat-ad-link">
-                                    {{ __tr('Re') }}: {{ $chat->ad->title }}
-                                </a>
+                                <span class="chat-ad-link">{{ __tr('Re') }}: {{ $chat->ad->title }}</span>
                             </p>
                         @endif
                     </div>

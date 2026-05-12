@@ -95,7 +95,7 @@
                     <div class="empty-activity">
                         <i class="fas fa-inbox empty-activity-icon"></i>
                         {{ __tr('No listings yet.') }}
-                        <a href="{{ route('ad.post.page') }}"
+                        <a href="{{ '#pricing' }}"
                             class="link-primary-bold">{{ __tr('Post your first ad!') }}</a>
                     </div>
                 @endif
@@ -108,7 +108,7 @@
                 <h3 class="card-title">{{ __tr('Quick Actions') }}</h3>
             </div>
             <div class="quick-actions">
-                <a href="{{ route('ad.post.page') }}" class="action-btn">
+                <a href="{{ '#pricing' }}" class="action-btn">
                     <i class="fas fa-plus"></i> {{ __tr('Post New Ad') }}
                 </a>
                 <a href="{{ route('member.my.listings') }}" class="action-btn secondary">

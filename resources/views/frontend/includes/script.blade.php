@@ -63,36 +63,6 @@
                 });
             }
 
-            /* =====================================
-             * Ad Tracking (Impression + Click)
-             * ===================================== */
-            var TRACK_URLS = {
-                click: '{{ route('ad.track.click') }}',
-                impression: '{{ route('ad.track.impression') }}'
-            };
-
-            function sendTrack(type, adId) {
-                if (!TRACK_URLS[type] || !adId) return;
-
-                $.ajax({
-                    url: TRACK_URLS[type],
-                    type: 'POST',
-                    data: {
-                        id: adId
-                    },
-                    async: true
-                });
-            }
-
-            // Impressions
-            $('[data-ad-track="impression"]').each(function() {
-                sendTrack('impression', $(this).data('ad-id'));
-            });
-
-            // Clicks
-            $(document).on('click', '[data-ad-track="click"]', function() {
-                sendTrack('click', $(this).data('ad-id'));
-            });
 
         });
 

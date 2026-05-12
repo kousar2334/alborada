@@ -107,9 +107,9 @@
                             @endif
                         @endforeach
                     </ul>
-                    <div class="btn-wrapper nav-post-btn d-lg-none d-block">
-                        <a href="{{ route('ad.post.page') }}" class="cmn-btn popup-modal text-uppercase">
-                            <span>{{ __tr('Post free ad') }}</span>
+                    <div class="btn-wrapper nav-post-btn d-lg-none d-block mt-2 mb-2">
+                        <a href="#pricing" class="cmn-btn">
+                            <span>{{ __tr('Get Started') }}</span>
                         </a>
                     </div>
                 </div>
@@ -183,8 +183,8 @@
 
                 </ul>
                 <div class="btn-wrapper nav-post-btn">
-                    <a href="{{ route('ad.post.page') }}" class="cmn-btn popup-modal d-none d-lg-block text-uppercase">
-                        <span>{{ __tr('Post free ad') }}</span>
+                    <a href="#pricing" class="cmn-btn d-none d-lg-inline-flex">
+                        <span>{{ __tr('Get Started') }}</span>
                     </a>
                 </div>
             </div>

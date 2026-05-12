@@ -146,11 +146,7 @@
                             </div>
                             <div class="col-md-4">
                                 @if ($chat->ad)
-                                    <p><strong>Listing:</strong>
-                                        <a href="{{ route('ad.details.page', $chat->ad->uid) }}" target="_blank">
-                                            {{ $chat->ad->title }}
-                                        </a>
-                                    </p>
+                                    <p><strong>Listing:</strong> {{ $chat->ad->title }}</p>
                                     <p><strong>Price:</strong> {{ format_amount($chat->ad->price) }}</p>
                                 @endif
                             </div>

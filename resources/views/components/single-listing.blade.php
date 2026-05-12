@@ -5,14 +5,14 @@
                 <i class="lar la-heart icon favorite_add_icon"></i>
             </a>
         </div>
-        <a href="{{ route('ad.details.page', $ad->uid) }}" class="main-card-image">
+        <a href="{{ url('/') }}" class="main-card-image">
             <img src="{{ asset(getFilePath($ad->thumbnail_image)) }}" alt="{{ $ad->title }}" />
         </a>
     </div>
     <div class="listing-body">
         <div class="card-body-top">
             <h4>
-                <a href="{{ route('ad.details.page', $ad->uid) }}"
+                <a href="{{ url('/') }}"
                     class="featureTittle head4 twoLine">{{ $ad->title }}</a>
             </h4>
         </div>

@@ -28,7 +28,7 @@
             </p>
 
             <div class="banner-v2-search-wrap wow fadeInUp" data-wow-delay="0.4s">
-                <form action="{{ route('ad.listing.page') }}"
+                <form action="{{ url('/') }}"
                     class="d-flex align-items-stretch banner-search-location banner-v2-form" method="get">
                     <div class="banner-v2-inputs d-flex align-items-center flex-grow-1">
                         <div class="banner-v2-input-group flex-grow-1" style="position:relative;">
@@ -51,7 +51,7 @@
                 <div class="banner-quick-cats wow fadeInUp" data-wow-delay="0.5s">
                     <span class="banner-quick-label">{{ __tr('Browse:') }}</span>
                     @foreach ($categories->take(8) as $cat)
-                        <a href="{{ route('ad.listing.page', $cat->permalink) }}" class="banner-quick-pill">
+                        <a href="{{ url('/') }}" class="banner-quick-pill">
                             {{ $cat->title }}
                         </a>
                     @endforeach

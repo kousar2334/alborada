@@ -9,7 +9,7 @@
 
             <div class="cat-grid">
                 @foreach ($categories as $category)
-                    <a href="{{ route('ad.listing.page', $category->permalink) }}"
+                    <a href="{{ url('/') }}"
                         class="cat-grid-card text-decoration-none">
                         <div class="cat-grid-icon-img">
                             <img src="{{ asset(getFilePath($category->icon)) }}"

@@ -36,10 +36,7 @@
                                                 <td>{{ $chats->firstItem() + $key }}</td>
                                                 <td>
                                                     @if ($chat->ad)
-                                                        <a href="{{ route('ad.details.page', $chat->ad->uid) }}"
-                                                            target="_blank">
-                                                            {{ Str::limit($chat->ad->title, 35) }}
-                                                        </a>
+                                                        <span>{{ Str::limit($chat->ad->title, 35) }}</span>
                                                     @else
                                                         <span class="text-muted">Deleted</span>
                                                     @endif

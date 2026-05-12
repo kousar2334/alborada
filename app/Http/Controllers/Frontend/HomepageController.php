@@ -18,7 +18,7 @@ class HomepageController extends Controller
             ->orderBy('price')
             ->get();
 
-        return view('frontend.pages.home-iptv', compact('sections', 'plans'));
+        return view('frontend.pages.home', compact('sections', 'plans'));
     }
 
     private function activeSections(): array
