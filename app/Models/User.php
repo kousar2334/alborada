@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Ad;
 use App\Models\UserSubscription;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -59,11 +58,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    public function ads(): HasMany
-    {
-        return $this->hasMany(Ad::class, 'user_id');
-    }
 
     public function subscriptions(): HasMany
     {

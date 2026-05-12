@@ -20,10 +20,7 @@ class MemberController extends Controller
      */
     public function memberList(Request $request): View
     {
-        $query = User::with(['ads' => function ($q) {
-            $q->select('id', 'user_id');
-        }])
-            ->where('type', config('settings.user_type.member'));
+        $query = User::where('type', config('settings.user_type.member'));
 
         if ($request->has('join_date') && $request['join_date'] != null) {
             $date_range = explode(' to ', $request['join_date']);

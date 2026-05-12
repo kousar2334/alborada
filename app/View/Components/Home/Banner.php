@@ -10,7 +10,6 @@ class Banner extends Component
 {
     public function __construct(
         public $categories,
-        public $totalAdsCount,
     ) {}
 
     public function render(): View|Closure|string

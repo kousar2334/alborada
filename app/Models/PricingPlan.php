@@ -14,10 +14,6 @@ class PricingPlan extends Model
         'title',
         'duration_days',
         'price',
-        'listing_quantity',
-        'featured_listing_quantity',
-        'gallery_image_quantity',
-        'membership_badge',
         'status',
         'max_connections',
         'streaming_quality',
@@ -30,7 +26,6 @@ class PricingPlan extends Model
 
     protected $casts = [
         'price'             => 'float',
-        'membership_badge'  => 'boolean',
         'dvr_enabled'       => 'boolean',
         'is_trial'          => 'boolean',
     ];

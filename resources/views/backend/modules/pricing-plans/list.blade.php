@@ -147,31 +147,14 @@
                                 </div>
                             </div>
 
-                            <div class="form-row">
-                                <div class="form-group col-lg-4">
-                                    <label class="black font-14">{{ __tr('Ad Posting Quantity') }} *</label>
-                                    <input type="number" name="listing_quantity" class="form-control" min="0"
-                                        value="0" placeholder="{{ __tr('Number of listings') }}">
-                                </div>
-                                <div class="form-group col-lg-4">
-                                    <label class="black font-14">{{ __tr('Featured Listing Quantity') }} *</label>
-                                    <input type="number" name="featured_listing_quantity" class="form-control"
-                                        min="0" value="0"
-                                        placeholder="{{ __tr('Number of featured listings') }}">
-                                </div>
-                                <div class="form-group col-lg-4">
-                                    <label class="black font-14">{{ __tr('Gallery Image Quantity') }} *</label>
-                                    <input type="number" name="gallery_image_quantity" class="form-control" min="0"
-                                        value="0" placeholder="{{ __tr('Max gallery images per listing') }}">
-                                </div>
-                            </div>
-
-                            <hr><h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
+                            <hr>
+                            <h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
 
                             <div class="form-row">
                                 <div class="form-group col-lg-4">
                                     <label class="black font-14">{{ __tr('Max Connections') }} *</label>
-                                    <input type="number" name="max_connections" class="form-control" min="1" max="99" value="1">
+                                    <input type="number" name="max_connections" class="form-control" min="1"
+                                        max="99" value="1">
                                 </div>
                                 <div class="form-group col-lg-4">
                                     <label class="black font-14">{{ __tr('Streaming Quality') }} *</label>
@@ -184,7 +167,8 @@
                                 </div>
                                 <div class="form-group col-lg-4">
                                     <label class="black font-14">{{ __tr('Catch-up Days') }} *</label>
-                                    <input type="number" name="catchup_days" class="form-control" min="0" value="0">
+                                    <input type="number" name="catchup_days" class="form-control" min="0"
+                                        value="0">
                                 </div>
                             </div>
 
@@ -205,24 +189,19 @@
                                 </div>
                                 <div class="form-group col-lg-3">
                                     <label class="black font-14">{{ __tr('Trial Days') }}</label>
-                                    <input type="number" name="trial_days" class="form-control" min="1" placeholder="{{ __tr('Leave empty if not trial') }}">
+                                    <input type="number" name="trial_days" class="form-control" min="1"
+                                        placeholder="{{ __tr('Leave empty if not trial') }}">
                                 </div>
                                 <div class="form-group col-lg-3">
                                     <label class="black font-14">{{ __tr('Sort Order') }}</label>
-                                    <input type="number" name="sort_order" class="form-control" min="0" value="0">
+                                    <input type="number" name="sort_order" class="form-control" min="0"
+                                        value="0">
                                 </div>
                             </div>
 
                             <hr>
                             <div class="form-row">
-                                <div class="form-group col-lg-4">
-                                    <label class="black font-14">{{ __tr('Membership Badge') }}</label>
-                                    <select name="membership_badge" class="form-control">
-                                        <option value="0">{{ __tr('Disabled') }}</option>
-                                        <option value="1">{{ __tr('Enabled') }}</option>
-                                    </select>
-                                </div>
-                                <div class="form-group col-lg-4">
+                                <div class="form-group col-lg-6">
                                     <label class="black font-14">{{ __tr('Status') }}</label>
                                     <select name="status" class="form-control">
                                         <option value="{{ config('settings.general_status.active') }}">

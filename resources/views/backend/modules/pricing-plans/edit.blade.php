@@ -42,27 +42,8 @@
             </div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group col-lg-4">
-                <label class="black font-14">{{ __tr('Ad Posting Quantity') }} *</label>
-                <input type="number" name="listing_quantity" class="form-control" min="0"
-                    value="{{ $plan->listing_quantity }}" placeholder="{{ __tr('Number of listings') }}">
-            </div>
-            <div class="form-group col-lg-4">
-                <label class="black font-14">{{ __tr('Featured Listing Quantity') }} *</label>
-                <input type="number" name="featured_listing_quantity" class="form-control" min="0"
-                    value="{{ $plan->featured_listing_quantity }}"
-                    placeholder="{{ __tr('Number of featured listings') }}">
-            </div>
-            <div class="form-group col-lg-4">
-                <label class="black font-14">{{ __tr('Gallery Image Quantity') }} *</label>
-                <input type="number" name="gallery_image_quantity" class="form-control" min="0"
-                    value="{{ $plan->gallery_image_quantity }}"
-                    placeholder="{{ __tr('Max gallery images per listing') }}">
-            </div>
-        </div>
-
-        <hr><h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
+        <hr>
+        <h6 class="text-muted mb-3">{{ __tr('IPTV Settings') }}</h6>
 
         <div class="form-row">
             <div class="form-group col-lg-4">
@@ -74,7 +55,8 @@
                 <label class="black font-14">{{ __tr('Streaming Quality') }} *</label>
                 <select name="streaming_quality" class="form-control">
                     @foreach (['SD', 'HD', 'FHD', '4K'] as $q)
-                        <option value="{{ $q }}" {{ $plan->streaming_quality == $q ? 'selected' : '' }}>{{ $q }}</option>
+                        <option value="{{ $q }}" {{ $plan->streaming_quality == $q ? 'selected' : '' }}>
+                            {{ $q }}</option>
                     @endforeach
                 </select>
             </div>
@@ -114,18 +96,7 @@
 
         <hr>
         <div class="form-row">
-            <div class="form-group col-lg-4">
-                <label class="black font-14">{{ __tr('Membership Badge') }}</label>
-                <select name="membership_badge" class="form-control">
-                    <option value="0" {{ $plan->membership_badge == 0 ? 'selected' : '' }}>
-                        {{ __tr('Disabled') }}
-                    </option>
-                    <option value="1" {{ $plan->membership_badge == 1 ? 'selected' : '' }}>
-                        {{ __tr('Enabled') }}
-                    </option>
-                </select>
-            </div>
-            <div class="form-group col-lg-4">
+            <div class="form-group col-lg-6">
                 <label class="black font-14">{{ __tr('Status') }}</label>
                 <select name="status" class="form-control">
                     <option value="{{ config('settings.general_status.active') }}"

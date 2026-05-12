@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ad;
 use App\Models\Chat;
 use App\Models\ChatMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class MessageController extends Controller
 {
@@ -18,7 +16,7 @@ class MessageController extends Controller
 
         $chats = Chat::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['ad', 'sender', 'receiver', 'lastMessage'])
+            ->with(['sender', 'receiver', 'lastMessage'])
             ->orderByDesc('updated_at')
             ->paginate(20);
 
@@ -33,7 +31,7 @@ class MessageController extends Controller
             ->where(function ($q) use ($userId) {
                 $q->where('sender_id', $userId)->orWhere('receiver_id', $userId);
             })
-            ->with(['ad', 'sender', 'receiver', 'messages.sender'])
+            ->with(['sender', 'receiver', 'messages.sender'])
             ->firstOrFail();
 
         // Mark messages from the other user as read
@@ -43,52 +41,6 @@ class MessageController extends Controller
             ->update(['is_read' => true]);
 
         return view('frontend.pages.messages.show', compact('chat'));
-    }
-
-    public function start(Request $request)
-    {
-        $request->validate([
-            'ad_id'   => 'required|exists:ads,id',
-            'message' => 'required|string|max:2000',
-        ]);
-
-        $ad = Ad::findOrFail($request->ad_id);
-        $senderId   = Auth::id();
-        $receiverId = $ad->user_id;
-
-        if ($senderId === $receiverId) {
-            return redirect()->back()->with('error', 'You cannot message yourself.');
-        }
-
-        // Find existing chat for this ad between these two users
-        $chat = Chat::where('ad_id', $ad->id)
-            ->where(function ($q) use ($senderId, $receiverId) {
-                $q->where(function ($q2) use ($senderId, $receiverId) {
-                    $q2->where('sender_id', $senderId)->where('receiver_id', $receiverId);
-                })->orWhere(function ($q2) use ($senderId, $receiverId) {
-                    $q2->where('sender_id', $receiverId)->where('receiver_id', $senderId);
-                });
-            })->first();
-
-        if (!$chat) {
-            $chat = Chat::create([
-                'uid'         => Str::uuid(),
-                'ad_id'       => $ad->id,
-                'sender_id'   => $senderId,
-                'receiver_id' => $receiverId,
-            ]);
-        }
-
-        ChatMessage::create([
-            'chat_id'   => $chat->id,
-            'sender_id' => $senderId,
-            'message'   => $request->message,
-        ]);
-
-        $chat->touch();
-
-        return redirect()->route('member.messages.show', $chat->uid)
-            ->with('success', 'Message sent successfully.');
     }
 
     public function sendMessage(Request $request, $uid)

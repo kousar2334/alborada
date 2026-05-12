@@ -33,10 +33,6 @@ class PricingPlanRepository
             $plan->title = $data['title'];
             $plan->duration_days = $data['duration_days'];
             $plan->price = $data['price'];
-            $plan->listing_quantity = $data['listing_quantity'];
-            $plan->featured_listing_quantity = $data['featured_listing_quantity'];
-            $plan->gallery_image_quantity = $data['gallery_image_quantity'];
-            $plan->membership_badge = $data['membership_badge'] ?? 0;
             $plan->status = $data['status'];
             $plan->max_connections = $data['max_connections'] ?? 1;
             $plan->streaming_quality = $data['streaming_quality'] ?? 'HD';
@@ -78,10 +74,6 @@ class PricingPlanRepository
                 $plan->title = $request['title'];
                 $plan->duration_days = $request['duration_days'];
                 $plan->price = $request['price'];
-                $plan->listing_quantity = $request['listing_quantity'];
-                $plan->featured_listing_quantity = $request['featured_listing_quantity'];
-                $plan->gallery_image_quantity = $request['gallery_image_quantity'];
-                $plan->membership_badge = $request['membership_badge'] ?? 0;
                 $plan->status = $request['status'];
                 $plan->max_connections = $request['max_connections'] ?? 1;
                 $plan->streaming_quality = $request['streaming_quality'] ?? 'HD';
