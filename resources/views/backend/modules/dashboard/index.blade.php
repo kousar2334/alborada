@@ -34,7 +34,8 @@
                         <span class="info-box-icon bg-teal elevation-1"><i class="fas fa-dollar-sign"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">{{ __tr('Revenue This Month') }}</span>
-                            <span class="info-box-number">{{ get_setting('currency_symbol','$') }}{{ number_format($monthly_revenue, 2) }}</span>
+                            <span
+                                class="info-box-number">{{ get_setting('currency_symbol', '$') }}{{ number_format($monthly_revenue, 2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -114,12 +115,13 @@
                         <span class="info-box-icon bg-success elevation-1"><i class="fas fa-chart-line"></i></span>
                         <div class="info-box-content">
                             <span class="info-box-text">{{ __tr('Total Revenue (All Time)') }}</span>
-                            <span class="info-box-number">{{ get_setting('currency_symbol','$') }}{{ number_format($total_revenue, 2) }}</span>
+                            <span
+                                class="info-box-number">{{ get_setting('currency_symbol', '$') }}{{ number_format($total_revenue, 2) }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <a href="{{ route('admin.subscriptions.index') }}" style="text-decoration:none;">
+                    <a href="{{ route('admin.subscriptions.list') }}" style="text-decoration:none;">
                         <div class="info-box mb-3">
                             <span class="info-box-icon bg-lime elevation-1"><i class="fas fa-list-check"></i></span>
                             <div class="info-box-content">
@@ -130,12 +132,14 @@
                     </a>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
-                    <a href="{{ route('admin.support.tickets') }}" style="text-decoration:none;">
+                    <a href="{{ route('admin.tickets.index') }}" style="text-decoration:none;">
                         <div class="info-box mb-3">
-                            <span class="info-box-icon bg-red elevation-1" style="background:#dc3545!important;"><i class="fas fa-headset"></i></span>
+                            <span class="info-box-icon bg-red elevation-1" style="background:#dc3545!important;"><i
+                                    class="fas fa-headset"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">{{ __tr('Support Center') }}</span>
-                                <span class="info-box-number" style="font-size:.9rem;">{{ __tr('View Tickets') }} →</span>
+                                <span class="info-box-number" style="font-size:.9rem;">{{ __tr('View Tickets') }}
+                                    →</span>
                             </div>
                         </div>
                     </a>
@@ -173,7 +177,8 @@
                         <div class="card-header">
                             <h3 class="card-title">{{ __tr('Recent Subscriptions') }}</h3>
                             <div class="card-tools">
-                                <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-sm btn-primary">{{ __tr('View All') }}</a>
+                                <a href="{{ route('admin.subscriptions.list') }}"
+                                    class="btn btn-sm btn-primary">{{ __tr('View All') }}</a>
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -194,7 +199,8 @@
                                             <td>{{ $sub->plan?->title ?? '—' }}</td>
                                             <td>{{ format_amount($sub->amount) }}</td>
                                             <td>
-                                                <span class="badge badge-{{ $sub->status === 'active' ? 'success' : ($sub->status === 'pending' ? 'warning' : 'secondary') }}">
+                                                <span
+                                                    class="badge badge-{{ $sub->status === 'active' ? 'success' : ($sub->status === 'pending' ? 'warning' : 'secondary') }}">
                                                     {{ ucfirst($sub->status) }}
                                                 </span>
                                             </td>
@@ -202,7 +208,8 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center">{{ __tr('No subscriptions yet') }}</td>
+                                            <td colspan="5" class="text-center">{{ __tr('No subscriptions yet') }}
+                                            </td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -231,7 +238,8 @@
                                                 <div style="font-size:.85rem;font-weight:600;">{{ $member->name }}</div>
                                                 <div style="font-size:.75rem;color:#6c757d;">{{ $member->email }}</div>
                                             </td>
-                                            <td style="font-size:.75rem;color:#6c757d;">{{ $member->created_at->diffForHumans() }}</td>
+                                            <td style="font-size:.75rem;color:#6c757d;">
+                                                {{ $member->created_at->diffForHumans() }}</td>
                                         </tr>
                                     @empty
                                         <tr>
@@ -262,10 +270,25 @@
                         data: {!! json_encode($monthly_members_data) !!},
                         borderColor: '#28a745',
                         backgroundColor: 'rgba(40,167,69,0.1)',
-                        fill: true, tension: 0.4, pointBackgroundColor: '#28a745'
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#28a745'
                     }]
                 },
-                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ display:false } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
             });
 
             new Chart(document.getElementById('monthlyRevenueChart').getContext('2d'), {
@@ -280,7 +303,20 @@
                         borderWidth: 1
                     }]
                 },
-                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ display:false } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
             });
         });
     </script>
