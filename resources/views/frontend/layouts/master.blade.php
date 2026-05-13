@@ -3,7 +3,7 @@
 
 @include('frontend.includes.head')
 
-<body class="main-body">
+<body class="main-body @yield('body-class')">
 
     <x-site-header />
     @yield('content')
@@ -27,7 +27,7 @@
     @yield('js')
 
     {{-- AI / Live Chat Widget --}}
-    @if(get_setting('chat_widget_enabled') && get_setting('chat_widget_code'))
+    @if (get_setting('chat_widget_enabled') && get_setting('chat_widget_code'))
         {!! get_setting('chat_widget_code') !!}
     @endif
 

@@ -1,133 +1,6 @@
 @extends('frontend.layouts.dashboard')
 @section('dash-meta')
     <title>{{ __tr('Account') }} - {{ get_setting('site_name') }}</title>
-    <style>
-        .account-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            align-items: start;
-        }
-
-        .password-field {
-            position: relative;
-        }
-
-        .password-field .input-style {
-            padding-right: 2.75rem;
-        }
-
-        .toggle-pw {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0;
-            font-size: 0.9rem;
-        }
-
-        .toggle-pw:hover {
-            color: var(--primary);
-        }
-
-        .social-notice {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 1rem 1.125rem;
-            font-size: 0.875rem;
-            color: #1e40af;
-        }
-
-        .social-notice i {
-            flex-shrink: 0;
-            font-size: 1rem;
-            margin-top: 0.1rem;
-        }
-
-        /* Avatar upload */
-        .avatar-card {
-            margin-bottom: 1.5rem;
-        }
-
-        .avatar-upload-wrap {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .avatar-preview {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        .avatar-initials {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: #1b3a6b;
-            color: #fff;
-            font-size: 2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            border: 3px solid var(--border);
-        }
-
-        .avatar-upload-info {
-            flex: 1;
-        }
-
-        .avatar-upload-info p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin: 0.35rem 0 0;
-        }
-
-        .avatar-file-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.55rem 1.1rem;
-            background: var(--bg-light);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            cursor: pointer;
-            transition: border-color 0.15s, color 0.15s;
-        }
-
-        .avatar-file-label:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .avatar-file-input {
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .account-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 @endsection
 
 @section('dashboard-content')
@@ -139,7 +12,7 @@
     <div class="dashboard-card p-0 avatar-card">
         <div class="card-header">
             <h3 class="card-title">
-                <i class="fa-solid fa-camera" style="margin-right:.5rem;color:var(--primary)"></i>{{ __tr('Profile Photo') }}
+                <i class="fa-solid fa-camera card-title-icon-primary"></i>{{ __tr('Profile Photo') }}
             </h3>
         </div>
 
@@ -153,15 +26,14 @@
                         id="avatarPreview">
                 @else
                     <div class="avatar-initials" id="avatarInitials">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-                    <img src="" alt="{{ $user->name }}" class="avatar-preview" id="avatarPreview"
-                        style="display:none">
+                    <img src="" alt="{{ $user->name }}" class="avatar-preview d-none" id="avatarPreview">
                 @endif
 
                 <div class="avatar-upload-info">
                     <label for="profileImageInput" class="avatar-file-label">
                         <i class="fa-solid fa-arrow-up-from-bracket"></i> {{ __tr('Choose Photo') }}
                     </label>
-                    <button type="submit" class="cmn-btn" id="avatarSaveBtn" style="display:none">
+                    <button type="submit" class="cmn-btn d-none" id="avatarSaveBtn">
                         {{ __tr('Upload') }}
                     </button>
                     <input type="file" name="profile_image" id="profileImageInput" class="avatar-file-input"
@@ -181,8 +53,7 @@
         <div class="dashboard-card p-0">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fa-solid fa-user"
-                        style="margin-right:.5rem;color:var(--primary)"></i>{{ __tr('Profile Information') }}
+                    <i class="fa-solid fa-user card-title-icon-primary"></i>{{ __tr('Profile Information') }}
                 </h3>
             </div>
 
@@ -221,8 +92,7 @@
         <div class="dashboard-card p-0">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fa-solid fa-lock"
-                        style="margin-right:.5rem;color:var(--primary)"></i>{{ __tr('Change Password') }}
+                    <i class="fa-solid fa-lock card-title-icon-primary"></i>{{ __tr('Change Password') }}
                 </h3>
             </div>
 

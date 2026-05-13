@@ -17,7 +17,7 @@
         @endif
         <div>
             <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-            <div class="sidebar-user-role" style="color:#00d46a;">{{ __tr('Alborada Box Member') }}</div>
+            <div class="sidebar-user-role">{{ __tr('Alborada Box Member') }}</div>
         </div>
     </div>
 
@@ -53,15 +53,14 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('member.support.index') }}"
-                    class="{{ Request::routeIs(['member.support.index', 'member.support.create', 'member.support.show']) ? 'active' : '' }}">
+                <a href="{{ route('member.tickets.index') }}"
+                    class="{{ Request::routeIs(['member.tickets.index', 'member.tickets.create', 'member.tickets.show']) ? 'active' : '' }}">
                     <span class="sidebar-icon"><i class="fa-solid fa-headset"></i></span>
                     {{ __tr('Support') }}
                 </a>
             </li>
             <li>
-                <a href="{{ route('member.subscriptions') }}#invoices"
-                    class="">
+                <a href="{{ route('member.subscriptions') }}#invoices" class="">
                     <span class="sidebar-icon"><i class="fa-solid fa-receipt"></i></span>
                     {{ __tr('Billing & Invoices') }}
                 </a>

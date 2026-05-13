@@ -1,5 +1,9 @@
 @extends('frontend.layouts.master')
 
+@section('body-class')
+    dark-page
+@endsection
+
 @section('meta')
     <title>{{ get_setting('site_name', 'Alborada IPTV') }} |
         {{ p_trans('home_meta_tagline', null, 'Premium Streaming Service') }}</title>
@@ -67,15 +71,13 @@
                 <div class="wrap">
                     <div class="about-grid">
                         <div class="about-left">
-                            <div class="sec-label" style="justify-content:flex-start;">
+                            <div class="sec-label sec-label-start">
                                 {{ p_trans('home_about_label', null, 'About ' . get_setting('site_name', 'Alborada')) }}
                             </div>
-                            <h2
-                                style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(2rem,3.2vw,2.8rem);letter-spacing:-0.03em;line-height:1.08;color:var(--text);margin-bottom:20px;text-align:left;">
+                            <h2 class="about-heading">
                                 {{ p_trans('home_about_heading', null, 'The streaming service built for serious viewers') }}
                             </h2>
-                            <p
-                                style="color:var(--muted);line-height:1.75;font-size:1rem;margin-bottom:28px;max-width:460px;text-align:left;">
+                            <p class="about-desc">
                                 {{ p_trans('home_about_desc', null, 'We built this service with one goal: deliver the most reliable, feature-rich IPTV experience available. We combine the fastest servers, the largest content library, and dedicated 24/7 human support so you never miss a moment.') }}
                             </p>
                             <a href="#features"
@@ -176,33 +178,36 @@
         @if ((!isset($sections['featured_content']) || $sections['featured_content']->is_active) && $featuredContent->count())
             <section id="featured-content">
                 <div class="wrap">
-                    <div class="sec-label" style="justify-content:center;">{{ p_trans('home_featured_label', null, "What's Streaming") }}</div>
-                    <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(1.8rem,2.8vw,2.4rem);text-align:center;margin-bottom:12px;">
+                    <div class="sec-label sec-label-center">{{ p_trans('home_featured_label', null, "What's Streaming") }}
+                    </div>
+                    <h2 class="home-sec-heading-center">
                         {{ p_trans('home_featured_heading', null, 'Movies, Series & Live Events') }}
                     </h2>
-                    <p style="text-align:center;color:var(--muted);margin-bottom:40px;max-width:540px;margin-left:auto;margin-right:auto;">
+                    <p class="home-sec-desc-center">
                         {{ p_trans('home_featured_desc', null, 'Get access to thousands of titles. Preview what is available on your Alborada Box subscription.') }}
                     </p>
-                    <div style="display:flex;gap:20px;overflow-x:auto;padding-bottom:12px;scrollbar-width:thin;">
-                        @foreach($featuredContent as $fc)
-                            <div style="min-width:200px;max-width:200px;flex-shrink:0;border-radius:14px;overflow:hidden;background:var(--main-color-two,#111);border:1px solid rgba(255,255,255,.07);position:relative;">
-                                @if($fc->badge_text)
-                                    <span style="position:absolute;top:10px;left:10px;background:var(--primary-color);color:#fff;font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:4px;z-index:2;letter-spacing:.5px;">{{ $fc->badge_text }}</span>
+                    <div class="home-featured-scroll">
+                        @foreach ($featuredContent as $fc)
+                            <div class="home-content-item">
+                                @if ($fc->badge_text)
+                                    <span class="home-content-badge">{{ $fc->badge_text }}</span>
                                 @endif
-                                @if($fc->thumbnail)
-                                    <img src="{{ asset($fc->thumbnail) }}" alt="{{ $fc->title }}" style="width:100%;height:130px;object-fit:cover;display:block;">
+                                @if ($fc->thumbnail)
+                                    <img src="{{ asset($fc->thumbnail) }}" alt="{{ $fc->title }}"
+                                        class="home-content-thumb">
                                 @else
-                                    <div style="width:100%;height:130px;background:linear-gradient(135deg,rgba(204,0,0,.2),rgba(10,10,10,1));display:flex;align-items:center;justify-content:center;">
-                                        <i class="fas {{ $fc->type_icon }}" style="font-size:2.5rem;color:rgba(204,0,0,.4);"></i>
+                                    <div class="home-content-thumb-placeholder">
+                                        <i class="fas {{ $fc->type_icon }} home-content-thumb-icon"></i>
                                     </div>
                                 @endif
-                                <div style="padding:12px;">
-                                    <div style="font-size:.7rem;color:var(--primary-color);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">{{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
-                                    <div style="font-size:.9rem;font-weight:700;line-height:1.3;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $fc->title }}</div>
-                                    @if($fc->youtube_embed_id)
-                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}" target="_blank" rel="noopener"
-                                           style="display:inline-flex;align-items:center;gap:6px;font-size:.75rem;color:var(--primary-color);font-weight:700;text-decoration:none;padding:5px 12px;border:1px solid var(--primary-color);border-radius:6px;">
-                                            <i class="fas fa-play" style="font-size:.6rem;"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
+                                <div class="home-content-body">
+                                    <div class="home-content-meta">
+                                        {{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
+                                    <div class="home-content-title">{{ $fc->title }}</div>
+                                    @if ($fc->youtube_embed_id)
+                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}"
+                                            target="_blank" rel="noopener" class="home-content-preview">
+                                            <i class="fas fa-play"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
                                         </a>
                                     @endif
                                 </div>
@@ -353,7 +358,7 @@
                                         {{ ($plan->max_connections ?? 1) > 1 ? 'Devices' : 'Device' }}</div>
                                     <div class="plan-price-row">
                                         <div class="plan-price">${{ $priceWhole }}<span
-                                                style="font-size:1.5rem">{{ $priceDec }}</span></div>
+                                                class="plan-price-dec">{{ $priceDec }}</span></div>
                                         <div class="plan-period">/ {{ $plan->duration_days }} days</div>
                                     </div>
                                     <div class="plan-desc">{{ $plan->description ?? '' }}</div>
@@ -378,8 +383,7 @@
                                     </div>
                                     <div class="plan-divider"></div>
                                     <a href="{{ route('subscription.confirm', $plan->id) }}"
-                                        class="btn {{ $btnClass }}"
-                                        style="width:100%; border-radius:12px; padding:13px;">{{ $btnText }}</a>
+                                        class="btn {{ $btnClass }}">{{ $btnText }}</a>
                                 </div>
                             @endforeach
                         </div>
@@ -389,13 +393,12 @@
                                 <div class="plan-badge basic">Starter</div>
                                 <div class="plan-name">1 Device</div>
                                 <div class="plan-price-row">
-                                    <div class="plan-price">$11<span style="font-size:1.5rem">.99</span></div>
+                                    <div class="plan-price">$11<span class="plan-price-dec">.99</span></div>
                                     <div class="plan-period">/ month</div>
                                 </div>
                                 <div class="plan-desc">Perfect for solo viewers who want the full library.</div>
                                 <div class="plan-divider"></div>
-                                <a href="{{ route('pricing.plans') }}" class="btn btn-outline"
-                                    style="width:100%;border-radius:12px;padding:13px;">View Plans</a>
+                                <a href="{{ route('pricing.plans') }}" class="btn btn-outline">View Plans</a>
                             </div>
                         </div>
                     @endif
@@ -407,35 +410,36 @@
 
         {{-- ── UPCOMING EVENTS ── --}}
         @if ((!isset($sections['upcoming_events']) || $sections['upcoming_events']->is_active) && $upcomingEvents->count())
-            <section id="upcoming-events" style="padding:60px 0;background:linear-gradient(135deg,rgba(10,10,10,1) 0%,rgba(26,0,0,.6) 100%);">
+            <section id="upcoming-events" class="upcoming-events-section">
                 <div class="wrap">
-                    <div class="sec-label" style="justify-content:center;">
-                        <i class="fas fa-trophy" style="color:var(--primary-color);margin-right:6px;"></i>
+                    <div class="sec-label sec-label-center">
+                        <i class="fas fa-trophy card-title-icon"></i>
                         {{ p_trans('home_events_label', null, 'Live Sports') }}
                     </div>
-                    <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:clamp(1.8rem,2.8vw,2.4rem);text-align:center;margin-bottom:40px;">
+                    <h2 class="events-heading">
                         {{ p_trans('home_events_heading', null, 'Upcoming Live Events') }}
                     </h2>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
-                        @foreach($upcomingEvents as $ev)
-                            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(204,0,0,.2);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;">
-                                @if($ev->thumbnail)
-                                    <img src="{{ asset($ev->thumbnail) }}" alt="{{ $ev->title }}" style="width:70px;height:70px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+                    <div class="events-grid">
+                        @foreach ($upcomingEvents as $ev)
+                            <div class="event-item">
+                                @if ($ev->thumbnail)
+                                    <img src="{{ asset($ev->thumbnail) }}" alt="{{ $ev->title }}"
+                                        class="event-thumb">
                                 @else
-                                    <div style="width:70px;height:70px;border-radius:10px;background:rgba(204,0,0,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="fas fa-trophy" style="font-size:1.8rem;color:var(--primary-color);"></i>
+                                    <div class="event-thumb-placeholder">
+                                        <i class="fas fa-trophy event-thumb-icon"></i>
                                     </div>
                                 @endif
-                                <div style="flex:1;min-width:0;">
-                                    @if($ev->badge_text)
-                                        <span style="background:var(--primary-color);color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.5px;">{{ $ev->badge_text }}</span>
+                                <div class="event-info">
+                                    @if ($ev->badge_text)
+                                        <span class="event-badge">{{ $ev->badge_text }}</span>
                                     @endif
-                                    <div style="font-weight:700;font-size:.95rem;margin:4px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $ev->title }}</div>
-                                    @if($ev->genre)
-                                        <div style="font-size:.75rem;color:rgba(255,255,255,.5);">{{ $ev->genre }}</div>
+                                    <div class="event-title">{{ $ev->title }}</div>
+                                    @if ($ev->genre)
+                                        <div class="event-genre">{{ $ev->genre }}</div>
                                     @endif
-                                    @if($ev->event_date)
-                                        <div style="font-size:.78rem;color:var(--main-color-three,#00d46a);font-weight:600;margin-top:4px;">
+                                    @if ($ev->event_date)
+                                        <div class="event-date">
                                             <i class="fas fa-calendar-alt"></i>
                                             {{ $ev->event_date->format('M d, Y') }}
                                         </div>
@@ -527,7 +531,7 @@
                             <div class="portal-mock-body">
                                 <div class="mock-stat-row">
                                     <div class="mock-stat-card">
-                                        <div class="mock-stat-val" style="color:var(--green)">Active</div>
+                                        <div class="mock-stat-val mock-stat-val-green">Active</div>
                                         <div class="mock-stat-label">Plan Status</div>
                                     </div>
                                     <div class="mock-stat-card">
@@ -558,9 +562,9 @@
                             </div>
                         </div>
                         <div>
-                            <div class="sec-head" style="align-items:flex-start;text-align:left;margin-bottom:28px;">
-                                <h2 style="text-align:left;margin:0;">Your streaming portal, all in one place</h2>
-                                <p style="text-align:left;margin:0;">Log in to manage active subscriptions, copy your M3U
+                            <div class="sec-head sec-head-left">
+                                <h2>Your streaming portal, all in one place</h2>
+                                <p>Log in to manage active subscriptions, copy your M3U
                                     codes, track expiry dates, and open support tickets — from one clean dashboard.</p>
                             </div>
                             <ul class="portal-feature-list">
@@ -585,13 +589,13 @@
                                             support requests directly from your account.</span></div>
                                 </li>
                             </ul>
-                            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                            <div class="portal-buttons">
                                 <a href="{{ route('customer.login') }}" class="btn btn-primary btn-lg">Login to
                                     Portal</a>
                                 <a href="{{ route('customer.register') }}" class="btn btn-ghost btn-lg">Create
                                     Account</a>
-                                <a href="{{ route('reseller.login') }}" class="btn btn-outline btn-lg"
-                                    style="border-color:rgba(0,212,106,.4);color:#00d46a;">Reseller Login</a>
+                                <a href="{{ route('reseller.login') }}"
+                                    class="btn btn-outline btn-lg btn-reseller-login">Reseller Login</a>
                             </div>
                         </div>
                     </div>
@@ -651,30 +655,27 @@
                     <div class="order-steps-grid">
                         <div class="order-step">
                             <div class="order-step-num">01</div>
-                            <span
-                                style="font-size:2.8rem;display:block;margin-bottom:18px;">{{ p_trans('home_step1_icon', null, '🛒') }}</span>
+                            <span class="order-step-emoji">{{ p_trans('home_step1_icon', null, '🛒') }}</span>
                             <h4>{{ p_trans('home_step1_title', null, 'Select Your Plan') }}</h4>
                             <p>{{ p_trans('home_step1_desc', null, 'Choose the subscription period and number of devices that best fits your household. All plans include the full channel and VOD library.') }}
                             </p>
                         </div>
                         <div class="order-step">
                             <div class="order-step-num">02</div>
-                            <span
-                                style="font-size:2.8rem;display:block;margin-bottom:18px;">{{ p_trans('home_step2_icon', null, '📧') }}</span>
+                            <span class="order-step-emoji">{{ p_trans('home_step2_icon', null, '📧') }}</span>
                             <h4>{{ p_trans('home_step2_title', null, 'Receive Your Credentials') }}</h4>
                             <p>{{ p_trans('home_step2_desc', null, 'After payment, your M3U URL and login credentials are sent to your email instantly. No waiting, no manual processing.') }}
                             </p>
                         </div>
                         <div class="order-step">
                             <div class="order-step-num">03</div>
-                            <span
-                                style="font-size:2.8rem;display:block;margin-bottom:18px;">{{ p_trans('home_step3_icon', null, '🎉') }}</span>
+                            <span class="order-step-emoji">{{ p_trans('home_step3_icon', null, '🎉') }}</span>
                             <h4>{{ p_trans('home_step3_title', null, 'Enjoy Unlimited Access') }}</h4>
                             <p>{{ p_trans('home_step3_desc', null, 'Open your favourite IPTV app, enter your credentials, and start streaming 40,000+ channels and 150,000+ titles right away.') }}
                             </p>
                         </div>
                     </div>
-                    <div class="setup-cta-row" style="justify-content:center;">
+                    <div class="setup-cta-row setup-cta-row-center">
                         <a href="#pricing"
                             class="btn btn-primary btn-lg">{{ p_trans('home_setup_btn1', null, 'Choose a Plan') }}</a>
                         <a href="{{ route('contact') }}"
@@ -793,7 +794,8 @@
                             <details>
                                 <summary>
                                     {{ p_trans('home_faq3_q', null, 'Can I stream on multiple devices simultaneously?') }}
-                                    <span class="faq-chevron">▾</span></summary>
+                                    <span class="faq-chevron">▾</span>
+                                </summary>
                                 <div class="faq-body">
                                     {{ p_trans('home_faq3_a', null, 'Yes. Choose a multi-device plan to stream on 2 or 4 screens at the same time. Each device can watch something different from the full library.') }}
                                 </div>
@@ -831,11 +833,11 @@
                     <div class="sec-label">{{ p_trans('home_reseller_label', null, 'Reseller Program') }}</div>
                     <div class="reseller-grid">
                         <div>
-                            <div class="sec-head" style="align-items:flex-start;text-align:left;margin-bottom:28px;">
-                                <h2 style="text-align:left;margin:0;">
+                            <div class="sec-head sec-head-left">
+                                <h2>
                                     {{ p_trans('home_reseller_heading', null, 'Grow a business on our infrastructure') }}
                                 </h2>
-                                <p style="text-align:left;margin:0;">
+                                <p>
                                     {{ p_trans('home_reseller_desc', null, 'Buy credits, provision sub-accounts for your clients, and manage everything from one reseller dashboard. REST API access included.') }}
                                 </p>
                             </div>
@@ -869,7 +871,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                            <div class="portal-buttons">
                                 <a href="{{ route('reseller.register') }}" class="btn btn-primary btn-lg">Become a
                                     Reseller</a>
                                 <a href="{{ route('reseller.login') }}" class="btn btn-ghost btn-lg">Reseller Login</a>
@@ -908,8 +910,8 @@
                             </div>
                             <div class="reseller-mock-footer">
                                 <span class="reseller-api-note">GET /api/reseller/lines</span>
-                                <a href="{{ route('contact') }}" class="btn btn-ghost"
-                                    style="font-size:0.78rem;padding:7px 14px;">Request API Access</a>
+                                <a href="{{ route('contact') }}" class="btn btn-ghost btn-sm-ghost">Request API
+                                    Access</a>
                             </div>
                         </div>
                     </div>
@@ -923,7 +925,7 @@
                 <div class="wrap">
                     <div class="cta-banner" id="cta">
                         <div class="cta-inner">
-                            <div class="sec-label" style="justify-content:center;margin-bottom:18px;">
+                            <div class="sec-label sec-label-center mb-3">
                                 {{ p_trans('home_cta_label', null, 'Get Started Today') }}</div>
                             <h2>{{ p_trans('home_cta_heading', null, 'Ready to experience ' . get_setting('site_name', 'Alborada') . '?') }}
                             </h2>
@@ -946,7 +948,7 @@
             <section>
                 <div class="wrap">
                     <div class="newsletter-section">
-                        <div class="sec-label" style="justify-content:center;margin-bottom:16px;">
+                        <div class="sec-label sec-label-center mb-3">
                             {{ p_trans('home_newsletter_label', null, 'Stay Updated') }}</div>
                         <h2>{{ p_trans('home_newsletter_heading', null, 'Get exclusive deals & updates') }}</h2>
                         <p>{{ p_trans('home_newsletter_desc', null, 'Subscribe to our newsletter for special offers, new channel announcements, and IPTV tips delivered straight to your inbox.') }}
@@ -959,7 +961,7 @@
                             <button type="submit"
                                 class="btn btn-primary btn-lg">{{ p_trans('home_newsletter_btn', null, 'Subscribe') }}</button>
                         </form>
-                        <p style="font-size:0.78rem;color:var(--muted-2);margin-top:14px;">
+                        <p class="newsletter-note">
                             {{ p_trans('home_newsletter_note', null, 'No spam. Unsubscribe any time.') }}</p>
                     </div>
                 </div>

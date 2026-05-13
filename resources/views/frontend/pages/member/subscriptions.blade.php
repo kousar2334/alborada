@@ -40,15 +40,15 @@
                 </div>
             </div>
             @if($activeSubscription->xtream_username)
-            <div class="mt-3 pt-3" style="border-top:1px solid rgba(255,255,255,0.2);">
+            <div class="mt-3 pt-3 sub-banner-divider">
                 <div class="row">
                     <div class="col-md-6 mb-2">
-                        <small class="text-uppercase" style="opacity:.7;">Username</small><br>
-                        <code style="color:#fff;">{{ $activeSubscription->xtream_username }}</code>
+                        <small class="text-uppercase sub-banner-meta">Username</small><br>
+                        <code class="sub-banner-code">{{ $activeSubscription->xtream_username }}</code>
                     </div>
                     <div class="col-md-6 mb-2">
-                        <small class="text-uppercase" style="opacity:.7;">Password</small><br>
-                        <code style="color:#fff;">{{ $activeSubscription->xtream_password }}</code>
+                        <small class="text-uppercase sub-banner-meta">Password</small><br>
+                        <code class="sub-banner-code">{{ $activeSubscription->xtream_password }}</code>
                     </div>
                 </div>
                 <a href="{{ route('member.setup.guide') }}" class="cmn-btn cmn-btn-sm mt-2">
@@ -105,29 +105,15 @@
                                 </td>
                                 <td>
                                     @if ($sub->payment_method === 'stripe')
-                                        <span class="sub-method-badge" style="background:#635bff;color:#fff;">Stripe</span>
+                                        <span class="sub-method-badge sub-method-stripe">Stripe</span>
                                     @elseif ($sub->payment_method === 'credits')
-                                        <span class="sub-method-badge" style="background:#0d9488;color:#fff;">Credits</span>
+                                        <span class="sub-method-badge sub-method-credits">Credits</span>
                                     @else
                                         <span class="sub-method-badge sub-method-trial">{{ ucfirst($sub->payment_method ?? 'Trial') }}</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @php
-                                        $statusColors = [
-                                            'active' => ['bg' => '#f0fdf4', 'text' => '#166534'],
-                                            'pending' => ['bg' => '#fffbeb', 'text' => '#92400e'],
-                                            'expired' => ['bg' => '#f9fafb', 'text' => '#6b7280'],
-                                            'failed' => ['bg' => '#fef2f2', 'text' => '#991b1b'],
-                                            'cancelled' => ['bg' => '#fef2f2', 'text' => '#991b1b'],
-                                        ];
-                                        $color = $statusColors[$sub->status] ?? [
-                                            'bg' => '#f9fafb',
-                                            'text' => '#6b7280',
-                                        ];
-                                    @endphp
-                                    <span class="sub-status-badge"
-                                        style="background: {{ $color['bg'] }}; color: {{ $color['text'] }};">
+                                    <span class="sub-status-badge sub-status-{{ $sub->status }}">
                                         {{ $sub->status }}
                                         @if ($sub->status === 'active' && $sub->expires_at?->isPast())
                                             ({{ __tr('expired') }})

@@ -45,7 +45,7 @@
                     <div class="mb-3">
                         <label class="text-uppercase small text-muted letter-spacing-1">M3U Playlist URL</label>
                         <div class="d-flex align-items-center">
-                            <code id="cred-m3u" class="flex-grow-1 bg-light p-2 rounded" style="word-break:break-all;font-size:12px;">{{ $credentials['m3u_url'] }}</code>
+                            <code id="cred-m3u" class="flex-grow-1 bg-light p-2 rounded code-wrap">{{ $credentials['m3u_url'] }}</code>
                             <button class="btn btn-sm btn-outline-secondary ml-2" onclick="copyText('cred-m3u')">
                                 <i class="fas fa-copy"></i>
                             </button>
@@ -54,7 +54,7 @@
                     <div class="mb-2">
                         <label class="text-uppercase small text-muted letter-spacing-1">EPG / Guide URL</label>
                         <div class="d-flex align-items-center">
-                            <code id="cred-epg" class="flex-grow-1 bg-light p-2 rounded" style="word-break:break-all;font-size:12px;">{{ $credentials['epg_url'] }}</code>
+                            <code id="cred-epg" class="flex-grow-1 bg-light p-2 rounded code-wrap">{{ $credentials['epg_url'] }}</code>
                             <button class="btn btn-sm btn-outline-secondary ml-2" onclick="copyText('cred-epg')">
                                 <i class="fas fa-copy"></i>
                             </button>
@@ -152,12 +152,12 @@
                         <h5>VLC, Kodi, or any M3U player</h5>
                         <ol>
                             <li>Copy your M3U Playlist URL:<br>
-                                <code style="word-break:break-all;">{{ $credentials['m3u_url'] ?? '' }}</code>
+                                <code class="code-wrap">{{ $credentials['m3u_url'] ?? '' }}</code>
                             </li>
                             <li>In VLC: <strong>Media → Open Network Stream</strong>, paste the URL and click Play.</li>
                             <li>In Kodi: install the <strong>PVR IPTV Simple Client</strong> addon, paste the M3U URL in settings.</li>
                             <li>For EPG, use the EPG URL:<br>
-                                <code style="word-break:break-all;">{{ $credentials['epg_url'] ?? '' }}</code>
+                                <code class="code-wrap">{{ $credentials['epg_url'] ?? '' }}</code>
                             </li>
                         </ol>
                     </div>
