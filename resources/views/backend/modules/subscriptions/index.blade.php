@@ -182,17 +182,12 @@
                                             <td>{{ $sub->created_at->format('M d, Y') }}</td>
                                             <td class="text-right" style="white-space: nowrap;">
                                                 @if ($sub->status === 'active' && get_setting('iptv_provisioning_enabled', 0))
-                                                    <form method="POST"
-                                                        action="{{ route('admin.subscriptions.reprovision') }}"
-                                                        class="d-inline"
-                                                        onsubmit="return confirm('Re-provision IPTV credentials for this subscription?')">
-                                                        @csrf
-                                                        <input type="hidden" name="id" value="{{ $sub->id }}">
-                                                        <button type="submit" class="btn btn-info btn-sm"
-                                                            title="Re-provision IPTV">
-                                                            <i class="fas fa-sync-alt"></i>
-                                                        </button>
-                                                    </form>
+                                                    <button class="btn btn-info btn-sm reprovision-item"
+                                                        data-id="{{ $sub->id }}"
+                                                        data-user="{{ $sub->user->name ?? '' }}"
+                                                        title="{{ __tr('Re-provision IPTV') }}">
+                                                        <i class="fas fa-sync-alt"></i>
+                                                    </button>
                                                 @endif
                                                 <button class="btn btn-danger btn-sm delete-item"
                                                     data-id="{{ $sub->id }}">
@@ -220,6 +215,31 @@
             </div>
         </div>
     </section>
+
+    {{-- Re-provision Confirmation Modal --}}
+    <div class="modal fade" id="reprovision-modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title h6"><i class="fas fa-sync-alt mr-1"></i> {{ __tr('Re-provision IPTV') }}</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-3">{{ __tr('Re-generate IPTV credentials for') }} <strong
+                            id="reprovision-user"></strong>?</p>
+                    <form method="POST" action="{{ route('admin.subscriptions.reprovision') }}">
+                        @csrf
+                        <input type="hidden" id="reprovision-id" name="id">
+                        <button type="button" class="btn btn-secondary"
+                            data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                        <button type="submit" class="btn btn-info ml-1">{{ __tr('Re-provision') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- Delete Confirmation Modal --}}
     <div class="modal fade" id="delete-item-modal">
@@ -255,6 +275,12 @@
                 var id = $(this).data('id');
                 $('#delete-item-id').val(id);
                 $('#delete-item-modal').modal('show');
+            });
+
+            $('.reprovision-item').on('click', function() {
+                $('#reprovision-id').val($(this).data('id'));
+                $('#reprovision-user').text($(this).data('user'));
+                $('#reprovision-modal').modal('show');
             });
 
         })(jQuery);
