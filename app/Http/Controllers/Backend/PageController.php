@@ -12,9 +12,7 @@ use Illuminate\Http\RedirectResponse;
 class PageController extends Controller
 {
 
-    public function __construct(public PageRepository $pageRepository)
-    {
-    }
+    public function __construct(public PageRepository $pageRepository) {}
 
     /**
      * Will redirect page list
@@ -61,9 +59,9 @@ class PageController extends Controller
      *
      *@param Page $page
      **/
-    public function editPage(Page $page,Request $request): View
+    public function editPage(Page $page, Request $request): View
     {
-        return view('backend.modules.page.edit_page', ['page' => $page,'lang'=> $request->lang]);
+        return view('backend.modules.page.edit_page', ['page' => $page, 'lang' => $request->lang]);
     }
     /**
      * Will update page
@@ -79,11 +77,11 @@ class PageController extends Controller
         $res = $this->pageRepository->updatePage($request);
         if (!$res) {
             toastNotification('error', 'Page Update Failed', 'Error');
-            return to_route('admin.page.edit', ['page' => $request['id'],'lang'=>$request['lang']]);
+            return to_route('admin.page.edit', ['page' => $request['id'], 'lang' => $request['lang']]);
         }
 
         toastNotification('success', 'Page Update Successfully', 'Success');
-        return to_route('admin.page.edit', ['page' => $request['id'],'lang'=>$request['lang']]);
+        return to_route('admin.page.edit', ['page' => $request['id'], 'lang' => $request['lang']]);
     }
     /**
      * Will delete page

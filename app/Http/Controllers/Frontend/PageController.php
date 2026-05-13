@@ -5,13 +5,11 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\HomePageSection;
 use App\Models\PricingPlan;
-use App\Repository\AdvertisementRepository;
 use App\Repository\PageRepository;
 
 class PageController extends Controller
 {
     public function __construct(
-        public AdvertisementRepository $advertisement_repository,
         public PageRepository $page_repository,
     ) {}
 
@@ -24,15 +22,12 @@ class PageController extends Controller
             ->orderBy('price', 'ASC')
             ->get();
 
-        $advertisements = $this->advertisement_repository->getActiveByPosition('home_top');
-
         $homeSections = HomePageSection::where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
         return view('frontend.pages.home', compact(
             'pricingPlans',
-            'advertisements',
             'homeSections'
         ));
     }
