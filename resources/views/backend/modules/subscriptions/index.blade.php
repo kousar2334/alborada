@@ -81,8 +81,10 @@
                                     </select>
                                     <select name="method" class="form-control form-control-sm" style="width: auto;">
                                         <option value="">{{ __tr('All Methods') }}</option>
-                                        <option value="stripe" {{ request('method') === 'stripe' ? 'selected' : '' }}>Stripe</option>
-                                        <option value="trial" {{ request('method') === 'trial' ? 'selected' : '' }}>Trial</option>
+                                        <option value="stripe" {{ request('method') === 'stripe' ? 'selected' : '' }}>
+                                            Stripe</option>
+                                        <option value="trial" {{ request('method') === 'trial' ? 'selected' : '' }}>Trial
+                                        </option>
                                     </select>
                                     <button type="submit" class="btn btn-primary btn-sm">{{ __tr('Search') }}</button>
                                     @if (request('q') || request('status') || request('method'))
@@ -132,7 +134,8 @@
                                                 @if ($sub->payment_method === 'stripe')
                                                     <span class="badge badge-info">Stripe</span>
                                                 @else
-                                                    <span class="badge badge-secondary">{{ ucfirst($sub->payment_method ?? 'Trial') }}</span>
+                                                    <span
+                                                        class="badge badge-secondary">{{ ucfirst($sub->payment_method ?? 'Trial') }}</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -178,6 +181,19 @@
                                             </td>
                                             <td>{{ $sub->created_at->format('M d, Y') }}</td>
                                             <td class="text-right" style="white-space: nowrap;">
+                                                @if ($sub->status === 'active' && get_setting('iptv_provisioning_enabled', 0))
+                                                    <form method="POST"
+                                                        action="{{ route('admin.subscriptions.reprovision') }}"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Re-provision IPTV credentials for this subscription?')">
+                                                        @csrf
+                                                        <input type="hidden" name="id" value="{{ $sub->id }}">
+                                                        <button type="submit" class="btn btn-info btn-sm"
+                                                            title="Re-provision IPTV">
+                                                            <i class="fas fa-sync-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
                                                 <button class="btn btn-danger btn-sm delete-item"
                                                     data-id="{{ $sub->id }}">
                                                     <i class="fas fa-trash"></i>

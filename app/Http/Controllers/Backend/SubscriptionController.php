@@ -122,4 +122,15 @@ class SubscriptionController extends Controller
 
         return back()->with('success', __tr('Payment link sent to ') . $user->email);
     }
+
+    public function reprovision(Request $request)
+    {
+        $request->validate(['id' => 'required|integer|exists:user_subscriptions,id']);
+
+        $subscription = UserSubscription::with('plan', 'user')->findOrFail($request->id);
+
+        dispatch(new ProvisionSubscriptionJob($subscription));
+
+        return back()->with('success', __tr('Provisioning job dispatched for subscription #') . $subscription->id);
+    }
 }

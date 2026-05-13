@@ -12,9 +12,9 @@ class XtreamCodesService
 
     public function __construct()
     {
-        $this->baseUrl       = rtrim(get_setting('xtream_base_url', ''), '/');
-        $this->adminUsername = get_setting('xtream_admin_username', '');
-        $this->adminPassword = get_setting('xtream_admin_password', '');
+        $this->baseUrl       = rtrim((string) get_setting('xtream_base_url', ''), '/');
+        $this->adminUsername = (string) get_setting('xtream_admin_username', '');
+        $this->adminPassword = (string) get_setting('xtream_admin_password', '');
     }
 
     public function createLine(array $params): array
@@ -102,7 +102,7 @@ class XtreamCodesService
                 'ip_address'       => request()->ip() ?? '127.0.0.1',
                 'duration_ms'      => $duration,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // fail silently — logging must not break the main flow
         }
     }

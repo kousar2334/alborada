@@ -125,6 +125,7 @@ Route::prefix('admin')->group(function () {
             Route::post('reject', [SubscriptionController::class, 'reject'])->name('admin.subscriptions.reject');
             Route::post('delete', [SubscriptionController::class, 'delete'])->name('admin.subscriptions.delete');
             Route::post('send-payment-link', [SubscriptionController::class, 'sendPaymentLink'])->name('admin.subscriptions.send.payment.link');
+            Route::post('reprovision', [SubscriptionController::class, 'reprovision'])->name('admin.subscriptions.reprovision');
         });
 
         /**

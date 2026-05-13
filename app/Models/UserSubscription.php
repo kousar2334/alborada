@@ -22,15 +22,27 @@ class UserSubscription extends Model
         'bank_slip',
         'ssl_session_key',
         'ssl_val_id',
+        'stripe_payment_intent_id',
+        'stripe_charge_id',
+        'xtream_username',
+        'xtream_password',
+        'xtream_line_id',
+        'invoice_id',
+        'auto_renew',
+        'renewal_reminder_sent',
+        'expiry_alert_sent',
         'admin_note',
         'starts_at',
         'expires_at',
     ];
 
     protected $casts = [
-        'amount'     => 'float',
-        'starts_at'  => 'datetime',
-        'expires_at' => 'datetime',
+        'amount'                 => 'float',
+        'starts_at'              => 'datetime',
+        'expires_at'             => 'datetime',
+        'auto_renew'             => 'boolean',
+        'renewal_reminder_sent'  => 'boolean',
+        'expiry_alert_sent'      => 'boolean',
     ];
 
     public function user(): BelongsTo

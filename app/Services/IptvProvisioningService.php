@@ -63,6 +63,7 @@ class IptvProvisioningService
 
             return true;
         } catch (\Exception $e) {
+            \Log::error('IPTV provisioning failed for subscription ' . $subscription->id . ': ' . $e->getMessage());
             return false;
         }
     }
