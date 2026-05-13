@@ -12,9 +12,9 @@ class WhmcsService
 
     public function __construct()
     {
-        $this->apiUrl     = get_setting('whmcs_api_url', '');
-        $this->identifier = get_setting('whmcs_api_identifier', '');
-        $this->secret     = get_setting('whmcs_api_secret', '');
+        $this->apiUrl     = (string) get_setting('whmcs_api_url', '');
+        $this->identifier = (string) get_setting('whmcs_api_identifier', '');
+        $this->secret     = (string) get_setting('whmcs_api_secret', '');
     }
 
     public function isConfigured(): bool

@@ -35,37 +35,37 @@
                 '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L11 11M1 11L11 1" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/></svg>';
         @endphp
 
-        <li class="listItem {{ $plan->listing_quantity > 0 ? 'check' : '' }}">
-            @if ($plan->listing_quantity > 0)
-                <div class="check-icon me-2">{!! $checkSvg !!}</div>
-            @else
-                <div class="me-2">{!! $crossSvg !!}</div>
-            @endif
-            {{ __tr('Ad Posting') }}: {{ $plan->listing_quantity }}
+        {{-- Connections --}}
+        <li class="listItem check">
+            <div class="check-icon me-2">{!! $checkSvg !!}</div>
+            {{ $plan->max_connections }} {{ __tr($plan->max_connections == 1 ? 'Connection' : 'Connections') }}
         </li>
-        <li class="listItem {{ $plan->gallery_image_quantity > 0 ? 'check' : '' }}">
-            @if ($plan->gallery_image_quantity > 0)
-                <div class="check-icon me-2">{!! $checkSvg !!}</div>
-            @else
-                <div class="me-2">{!! $crossSvg !!}</div>
-            @endif
-            {{ __tr('Gallery Images') }}: {{ $plan->gallery_image_quantity }}
+
+        {{-- Streaming quality --}}
+        <li class="listItem check">
+            <div class="check-icon me-2">{!! $checkSvg !!}</div>
+            {{ $plan->streaming_quality }} {{ __tr('Quality') }}
         </li>
-        <li class="listItem {{ $plan->featured_listing_quantity > 0 ? 'check' : '' }}">
-            @if ($plan->featured_listing_quantity > 0)
+
+        {{-- Catch-up --}}
+        <li class="listItem {{ $plan->catchup_days > 0 ? 'check' : '' }}">
+            @if ($plan->catchup_days > 0)
                 <div class="check-icon me-2">{!! $checkSvg !!}</div>
+                {{ $plan->catchup_days }} {{ __tr('Days Catch-up') }}
             @else
                 <div class="me-2">{!! $crossSvg !!}</div>
+                {{ __tr('No Catch-up') }}
             @endif
-            {{ __tr('Featured Listings') }}: {{ $plan->featured_listing_quantity }}
         </li>
-        <li class="listItem {{ $plan->membership_badge == 1 ? 'check' : '' }}">
-            @if ($plan->membership_badge == 1)
+
+        {{-- DVR --}}
+        <li class="listItem {{ $plan->dvr_enabled ? 'check' : '' }}">
+            @if ($plan->dvr_enabled)
                 <div class="check-icon me-2">{!! $checkSvg !!}</div>
             @else
                 <div class="me-2">{!! $crossSvg !!}</div>
             @endif
-            {{ __tr('Membership Badge') }}
+            {{ __tr('DVR Recording') }}
         </li>
     </ul>
 </div>

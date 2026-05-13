@@ -5643,6 +5643,341 @@ input[type="range"]::-moz-range-thumb {
     font-weight: 500;
 }
 
+/* Setup Guide — sg- prefix (member dashboard) */
+.sg-no-sub {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(234, 179, 8, .06) !important;
+    border: 1px solid rgba(234, 179, 8, .25) !important;
+    border-radius: 10px;
+}
+
+.sg-no-sub-icon {
+    font-size: 2rem;
+    color: #d97706;
+    flex-shrink: 0;
+}
+
+.sg-card {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.sg-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 20px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #6b7280;
+}
+
+.sg-cred-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 20px;
+}
+
+.sg-cred-full {
+    grid-column: 1 / -1;
+}
+
+.sg-cred-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sg-field-label {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #9ca3af;
+    display: block;
+    margin-bottom: 0;
+}
+
+.sg-cred-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.sg-cred-value {
+    flex: 1;
+    padding: 9px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: .85rem;
+    color: #1f2937;
+    background: #f8f9fa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    display: block;
+    line-height: 1.4;
+}
+
+.sg-cred-wrap {
+    white-space: normal !important;
+    word-break: break-all;
+}
+
+.sg-copy-btn {
+    flex-shrink: 0;
+    width: 38px;
+    border: none;
+    border-left: 1px solid #e5e7eb;
+    border-radius: 0;
+    background: #fff;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .82rem;
+    transition: .2s;
+}
+
+.sg-copy-btn:hover {
+    background: #fef2f2;
+    color: #cc0000;
+}
+
+.sg-plan-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 12px 20px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.sg-plan-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .78rem;
+    font-weight: 500;
+    color: #374151;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+
+.sg-plan-chip i {
+    color: #cc0000;
+    font-size: .72rem;
+}
+
+.sg-tabs-nav {
+    display: flex;
+    gap: 2px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    flex-wrap: wrap;
+}
+
+.sg-tab-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.sg-tab-btn:hover {
+    background: #fff;
+    color: #374151;
+}
+
+.sg-tab-btn.active {
+    background: #fff;
+    border-color: #e5e7eb;
+    color: #cc0000;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+}
+
+.sg-tab-body {
+    padding: 24px;
+}
+
+.sg-pane {
+    display: none;
+}
+
+.sg-pane.active {
+    display: block;
+}
+
+.sg-pane-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sg-pane-title i {
+    color: #cc0000;
+}
+
+.sg-platform-tag {
+    font-size: .68rem;
+    font-weight: 600;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 2px 7px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+.sg-steps {
+    padding-left: 18px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #374151;
+    font-size: .9rem;
+    line-height: 1.7;
+}
+
+.sg-inline-creds {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sg-ic-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    font-size: .84rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.sg-ic-row:last-child {
+    border-bottom: none;
+}
+
+.sg-ic-row span {
+    min-width: 90px;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: #9ca3af;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    background: #f9fafb;
+    border-right: 1px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.sg-ic-row samp {
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: .83rem;
+    color: #cc0000;
+    background: #fff;
+    word-break: break-all;
+    flex: 1;
+}
+
+.sg-url-block {
+    display: block;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: .82rem;
+    color: #cc0000;
+    word-break: break-all;
+}
+
+.sg-tip {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: rgba(59, 130, 246, .05);
+    border: 1px solid rgba(59, 130, 246, .15);
+    border-radius: 6px;
+    font-size: .82rem;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.sg-help-bar {
+    text-align: center;
+    padding: 14px;
+    font-size: .87rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.sg-help-bar i {
+    color: #cc0000;
+}
+
+.sg-help-bar a {
+    color: #cc0000;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.sg-help-bar a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .sg-cred-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sg-cred-full {
+        grid-column: 1;
+    }
+
+    .sg-tabs-nav {
+        gap: 4px;
+    }
+}
+
 /* Download App */
 .howto-card {
     background: linear-gradient(135deg, #0a0a0a, #1a0000);
