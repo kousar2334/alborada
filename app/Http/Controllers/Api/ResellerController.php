@@ -55,7 +55,7 @@ class ResellerController extends Controller
             'name'        => $request->name,
             'email'       => $request->email,
             'password'    => Hash::make($request->password ?? Str::random(12)),
-            'type'        => config('settings.user_type.customer', 2),
+            'type'        => config('settings.user_type.member'),
             'status'      => 1,
             'reseller_id' => $reseller->id,
         ]);

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\ApiResource;;
+namespace App\Http\ApiResource;
 
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class CustomerNotificationCollection extends ResourceCollection
+class MemberNotificationCollection extends ResourceCollection
 {
     public function toArray($request)
     {

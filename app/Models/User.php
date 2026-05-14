@@ -74,11 +74,6 @@ class User extends Authenticatable
         return $this->type === config('settings.user_type.reseller');
     }
 
-    public function isCustomer(): bool
-    {
-        return $this->type === config('settings.user_type.customer');
-    }
-
     public function creditLogs(): HasMany
     {
         return $this->hasMany(ResellerCreditLog::class, 'reseller_id');

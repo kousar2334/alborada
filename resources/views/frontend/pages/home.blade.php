@@ -26,7 +26,7 @@
                         <div class="hero-ctas">
                             <a href="#pricing"
                                 class="btn btn-pink btn-lg">{{ p_trans('home_hero_btn1', null, 'Get Started') }}</a>
-                            <a href="{{ route('customer.register') }}"
+                            <a href="{{ route('member.register') }}"
                                 class="btn btn-pink btn-lg">{{ p_trans('home_hero_btn2', null, 'Free Trial') }}</a>
                         </div>
                     </div>
@@ -590,9 +590,9 @@
                                 </li>
                             </ul>
                             <div class="portal-buttons">
-                                <a href="{{ route('customer.login') }}" class="btn btn-primary btn-lg">Login to
+                                <a href="{{ route('member.login') }}" class="btn btn-primary btn-lg">Login to
                                     Portal</a>
-                                <a href="{{ route('customer.register') }}" class="btn btn-ghost btn-lg">Create
+                                <a href="{{ route('member.register') }}" class="btn btn-ghost btn-lg">Create
                                     Account</a>
                                 <a href="{{ route('reseller.login') }}"
                                     class="btn btn-outline btn-lg btn-reseller-login">Reseller Login</a>

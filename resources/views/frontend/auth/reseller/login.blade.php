@@ -58,7 +58,7 @@
             </p>
             <p class="auth-switch-text" style="margin-top:8px;">
                 Not a reseller?
-                <a href="{{ route('customer.login') }}" class="auth-switch-link">Customer login</a>
+                <a href="{{ route('member.login') }}" class="auth-switch-link">Member login</a>
             </p>
         </div>
     </div>

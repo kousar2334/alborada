@@ -86,7 +86,7 @@ class ResellerController extends Controller
                 'name'        => $request->name,
                 'email'       => $request->email,
                 'phone'       => $request->phone,
-                'type'        => config('settings.user_type.customer'),
+                'type'        => config('settings.user_type.member'),
                 'status'      => config('settings.general_status.active'),
                 'reseller_id' => Auth::id(),
                 'password'    => Hash::make($request->password),

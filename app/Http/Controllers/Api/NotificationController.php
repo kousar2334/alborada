@@ -6,35 +6,33 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Api\ApiController;
 use Illuminate\Notifications\DatabaseNotification;
-use App\Http\ApiResource;
-
-\CustomerNotificationCollection;
+use App\Http\ApiResource\MemberNotificationCollection;
 
 class NotificationController extends ApiController
 {
     /**
-     * Will return customer all notifications
+     * Will return member all notifications
      */
-    public function customerAllNotifications(Request $request): CustomerNotificationCollection
+    public function memberAllNotifications(Request $request): MemberNotificationCollection
     {
-        $notifications = auth('jwt-customer')->user()->notifications()->paginate(10);
+        $notifications = auth('jwt-member')->user()->notifications()->paginate(10);
 
-        return new CustomerNotificationCollection($notifications);;
+        return new MemberNotificationCollection($notifications);;
     }
     /**
      * Will update notification status as read
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function markAsRead(Request $request): JsonResponse
     {
         try {
-            $notification = auth('jwt-customer')->user()->unreadNotifications()->where('id', $request['id'])->first();
+            $notification = auth('jwt-member')->user()->unreadNotifications()->where('id', $request['id'])->first();
 
             if ($notification) {
                 $notification->markAsRead();
-                $unread_notification = new CustomerNotificationCollection(auth('jwt-customer')->user()->unreadNotifications);
+                $unread_notification = new MemberNotificationCollection(auth('jwt-member')->user()->unreadNotifications);
                 return response()->json(
                     [
                         'success' => true,
@@ -68,14 +66,14 @@ class NotificationController extends ApiController
 
     /**
      * Will update all notification status as read
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function markAsReadAllNotification(Request $request): JsonResponse
     {
         try {
-            auth('jwt-customer')->user()->unreadNotifications->markAsRead();
+            auth('jwt-member')->user()->unreadNotifications->markAsRead();
             return $this->jsonSuccess();
         } catch (\Exception $e) {
             return $this->jsonError();

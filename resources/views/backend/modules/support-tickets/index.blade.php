@@ -42,7 +42,7 @@
                 <table class="table table-bordered table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>#</th><th>Ticket</th><th>Customer</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th>Action</th>
+                            <th>#</th><th>Ticket</th><th>Member</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th>Action</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -67,7 +67,7 @@ Route::group(['middleware' => ['guest']], function () {
     Route::get('/member/social/{provider}/callback', [MemberAuthController::class, 'socialCallback'])->name('member.social.callback');
 });
 
-Route::group(['middleware' => ['auth', 'customer']], function () {
+Route::group(['middleware' => ['auth', 'member']], function () {
     Route::get('/member/logout', [MemberAuthController::class, 'memberLogout'])->name('member.logout');
     Route::get('/member/dashboard', [MemberAuthController::class, 'memberDashboard'])->name('member.dashboard');
 
@@ -107,10 +107,6 @@ Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'init
     // Download App
     Route::get('/member/download-app', [MemberAuthController::class, 'downloadApp'])->name('member.download.app');
 });
-// ── Customer Portal (alias routes for member system) ──────────────────────────
-Route::get('/customer/login', [MemberAuthController::class, 'memberLoginPage'])->name('customer.login')->middleware('guest');
-Route::get('/customer/register', [MemberAuthController::class, 'memberRegisterPage'])->name('customer.register')->middleware('guest');
-Route::get('/customer/dashboard', [MemberAuthController::class, 'memberDashboard'])->name('customer.dashboard')->middleware(['auth', 'customer']);
 
 // ── Reseller Portal ────────────────────────────────────────────────────────────
 Route::prefix('reseller')->group(function () {

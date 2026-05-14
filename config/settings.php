@@ -7,7 +7,6 @@ return [
     'user_type' => [
         'admin'    => 1,
         'member'   => 2,
-        'customer' => 2,
         'reseller' => 3,
     ],
     'blog_status' => [
