@@ -33,7 +33,6 @@ class MemberRequest extends FormRequest
         return [
             'name'     => 'required|max:250',
             'email'    => 'required|max:250|email|unique:App\Models\User,email',
-            'phone'    => 'required|string|max:20',
             'password' => 'required|confirmed|min:6|max:250',
         ];
     }
@@ -53,8 +52,6 @@ class MemberRequest extends FormRequest
             'email.required' => __tr('Email is required'),
             'email.email'    => __tr('Incorrect email'),
             'email.unique'   => __tr('Email is already used'),
-
-            'phone.required' => __tr('Phone number is required'),
         ];
     }
 }

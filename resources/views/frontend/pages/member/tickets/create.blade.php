@@ -1,15 +1,15 @@
 @extends('frontend.layouts.dashboard')
 @section('dash-meta')
-    <title>{{ $prefill['is_buffering'] ?? false ? __tr('Report Buffering') : __tr('Open New Ticket') }} - {{ get_setting('site_name') }}</title>
+    <title>{{ $prefill['is_buffering'] ?? false ? __tr('Report Buffering') : __tr('Open New Ticket') }} -
+        {{ get_setting('site_name') }}</title>
 @endsection
 @section('dashboard-content')
-
     <div class="dashboard-header">
         <h1 class="dash-page-title">
-            @if($prefill['is_buffering'] ?? false)
-                <i class="fas fa-wifi card-title-icon"></i>{{ __tr('Report Buffering Issue') }}
+            @if ($prefill['is_buffering'] ?? false)
+                {{ __tr('Report Buffering Issue') }}
             @else
-                <i class="fas fa-ticket me-2"></i>{{ __tr('Open New Support Ticket') }}
+                {{ __tr('Open New Support Ticket') }}
             @endif
         </h1>
         <a href="{{ route('member.tickets.index') }}" class="dash-back-link-muted">
@@ -17,7 +17,7 @@
         </a>
     </div>
 
-    @if($prefill['is_buffering'] ?? false)
+    @if ($prefill['is_buffering'] ?? false)
         <div class="buffering-alert">
             <i class="fas fa-circle-info buffering-alert-icon"></i>
             <div class="buffering-alert-text">
@@ -39,7 +39,9 @@
                         class="form-control form-control-dark @error('subject') is-invalid @enderror"
                         value="{{ old('subject', $prefill['subject'] ?? '') }}"
                         placeholder="{{ __tr('Briefly describe your issue') }}">
-                    @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    @error('subject')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div>
@@ -47,8 +49,9 @@
                         {{ __tr('Priority') }} <span class="required-star">*</span>
                     </label>
                     <select name="priority" class="form-control form-control-dark">
-                        @foreach(['low' => 'Low', 'normal' => 'Normal', 'high' => 'High', 'urgent' => 'Urgent'] as $val => $label)
-                            <option value="{{ $val }}" {{ old('priority', $prefill['priority'] ?? 'normal') === $val ? 'selected' : '' }}>
+                        @foreach (['low' => 'Low', 'normal' => 'Normal', 'high' => 'High', 'urgent' => 'Urgent'] as $val => $label)
+                            <option value="{{ $val }}"
+                                {{ old('priority', $prefill['priority'] ?? 'normal') === $val ? 'selected' : '' }}>
                                 {{ $label }}
                             </option>
                         @endforeach
@@ -61,16 +64,24 @@
                     </label>
                     <select name="department" class="form-control form-control-dark">
                         <option value="">{{ __tr('General') }}</option>
-                        <option value="billing"   {{ old('department', $prefill['department'] ?? '') === 'billing'   ? 'selected' : '' }}>{{ __tr('Billing') }}</option>
-                        <option value="technical" {{ old('department', $prefill['department'] ?? '') === 'technical' ? 'selected' : '' }}>{{ __tr('Technical') }}</option>
-                        <option value="buffering" {{ old('department', $prefill['department'] ?? '') === 'buffering' ? 'selected' : '' }}>{{ __tr('Buffering / Streaming Issue') }}</option>
-                        <option value="sales"     {{ old('department', $prefill['department'] ?? '') === 'sales'     ? 'selected' : '' }}>{{ __tr('Sales') }}</option>
+                        <option value="billing"
+                            {{ old('department', $prefill['department'] ?? '') === 'billing' ? 'selected' : '' }}>
+                            {{ __tr('Billing') }}</option>
+                        <option value="technical"
+                            {{ old('department', $prefill['department'] ?? '') === 'technical' ? 'selected' : '' }}>
+                            {{ __tr('Technical') }}</option>
+                        <option value="buffering"
+                            {{ old('department', $prefill['department'] ?? '') === 'buffering' ? 'selected' : '' }}>
+                            {{ __tr('Buffering / Streaming Issue') }}</option>
+                        <option value="sales"
+                            {{ old('department', $prefill['department'] ?? '') === 'sales' ? 'selected' : '' }}>
+                            {{ __tr('Sales') }}</option>
                     </select>
                 </div>
             </div>
 
             {{-- Buffering-specific extra fields --}}
-            @if($prefill['is_buffering'] ?? false)
+            @if ($prefill['is_buffering'] ?? false)
                 <div class="ticket-extra-fields">
                     <div>
                         <label class="form-label-sm">
@@ -100,12 +111,13 @@
                     {{ __tr('Message') }} <span class="required-star">*</span>
                 </label>
                 <textarea name="message" rows="7" required
-                    class="form-control form-control-dark @error('message') is-invalid @enderror"
-                    style="resize:vertical;"
+                    class="form-control form-control-dark @error('message') is-invalid @enderror" style="resize:vertical;"
                     placeholder="{{ $prefill['is_buffering'] ?? false
                         ? __tr('Describe the buffering: when it started, how often, which channels, what you have tried...')
                         : __tr('Describe your issue in detail...') }}">{{ old('message') }}</textarea>
-                @error('message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                @error('message')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
 
             <div class="ticket-actions">
@@ -119,5 +131,4 @@
             </div>
         </form>
     </div>
-
 @endsection

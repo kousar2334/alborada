@@ -4439,7 +4439,7 @@ input[type="range"]::-moz-range-thumb {
 
 .dash-page-title {
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     color: #111827;
     margin-bottom: .3rem;
     letter-spacing: -.01em;
@@ -5736,6 +5736,7 @@ input[type="range"]::-moz-range-thumb {
     background: rgba(234, 179, 8, .06) !important;
     border: 1px solid rgba(234, 179, 8, .25) !important;
     border-radius: 10px;
+    padding: 10px 20px;
 }
 
 .sg-no-sub-icon {

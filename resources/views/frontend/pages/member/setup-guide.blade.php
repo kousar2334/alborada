@@ -6,7 +6,7 @@
 
     <div class="dashboard-header">
         <div>
-            <h1 class="dash-page-title"><i class="fas fa-book-open me-2"></i>{{ __tr('Setup Guide') }}</h1>
+            <h1 class="dash-page-title">{{ __tr('Setup Guide') }}</h1>
             <p class="dash-page-subtitle">{{ __tr('Connect your IPTV subscription to your preferred app.') }}</p>
         </div>
     </div>
@@ -16,7 +16,7 @@
             <i class="fas fa-circle-exclamation sg-no-sub-icon"></i>
             <div>
                 <p class="mb-2 fw-semibold">{{ __tr("You don't have an active subscription.") }}</p>
-                <a href="{{ route('pricing.plans') }}" class="cmn-btn" style="font-size:.85rem;padding:7px 20px;">
+                <a href="{{ route('pricing.plans') }}" class="cmn-btn">
                     {{ __tr('View Plans') }}
                 </a>
             </div>

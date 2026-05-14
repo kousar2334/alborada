@@ -6,7 +6,7 @@
 @section('dashboard-content')
 
     <div class="dashboard-header">
-        <h1 class="dash-page-title"><i class="fas fa-download card-title-icon"></i>{{ __tr('Download the App') }}</h1>
+        <h1 class="dash-page-title">{{ __tr('Download the App') }}</h1>
         <p class="dash-page-subtitle">{{ __tr('Install Alborada Box on any device using the codes below.') }}</p>
     </div>
 
@@ -96,14 +96,17 @@
                                     </div>
                                     <div>
                                         <div class="code-card-label">{{ $code->label }}</div>
-                                        <div class="code-card-sublabel">{{ $deviceLabels[$dtype] ?? ucfirst($dtype) }}</div>
+                                        <div class="code-card-sublabel">{{ $deviceLabels[$dtype] ?? ucfirst($dtype) }}
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="code-card-body">
                                     <div class="code-card-code-label">{{ __tr('Downloader Code') }}</div>
                                     <div class="code-card-code-row">
-                                        <code id="code-{{ $code->id }}" class="code-display">{{ $code->code }}</code>
-                                        <button onclick="copyToClipboard('code-{{ $code->id }}',this)" class="copy-btn">
+                                        <code id="code-{{ $code->id }}"
+                                            class="code-display">{{ $code->code }}</code>
+                                        <button onclick="copyToClipboard('code-{{ $code->id }}',this)"
+                                            class="copy-btn">
                                             <i class="fas fa-copy"></i>
                                         </button>
                                     </div>
