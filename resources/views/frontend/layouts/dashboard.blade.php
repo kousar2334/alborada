@@ -2,6 +2,17 @@
 @section('meta')
     @yield('dash-meta')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Dashboard green theme — overrides any DB-stored primary color */
+        :root {
+            --primary-color: #00c853;
+            --primary-color-dark: #00a046;
+            --primary-color-light: #33d46a;
+            --primary-color-lighter: #66e089;
+            --primary-color-shadow: #00c85318;
+            --primary: #00c853;
+        }
+    </style>
 @endsection
 
 @section('content')

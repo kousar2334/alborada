@@ -9,16 +9,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('public/web-assets/frontend/css/bootstrap.css') }}">
 
     <style>
         :root {
-            --primary-color: {{ get_setting('site_primary_color', '#cc0000') }};
-            --primary-color-dark: {{ get_setting('site_primary_color_dark', '#990000') }};
-            --primary-color-light: {{ get_setting('site_primary_color_light', '#ff3333') }};
-            --primary-color-lighter: {{ get_setting('site_primary_color_lighter', '#ff6666') }};
-            --primary-color-shadow: {{ get_setting('site_primary_color_shadow', '#cc000018') }};
+            --primary-color: {{ get_setting('site_primary_color', '#00c853') }};
+            --primary-color-dark: {{ get_setting('site_primary_color_dark', '#00a046') }};
+            --primary-color-light: {{ get_setting('site_primary_color_light', '#33d46a') }};
+            --primary-color-lighter: {{ get_setting('site_primary_color_lighter', '#66e089') }};
+            --primary-color-shadow: {{ get_setting('site_primary_color_shadow', '#00c85318') }};
 
             --main-color-one: var(--primary-color);
             --main-color-two: {{ get_setting('site_main_color_two', '#111111') }};
