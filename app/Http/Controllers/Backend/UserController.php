@@ -214,6 +214,7 @@ class UserController extends Controller
             DB::beginTransaction();
             $role = new Role();
             $role->name = $request['name'];
+            $role->description = $request['description'] ?? null;
             $role->guard_name = 'web';
             $role->save();
 
@@ -295,6 +296,7 @@ class UserController extends Controller
             DB::beginTransaction();
             $role = Role::findOrFail($request['id']);
             $role->name = $request['name'];
+            $role->description = $request['description'] ?? null;
             $role->save();
 
             $role->syncPermissions($request['permission']);

@@ -3,68 +3,74 @@
     <input type="hidden" name="id" value="{{ $role->id }}">
 
     <div class="form-group mb-3">
-        <label class="font-weight-bold">{{ __tr('Role Name') }}</label>
-        <input type="text" class="form-control" name="name" placeholder="{{ __tr('Enter Role Name') }}"
-            value="{{ $role->name }}">
+        <span class="field-label">{{ __tr('Name') }}</span>
+        <input type="text" class="form-control" name="name" maxlength="255" id="edit-name-input"
+            placeholder="{{ __tr('e.g. Store Manager, Content Editor') }}" value="{{ $role->name }}">
+        <div class="char-count">
+            <span id="edit-name-count">{{ strlen($role->name) }}</span>/255
+        </div>
     </div>
 
-    <div class="form-group mb-0">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="font-weight-bold mb-0">{{ __tr('Permissions') }}</label>
-            <div>
-                <button type="button" class="btn btn-xs btn-outline-success select-all-global">
-                    <i class="fas fa-check-square mr-1"></i>{{ __tr('Select All') }}
-                </button>
-                <button type="button" class="btn btn-xs btn-outline-secondary deselect-all-global ml-1">
-                    <i class="fas fa-square mr-1"></i>{{ __tr('Deselect All') }}
-                </button>
-            </div>
+    <div class="form-group mb-3">
+        <span class="field-label">{{ __tr('Description') }}</span>
+        <input type="text" class="form-control" name="description" maxlength="255" id="edit-desc-input"
+            placeholder="{{ __tr('Brief description of this role\'s responsibilities') }}"
+            value="{{ $role->description ?? '' }}">
+        <div class="char-count">
+            <span id="edit-desc-count">{{ strlen($role->description ?? '') }}</span>/255
+        </div>
+    </div>
+
+    <div class="mb-0">
+        <div class="permissions-section-title">{{ __tr('Permissions') }}</div>
+        <div class="permissions-section-subtitle">
+            {{ __tr('Select permissions for this role, grouped by module.') }}
         </div>
 
-        <div class="permission-modules">
+        <div class="perm-search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" class="perm-search-input" placeholder="{{ __tr('Search permissions or modules') }}"
+                data-context="edit">
+        </div>
+
+        <div class="perm-select-all-row">
+            <label class="perm-select-all-label">
+                <input type="checkbox" class="edit-select-all-global">
+                {{ __tr('Select all permissions') }}
+            </label>
+            <button type="button" class="expand-all-btn" data-context="edit"
+                data-expanded="1">{{ __tr('Collapse all') }}</button>
+        </div>
+
+        <div id="edit-perm-modules">
             @foreach ($permissions as $module => $permission_list)
-                <div class="card mb-3 permission-module-card">
-                    <div class="card-header p-2" style="cursor:pointer;" data-toggle="collapse"
-                        data-target="#edit-module-{{ Str::slug($module) }}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-chevron-down mr-2 collapse-icon" style="font-size:11px;"></i>
-                                <span class="font-weight-bold text-sm">{{ $module }}</span>
-                                <span class="badge badge-secondary ml-2">{{ $permission_list->count() }}</span>
-                            </div>
-                            <div onclick="event.stopPropagation();">
-                                <div class="form-check form-check-inline mb-0">
-                                    <input class="form-check-input module-select-all" type="checkbox"
-                                        data-module="{{ Str::slug($module) }}"
-                                        id="edit-select-all-{{ Str::slug($module) }}"
-                                        @if ($role->permissions->whereIn('name', $permission_list->pluck('name'))->count() === $permission_list->count()) checked @endif>
-                                    <label class="form-check-label text-sm"
-                                        for="edit-select-all-{{ Str::slug($module) }}">
-                                        {{ __tr('All') }}
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                @php
+                    $selectedCount = $role->permissions->whereIn('name', $permission_list->pluck('name'))->count();
+                    $allSelected = $selectedCount === $permission_list->count();
+                @endphp
+                <div class="perm-module" data-module-name="{{ strtolower($module) }}">
+                    <div class="perm-module-header" data-toggle="collapse"
+                        data-target="#edit-mod-{{ Str::slug($module) }}">
+                        <i class="fas fa-chevron-down perm-module-chevron"></i>
+                        <input type="checkbox" class="perm-module-check module-select-all"
+                            data-module="{{ Str::slug($module) }}" id="e-all-{{ Str::slug($module) }}"
+                            onclick="event.stopPropagation();" @checked($allSelected)>
+                        <span class="perm-module-name">{{ $module }}</span>
+                        <span class="perm-module-count" data-slug="edit-{{ Str::slug($module) }}"
+                            data-total="{{ $permission_list->count() }}">
+                            {{ $selectedCount }}/{{ $permission_list->count() }}
+                        </span>
                     </div>
-                    <div class="collapse show" id="edit-module-{{ Str::slug($module) }}">
-                        <div class="card-body p-2">
-                            <div class="row">
-                                @foreach ($permission_list as $permission)
-                                    <div class="col-sm-6 col-md-4 col-lg-3 py-1">
-                                        <div class="custom-control custom-checkbox">
-                                            <input
-                                                class="custom-control-input module-permission-{{ Str::slug($module) }}"
-                                                id="edit-perm-{{ $permission->id }}" name="permission[]"
-                                                type="checkbox" value="{{ $permission->name }}"
-                                                @checked($role->permissions->contains($permission))>
-                                            <label class="custom-control-label text-sm"
-                                                for="edit-perm-{{ $permission->id }}" style="cursor:pointer;">
-                                                {{ $permission->name }}
-                                            </label>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                    <div class="collapse show" id="edit-mod-{{ Str::slug($module) }}">
+                        <div class="perm-module-body">
+                            @foreach ($permission_list as $permission)
+                                <div class="perm-item" data-perm-name="{{ strtolower($permission->name) }}">
+                                    <input type="checkbox" class="module-permission-{{ Str::slug($module) }}"
+                                        id="edit-perm-{{ $permission->id }}" name="permission[]"
+                                        value="{{ $permission->name }}" @checked($role->permissions->contains($permission))>
+                                    <label for="edit-perm-{{ $permission->id }}">{{ $permission->name }}</label>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
@@ -72,90 +78,3 @@
         </div>
     </div>
 </form>
-
-<div class="d-flex justify-content-end mt-3">
-    <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">
-        {{ __tr('Cancel') }}
-    </button>
-    <button type="button" class="btn btn-primary update-role-btn">
-        <i class="fas fa-save mr-1"></i>{{ __tr('Save Changes') }}
-    </button>
-</div>
-
-<script>
-    (function($) {
-        "use strict";
-
-        // Module select-all toggle
-        $(document).on('change', '.module-select-all', function() {
-            var module = $(this).data('module');
-            var checked = $(this).is(':checked');
-            $('.module-permission-' + module).prop('checked', checked);
-        });
-
-        // Update "All" checkbox state when individual permissions change
-        $(document).on('change', '[class^="module-permission-"], [class*=" module-permission-"]', function() {
-            var classList = $(this).attr('class').split(' ');
-            classList.forEach(function(cls) {
-                if (cls.indexOf('module-permission-') === 0) {
-                    var module = cls.replace('module-permission-', '');
-                    var total = $('.' + cls).length;
-                    var checked = $('.' + cls + ':checked').length;
-                    $('[data-module="' + module + '"]').prop('checked', total === checked);
-                }
-            });
-        });
-
-        // Global select / deselect all
-        $(document).on('click', '.select-all-global', function() {
-            $('[name="permission[]"]').prop('checked', true);
-            $('.module-select-all').prop('checked', true);
-        });
-
-        $(document).on('click', '.deselect-all-global', function() {
-            $('[name="permission[]"]').prop('checked', false);
-            $('.module-select-all').prop('checked', false);
-        });
-
-        // Collapse chevron rotate
-        $(document).on('click', '[data-target^="#edit-module-"]', function() {
-            $(this).find('.collapse-icon').toggleClass('fa-chevron-down fa-chevron-right');
-        });
-
-        // Save role
-        $(document).on('click', '.update-role-btn', function(e) {
-            e.preventDefault();
-            $(document).find('.invalid-input').remove();
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                },
-                type: 'POST',
-                data: $('#update-role-form').serialize(),
-                url: '{{ route('admin.users.role.update') }}',
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success('Role updated successfully', 'Success');
-                        $('#role-edit-modal').modal('hide');
-                        location.reload();
-                    } else {
-                        toastr.error(response.message, 'Error');
-                    }
-                },
-                error: function(response) {
-                    if (response.status === 422) {
-                        $.each(response.responseJSON.errors, function(field_name, error) {
-                            $(document).find('[name=' + field_name + ']').after(
-                                '<div class="error text-danger mb-0 invalid-input">' +
-                                error + '</div>'
-                            );
-                        });
-                    } else {
-                        toastr.error('Role update failed', 'Error');
-                    }
-                }
-            });
-        });
-
-    })(jQuery);
-</script>
