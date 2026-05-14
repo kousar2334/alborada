@@ -20,327 +20,75 @@
                 <a href="#" class="d-block">{{ auth()->user()->name }}</a>
             </div>
         </div>
+
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                 data-accordion="false">
 
-                {{-- Dashboard --}}
-                @can('View Dashboard')
-                    <li class="nav-item">
-                        <a href="{{ route('admin.dashboard') }}"
-                            class="nav-link {{ Request::routeIs(['admin.dashboard']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-tachometer-alt"></i>
-                            <p>{{ __tr('Dashboard') }}</p>
-                        </a>
-                    </li>
-                @endcan
+                @foreach (config('admin_nav') as $item)
+                    @php
+                        $user = auth()->user();
 
-                {{-- Members --}}
-                @can('Manage Members')
-                    <li class="nav-item">
-                        <a href="{{ route('admin.members.list') }}"
-                            class="nav-link {{ Request::routeIs(['admin.members.list']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i>
-                            <p>{{ __tr('Members') }}</p>
-                        </a>
-                    </li>
-                @endcan
+                        if (isset($item['permission'])) {
+                            $canAccess = $user->can($item['permission']);
+                        } elseif (isset($item['any_permissions'])) {
+                            $canAccess = $user->canAny($item['any_permissions']);
+                        } else {
+                            $canAccess = true;
+                        }
 
-                {{-- Pricing Plans --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.pricing.plans.list') }}"
-                        class="nav-link {{ Request::routeIs('admin.pricing.plans.list') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-tags"></i>
-                        <p>{{ __tr('Pricing Plans') }}</p>
-                    </a>
-                </li>
+                        $isActive = Request::routeIs($item['active_routes']);
+                        $hasChildren = !empty($item['children']);
+                    @endphp
 
-                {{-- Subscriptions --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.subscriptions.list') }}"
-                        class="nav-link {{ Request::routeIs('admin.subscriptions.list') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-crown"></i>
-                        <p>{{ __tr('Subscriptions') }}</p>
-                    </a>
-                </li>
+                    @if ($canAccess)
+                        @if ($hasChildren)
+                            <li class="nav-item {{ $isActive ? 'menu-open' : '' }}">
+                                <a href="#" class="nav-link {{ $isActive ? 'active' : '' }}">
+                                    <i class="nav-icon {{ $item['icon'] }}"></i>
+                                    <p>
+                                        {{ __tr($item['label']) }}
+                                        <i class="fas fa-angle-left right"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    @foreach ($item['children'] as $child)
+                                        @php
+                                            if (isset($child['permission'])) {
+                                                $canAccessChild = $user->can($child['permission']);
+                                            } elseif (isset($child['any_permissions'])) {
+                                                $canAccessChild = $user->canAny($child['any_permissions']);
+                                            } else {
+                                                $canAccessChild = true;
+                                            }
 
-                {{-- Media --}}
-                @can('Manage Media')
-                    <li class="nav-item">
-                        <a href="{{ route('admin.media.list') }}"
-                            class="nav-link {{ Request::routeIs(['admin.media.list']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-photo-video"></i>
-                            <p>{{ __tr('Media') }}</p>
-                        </a>
-                    </li>
-                @endcan
+                                            $isChildActive = Request::routeIs($child['active_routes']);
+                                        @endphp
 
-                {{-- Blogs --}}
-                @can('Manage Blog')
-                    <li
-                        class="nav-item {{ Request::routeIs(['admin.blogs.categories.edit', 'admin.blogs.comment.list', 'admin.blogs.edit', 'admin.blogs.list', 'admin.blogs.create', 'admin.blogs.categories.list']) ? 'menu-open' : '' }}">
-                        <a href="#"
-                            class="nav-link {{ Request::routeIs(['admin.blogs.categories.edit', 'admin.blogs.comment.list', 'admin.blogs.edit', 'admin.blogs.list', 'admin.blogs.create', 'admin.blogs.categories.list']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-blog"></i>
-                            <p>
-                                {{ __tr('Blogs') }}
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            @can('Create New Blog')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.blogs.create') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.blogs.create']) ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>{{ __tr('Write New Blog') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
+                                        @if ($canAccessChild)
+                                            <li class="nav-item">
+                                                <a href="{{ route($child['route']) }}"
+                                                    class="nav-link {{ $isChildActive ? 'active' : '' }}">
+                                                    <i class="{{ $child['icon'] }} nav-icon"></i>
+                                                    <p>{{ __tr($child['label']) }}</p>
+                                                </a>
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @else
                             <li class="nav-item">
-                                <a href="{{ route('admin.blogs.list') }}"
-                                    class="nav-link {{ Request::routeIs(['admin.blogs.list']) ? 'active' : '' }}">
-                                    <i class="far fa-circle nav-icon"></i>
-                                    <p>{{ __tr('All Blogs') }}</p>
+                                <a href="{{ route($item['route']) }}"
+                                    class="nav-link {{ $isActive ? 'active' : '' }}">
+                                    <i class="nav-icon {{ $item['icon'] }}"></i>
+                                    <p>{{ __tr($item['label']) }}</p>
                                 </a>
                             </li>
-                            @can('Manage Blog Category')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.blogs.categories.list') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.blogs.categories.edit', 'admin.blogs.categories.list']) ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>{{ __tr('Categories') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcan
-
-                {{-- Pages --}}
-                @can('Manage Pages')
-                    <li
-                        class="nav-item {{ Request::routeIs(['admin.page.edit', 'admin.page.list', 'admin.page.create']) ? 'menu-open' : '' }}">
-                        <a href="#"
-                            class="nav-link {{ Request::routeIs(['admin.page.edit', 'admin.page.list', 'admin.page.create']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-file"></i>
-                            <p>
-                                {{ __tr('Pages') }}
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="{{ route('admin.page.list') }}"
-                                    class="nav-link {{ Request::routeIs(['admin.page.list']) ? 'active' : '' }}">
-                                    <i class="fa fa-minus nav-icon"></i>
-                                    <p>{{ __tr('All Page') }}</p>
-                                </a>
-                            </li>
-                            @can('Create New Page')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.page.create') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.page.create']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Create New Page') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcan
-
-                {{-- Appearances --}}
-                @can('Manage Appearances')
-                    <li
-                        class="nav-item {{ Request::routeIs(['admin.home.builder', 'admin.appearance.site.setting', 'admin.appearance.site.setting.*', 'admin.appearance.menu.builder']) ? 'menu-open' : '' }}">
-                        <a href="#"
-                            class="nav-link {{ Request::routeIs(['admin.home.builder', 'admin.appearance.site.setting', 'admin.appearance.site.setting.*', 'admin.appearance.menu.builder']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-desktop"></i>
-                            <p>
-                                {{ __tr('Appearances') }}
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            @can('Manage Menu')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.appearance.menu.builder') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.appearance.menu.builder']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Menus') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('Manage Home Builder')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.home.builder') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.home.builder']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Home Builder') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('Manage Site Settings')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.appearance.site.setting') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.appearance.site.setting']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Site Setting') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcan
-
-                {{-- Admin Users / Roles / Permissions --}}
-                @canany(['User List', 'Role List View', 'Permission List View'])
-                    <li
-                        class="nav-item {{ Request::routeIs(['admin.users.list', 'admin.users.permission.list', 'admin.users.role.list']) ? 'menu-open' : '' }}">
-                        <a href="#"
-                            class="nav-link {{ Request::routeIs(['admin.users.list', 'admin.users.permission.list', 'admin.users.role.list']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users-cog"></i>
-                            <p>
-                                {{ __tr('Users') }}
-                                <i class="fas fa-angle-left right"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            @can('User List')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.users.list') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.users.list']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Users') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('Role List View')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.users.role.list') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.users.role.list']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Roles') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('Permission List View')
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.users.permission.list') }}"
-                                        class="nav-link {{ Request::routeIs(['admin.users.permission.list']) ? 'active' : '' }}">
-                                        <i class="fa fa-minus nav-icon"></i>
-                                        <p>{{ __tr('Permissions') }}</p>
-                                    </a>
-                                </li>
-                            @endcan
-                        </ul>
-                    </li>
-                @endcanany
-
-                {{-- Languages --}}
-                @can('Manage Language')
-                    <li class="nav-item">
-                        <a href="{{ route('admin.system.settings.language.list') }}"
-                            class="nav-link {{ Request::routeIs(['admin.system.settings.language.list', 'admin.system.settings.language.translation']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-language"></i>
-                            <p>{{ __tr('Languages') }}</p>
-                        </a>
-                    </li>
-                @endcan
-
-                {{-- Support Tickets --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.tickets.index') }}"
-                        class="nav-link {{ Request::routeIs(['admin.tickets.*']) ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-ticket-alt"></i>
-                        <p>{{ __tr('Support Tickets') }}</p>
-                    </a>
-                </li>
-
-                {{-- Resellers --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.resellers.index') }}"
-                        class="nav-link {{ Request::routeIs(['admin.resellers.*']) ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-store"></i>
-                        <p>{{ __tr('Resellers') }}</p>
-                    </a>
-                </li>
-
-                {{-- Reports --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.reports.index') }}"
-                        class="nav-link {{ Request::routeIs(['admin.reports.*']) ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-chart-bar"></i>
-                        <p>{{ __tr('Reports') }}</p>
-                    </a>
-                </li>
-
-                {{-- API Logs --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.api.logs') }}"
-                        class="nav-link {{ Request::routeIs('admin.api.logs') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-stream"></i>
-                        <p>{{ __tr('API Logs') }}</p>
-                    </a>
-                </li>
-
-                {{-- Payment Settings --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.payment.settings') }}"
-                        class="nav-link {{ Request::routeIs('admin.payment.settings') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-credit-card"></i>
-                        <p>{{ __tr('Payment Settings') }}</p>
-                    </a>
-                </li>
-
-                {{-- IPTV Settings --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.system.settings.iptv') }}"
-                        class="nav-link {{ Request::routeIs('admin.system.settings.iptv') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-tv"></i>
-                        <p>{{ __tr('IPTV Settings') }}</p>
-                    </a>
-                </li>
-
-                {{-- App Downloader Codes --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.downloader-codes.index') }}"
-                        class="nav-link {{ Request::routeIs('admin.downloader-codes.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-download"></i>
-                        <p>{{ __tr('App Codes') }}</p>
-                    </a>
-                </li>
-
-                {{-- Featured Content --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.featured-content.index') }}"
-                        class="nav-link {{ Request::routeIs('admin.featured-content.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-film"></i>
-                        <p>{{ __tr('Featured Content') }}</p>
-                    </a>
-                </li>
-
-                {{-- Chat Widget --}}
-                <li class="nav-item">
-                    <a href="{{ route('admin.settings.chat-widget') }}"
-                        class="nav-link {{ Request::routeIs('admin.settings.chat-widget') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-comments"></i>
-                        <p>{{ __tr('Chat Widget') }}</p>
-                    </a>
-                </li>
-
-                {{-- System --}}
-                @canany(['Update Environment', 'Update SMTP', 'Manage Social Login'])
-                    <li class="nav-item">
-                        <a href="{{ route('admin.system.settings.environment') }}"
-                            class="nav-link {{ Request::routeIs(['admin.system.settings.social.login', 'admin.system.settings.environment', 'admin.system.settings.smtp']) ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-cog"></i>
-                            <p>{{ __tr('System') }}</p>
-                        </a>
-                    </li>
-                @endcanany
+                        @endif
+                    @endif
+                @endforeach
 
             </ul>
         </nav>
