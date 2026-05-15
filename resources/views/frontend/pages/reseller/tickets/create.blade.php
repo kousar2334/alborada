@@ -5,66 +5,84 @@
 @section('reseller-content')
 
     <div class="dashboard-header">
-        <h1 class="dash-page-title">
-            <i class="fas fa-plus-circle card-header-icon me-2"></i>{{ __tr('New Support Ticket') }}
-        </h1>
-        <p class="dash-page-subtitle">{{ __tr('Describe your issue and our team will respond as soon as possible.') }}</p>
+        <div>
+            <div class="nt-breadcrumb">
+                <a href="{{ route('reseller.tickets.index') }}" class="nt-breadcrumb-link">
+                    <i class="fas fa-headset"></i> {{ __tr('Support') }}
+                </a>
+                <i class="fas fa-chevron-right nt-breadcrumb-sep"></i>
+                <span class="nt-breadcrumb-current">{{ __tr('New Ticket') }}</span>
+            </div>
+            <h1 class="dash-page-title">{{ __tr('Open a Support Ticket') }}</h1>
+            <p class="dash-page-subtitle">{{ __tr('Our team typically responds within a few hours.') }}</p>
+        </div>
+        <a href="{{ route('reseller.tickets.index') }}" class="action-btn secondary">
+            <i class="fas fa-arrow-left"></i> {{ __tr('Back to Tickets') }}
+        </a>
     </div>
 
-    <div class="ticket-form-wrap">
+    <div class="new-ticket-layout">
+
+        {{-- Main Form --}}
         <div class="dashboard-card">
-            <div class="card-header">
-                <h3 class="card-title">{{ __tr('Ticket Details') }}</h3>
-                <a href="{{ route('reseller.tickets.index') }}" class="ticket-form-back-link">
-                    <i class="fas fa-arrow-left"></i> {{ __tr('Back to tickets') }}
-                </a>
-            </div>
-            <div class="ticket-form-body">
 
-                @if ($errors->any())
-                    <div class="alert-error-dark">
-                        <ul class="mb-0 ps-3">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+            @if ($errors->any())
+                <div class="nt-error-bar">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <ul class="mb-0 ps-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                <form action="{{ route('reseller.tickets.store') }}" method="POST">
-                    @csrf
+            <form action="{{ route('reseller.tickets.store') }}" method="POST" class="nt-form">
+                @csrf
 
-                    <div class="ticket-form-mb">
-                        <label class="ticket-field-label">
-                            {{ __tr('Subject') }} <span class="ticket-required-star">*</span>
+                {{-- Subject --}}
+                <div class="nt-field">
+                    <label class="nt-label">
+                        <i class="fas fa-pen-to-square nt-label-icon"></i>
+                        {{ __tr('Subject') }} <span class="nt-req">*</span>
+                    </label>
+                    <input type="text" name="subject" value="{{ old('subject') }}" required maxlength="255"
+                        class="nt-input" placeholder="{{ __tr('Brief description of your issue') }}">
+                </div>
+
+                {{-- Priority + Department --}}
+                <div class="nt-row-two">
+                    <div class="nt-field">
+                        <label class="nt-label">
+                            <i class="fas fa-flag nt-label-icon"></i>
+                            {{ __tr('Priority') }} <span class="nt-req">*</span>
                         </label>
-                        <input type="text" name="subject" value="{{ old('subject') }}" required maxlength="255"
-                            class="form-control form-control-dark"
-                            placeholder="{{ __tr('Brief description of your issue') }}">
+                        <div class="nt-priority-group">
+                            @foreach ([
+            'low' => ['label' => __tr('Low'), 'icon' => 'fa-circle-minus', 'cls' => 'nt-p-low'],
+            'normal' => ['label' => __tr('Normal'), 'icon' => 'fa-circle', 'cls' => 'nt-p-normal'],
+            'high' => ['label' => __tr('High'), 'icon' => 'fa-circle-up', 'cls' => 'nt-p-high'],
+            'urgent' => ['label' => __tr('Urgent'), 'icon' => 'fa-circle-exclamation', 'cls' => 'nt-p-urgent'],
+        ] as $val => $p)
+                                <label
+                                    class="nt-priority-chip {{ $p['cls'] }} {{ old('priority', 'normal') === $val ? 'is-active' : '' }}">
+                                    <input type="radio" name="priority" value="{{ $val }}"
+                                        {{ old('priority', 'normal') === $val ? 'checked' : '' }}>
+                                    <i class="fas {{ $p['icon'] }}"></i> {{ $p['label'] }}
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <div class="ticket-form-grid">
-                        <div>
-                            <label class="ticket-field-label">
-                                {{ __tr('Priority') }} <span class="ticket-required-star">*</span>
-                            </label>
-                            <select name="priority" required class="form-control form-control-dark">
-                                <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>
-                                    {{ __tr('Low') }}</option>
-                                <option value="normal" {{ old('priority', 'normal') === 'normal' ? 'selected' : '' }}>
-                                    {{ __tr('Normal') }}</option>
-                                <option value="high" {{ old('priority') === 'high' ? 'selected' : '' }}>
-                                    {{ __tr('High') }}</option>
-                                <option value="urgent" {{ old('priority') === 'urgent' ? 'selected' : '' }}>
-                                    {{ __tr('Urgent') }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="ticket-field-label">
-                                {{ __tr('Department') }}
-                            </label>
-                            <select name="department" class="form-control form-control-dark">
-                                <option value="general" {{ old('department', 'general') === 'general' ? 'selected' : '' }}>
+                    <div class="nt-field">
+                        <label class="nt-label">
+                            <i class="fas fa-building nt-label-icon"></i>
+                            {{ __tr('Department') }}
+                        </label>
+                        <div class="nt-select-wrap">
+                            <select name="department" class="nt-select">
+                                <option value="general"
+                                    {{ old('department', 'general') === 'general' ? 'selected' : '' }}>
                                     {{ __tr('General') }}</option>
                                 <option value="billing" {{ old('department') === 'billing' ? 'selected' : '' }}>
                                     {{ __tr('Billing') }}</option>
@@ -73,29 +91,81 @@
                                 <option value="sales" {{ old('department') === 'sales' ? 'selected' : '' }}>
                                     {{ __tr('Sales') }}</option>
                             </select>
+                            <i class="fas fa-chevron-down nt-select-arrow"></i>
                         </div>
                     </div>
+                </div>
 
-                    <div class="ticket-form-mb-lg">
-                        <label class="ticket-field-label">
-                            {{ __tr('Message') }} <span class="ticket-required-star">*</span>
-                        </label>
-                        <textarea name="message" rows="8" required minlength="10" class="form-control form-control-dark textarea-resize-v"
-                            placeholder="{{ __tr('Please describe your issue in detail...') }}">{{ old('message') }}</textarea>
-                    </div>
+                {{-- Message --}}
+                <div class="nt-field">
+                    <label class="nt-label">
+                        <i class="fas fa-message nt-label-icon"></i>
+                        {{ __tr('Message') }} <span class="nt-req">*</span>
+                    </label>
+                    <textarea name="message" rows="8" required minlength="10" class="nt-textarea"
+                        placeholder="{{ __tr('Please describe your issue in detail. Include any error messages, steps to reproduce, or relevant account information.') }}">{{ old('message') }}</textarea>
+                    <p class="nt-hint"><i class="fas fa-circle-info"></i> {{ __tr('Minimum 10 characters.') }}</p>
+                </div>
 
-                    <div class="ticket-submit-row">
-                        <button type="submit" class="cmn-btn cmn-btn-green">
-                            <i class="fas fa-paper-plane"></i> {{ __tr('Submit Ticket') }}
-                        </button>
-                        <a href="{{ route('reseller.tickets.index') }}" class="ticket-cancel-btn">
-                            {{ __tr('Cancel') }}
-                        </a>
-                    </div>
-                </form>
+                {{-- Actions --}}
+                <div class="nt-actions">
+                    <button type="submit" class="nt-submit-btn">
+                        <i class="fas fa-paper-plane"></i> {{ __tr('Submit Ticket') }}
+                    </button>
+                    <a href="{{ route('reseller.tickets.index') }}" class="nt-cancel-btn">
+                        {{ __tr('Cancel') }}
+                    </a>
+                </div>
 
-            </div>
+            </form>
         </div>
+
+        {{-- Help Sidebar --}}
+        <aside class="nt-sidebar">
+
+            <div class="dashboard-card nt-help-card">
+                <div class="nt-help-icon-wrap">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h4 class="nt-help-title">{{ __tr('How can we help?') }}</h4>
+                <p class="nt-help-desc">{{ __tr('Our support team is here to assist with any issues you encounter.') }}</p>
+                <ul class="nt-help-list">
+                    <li><i class="fas fa-check"></i> {{ __tr('Account & billing questions') }}</li>
+                    <li><i class="fas fa-check"></i> {{ __tr('Technical issues & bugs') }}</li>
+                    <li><i class="fas fa-check"></i> {{ __tr('Feature questions') }}</li>
+                    <li><i class="fas fa-check"></i> {{ __tr('API & integration help') }}</li>
+                </ul>
+                <div class="nt-response-badge">
+                    <i class="fas fa-clock"></i> {{ __tr('Avg. response: a few hours') }}
+                </div>
+            </div>
+
+            <div class="dashboard-card nt-tips-card">
+                <h4 class="nt-tips-title">
+                    <i class="fas fa-lightbulb"></i> {{ __tr('Tips for faster support') }}
+                </h4>
+                <ul class="nt-tips-list">
+                    <li>{{ __tr('Include exact error messages') }}</li>
+                    <li>{{ __tr('Describe steps to reproduce the issue') }}</li>
+                    <li>{{ __tr('Mention which feature is affected') }}</li>
+                    <li>{{ __tr('Select the correct priority level') }}</li>
+                </ul>
+            </div>
+
+        </aside>
+
     </div>
 
+@endsection
+@section('js')
+    <script>
+        document.querySelectorAll('.nt-priority-chip input[type="radio"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.nt-priority-chip').forEach(function(chip) {
+                    chip.classList.remove('is-active');
+                });
+                this.closest('.nt-priority-chip').classList.add('is-active');
+            });
+        });
+    </script>
 @endsection
