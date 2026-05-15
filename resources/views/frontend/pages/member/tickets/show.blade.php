@@ -64,8 +64,9 @@
                 <form action="{{ route('member.tickets.reply', $ticket->ticket_number) }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <textarea name="message" rows="5" class="form-control form-control-dark @error('message') is-invalid @enderror"
-                            placeholder="{{ __tr('Type your reply...') }}" style="resize:vertical;">{{ old('message') }}</textarea>
+                        <textarea name="message" rows="5"
+                            class="form-control form-control-dark textarea-resize-v @error('message') is-invalid @enderror"
+                            placeholder="{{ __tr('Type your reply...') }}">{{ old('message') }}</textarea>
                         @error('message')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

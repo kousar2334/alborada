@@ -111,7 +111,7 @@
                     {{ __tr('Message') }} <span class="required-star">*</span>
                 </label>
                 <textarea name="message" rows="7" required
-                    class="form-control form-control-dark @error('message') is-invalid @enderror" style="resize:vertical;"
+                    class="form-control form-control-dark textarea-resize-v @error('message') is-invalid @enderror"
                     placeholder="{{ $prefill['is_buffering'] ?? false
                         ? __tr('Describe the buffering: when it started, how often, which channels, what you have tried...')
                         : __tr('Describe your issue in detail...') }}">{{ old('message') }}</textarea>

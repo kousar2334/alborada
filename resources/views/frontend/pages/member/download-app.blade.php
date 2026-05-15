@@ -87,12 +87,10 @@
                     <div class="device-panel-grid">
                         @foreach ($downloaderCodes[$dtype] as $code)
                             <div class="dashboard-card code-card">
-                                <div class="code-card-header"
-                                    style="background:rgba({{ $dtype === 'firestick' ? '255,153,0' : ($dtype === 'android' ? '61,220,132' : '204,0,0') }},.08);">
-                                    <div class="code-card-icon-wrap"
-                                        style="background:rgba({{ $dtype === 'firestick' ? '255,153,0' : ($dtype === 'android' ? '61,220,132' : '204,0,0') }},.15);">
-                                        <i class="fas {{ $deviceIcons[$dtype] ?? 'fa-mobile-screen' }}"
-                                            style="color:{{ $deviceColors[$dtype] ?? '#cc0000' }};font-size:1.1rem;"></i>
+                                <div class="code-card-header code-card-header-{{ $dtype }}">
+                                    <div class="code-card-icon-wrap code-card-icon-{{ $dtype }}">
+                                        <i
+                                            class="fas {{ $deviceIcons[$dtype] ?? 'fa-mobile-screen' }} device-icon-{{ $dtype }}"></i>
                                     </div>
                                     <div>
                                         <div class="code-card-label">{{ $code->label }}</div>
@@ -154,9 +152,4 @@
             if (tab) tab.classList.add('active');
         }
     </script>
-    <style>
-        .hidden {
-            display: none !important;
-        }
-    </style>
 @endsection

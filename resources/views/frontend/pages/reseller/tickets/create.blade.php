@@ -5,26 +5,25 @@
 @section('reseller-content')
 
     <div class="dashboard-header">
-        <h1 class="dash-page-title"><i class="fas fa-plus-circle"
-                style="color:#00d46a;margin-right:10px;"></i>{{ __tr('New Support Ticket') }}</h1>
+        <h1 class="dash-page-title">
+            <i class="fas fa-plus-circle card-header-icon me-2"></i>{{ __tr('New Support Ticket') }}
+        </h1>
         <p class="dash-page-subtitle">{{ __tr('Describe your issue and our team will respond as soon as possible.') }}</p>
     </div>
 
-    <div style="max-width:720px;">
+    <div class="ticket-form-wrap">
         <div class="dashboard-card">
             <div class="card-header">
                 <h3 class="card-title">{{ __tr('Ticket Details') }}</h3>
-                <a href="{{ route('reseller.tickets.index') }}"
-                    style="font-size:.8rem;color:var(--muted);text-decoration:none;">
+                <a href="{{ route('reseller.tickets.index') }}" class="ticket-form-back-link">
                     <i class="fas fa-arrow-left"></i> {{ __tr('Back to tickets') }}
                 </a>
             </div>
-            <div style="padding:20px;">
+            <div class="ticket-form-body">
 
                 @if ($errors->any())
-                    <div
-                        style="background:rgba(204,0,0,.12);border:1px solid rgba(204,0,0,.3);color:#ff6b6b;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:.85rem;">
-                        <ul style="margin:0;padding-left:18px;">
+                    <div class="alert-error-dark">
+                        <ul class="mb-0 ps-3">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -35,25 +34,21 @@
                 <form action="{{ route('reseller.tickets.store') }}" method="POST">
                     @csrf
 
-                    <div style="margin-bottom:16px;">
-                        <label
-                            style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:6px;">
-                            {{ __tr('Subject') }} <span style="color:#cc0000;">*</span>
+                    <div class="ticket-form-mb">
+                        <label class="ticket-field-label">
+                            {{ __tr('Subject') }} <span class="ticket-required-star">*</span>
                         </label>
                         <input type="text" name="subject" value="{{ old('subject') }}" required maxlength="255"
-                            class="form-control"
-                            style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;"
+                            class="form-control form-control-dark"
                             placeholder="{{ __tr('Brief description of your issue') }}">
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                    <div class="ticket-form-grid">
                         <div>
-                            <label
-                                style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:6px;">
-                                {{ __tr('Priority') }} <span style="color:#cc0000;">*</span>
+                            <label class="ticket-field-label">
+                                {{ __tr('Priority') }} <span class="ticket-required-star">*</span>
                             </label>
-                            <select name="priority" required class="form-control"
-                                style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;">
+                            <select name="priority" required class="form-control form-control-dark">
                                 <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>
                                     {{ __tr('Low') }}</option>
                                 <option value="normal" {{ old('priority', 'normal') === 'normal' ? 'selected' : '' }}>
@@ -65,12 +60,10 @@
                             </select>
                         </div>
                         <div>
-                            <label
-                                style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:6px;">
+                            <label class="ticket-field-label">
                                 {{ __tr('Department') }}
                             </label>
-                            <select name="department" class="form-control"
-                                style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;">
+                            <select name="department" class="form-control form-control-dark">
                                 <option value="general" {{ old('department', 'general') === 'general' ? 'selected' : '' }}>
                                     {{ __tr('General') }}</option>
                                 <option value="billing" {{ old('department') === 'billing' ? 'selected' : '' }}>
@@ -83,23 +76,19 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom:24px;">
-                        <label
-                            style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:6px;">
-                            {{ __tr('Message') }} <span style="color:#cc0000;">*</span>
+                    <div class="ticket-form-mb-lg">
+                        <label class="ticket-field-label">
+                            {{ __tr('Message') }} <span class="ticket-required-star">*</span>
                         </label>
-                        <textarea name="message" rows="8" required minlength="10" class="form-control"
-                            style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;resize:vertical;"
+                        <textarea name="message" rows="8" required minlength="10" class="form-control form-control-dark textarea-resize-v"
                             placeholder="{{ __tr('Please describe your issue in detail...') }}">{{ old('message') }}</textarea>
                     </div>
 
-                    <div style="display:flex;gap:12px;">
-                        <button type="submit" class="cmn-btn"
-                            style="background:#00d46a;color:#000;font-weight:700;padding:12px 28px;">
+                    <div class="ticket-submit-row">
+                        <button type="submit" class="cmn-btn cmn-btn-green">
                             <i class="fas fa-paper-plane"></i> {{ __tr('Submit Ticket') }}
                         </button>
-                        <a href="{{ route('reseller.tickets.index') }}"
-                            style="padding:12px 24px;border-radius:6px;border:1px solid rgba(255,255,255,.1);color:var(--muted);text-decoration:none;font-size:.88rem;display:inline-flex;align-items:center;">
+                        <a href="{{ route('reseller.tickets.index') }}" class="ticket-cancel-btn">
                             {{ __tr('Cancel') }}
                         </a>
                     </div>

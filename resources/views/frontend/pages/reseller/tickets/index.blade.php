@@ -4,113 +4,93 @@
 @endsection
 @section('reseller-content')
     <div class="dashboard-header">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-            <div>
-                <h1 class="dash-page-title"><i class="fa-solid fa-headset"
-                        style="color:#00d46a;margin-right:10px;"></i>{{ __tr('Support Tickets') }}</h1>
-                <p class="dash-page-subtitle">{{ __tr('Track and manage your support requests.') }}</p>
-            </div>
-            <a href="{{ route('reseller.tickets.create') }}" class="cmn-btn"
-                style="background:#00d46a;color:#000;font-weight:700;padding:10px 20px;white-space:nowrap;">
-                <i class="fas fa-plus"></i> {{ __tr('New Ticket') }}
-            </a>
+        <div>
+            <h1 class="dash-page-title">
+                <i class="fa-solid fa-headset card-header-icon me-2"></i>{{ __tr('Support Tickets') }}
+            </h1>
+            <p class="dash-page-subtitle">{{ __tr('Track and manage your support requests.') }}</p>
         </div>
+        <a href="{{ route('reseller.tickets.create') }}" class="action-btn primary">
+            <i class="fas fa-plus"></i> {{ __tr('New Ticket') }}
+        </a>
     </div>
 
     @if (session('success'))
-        <div
-            style="background:rgba(0,212,106,.12);border:1px solid rgba(0,212,106,.3);color:#00d46a;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:.88rem;">
+        <div class="alert-success-dark">
             <i class="fas fa-check-circle"></i> {{ session('success') }}
         </div>
     @endif
 
     <div class="dashboard-card p-0">
-        <div class="card-header" style="padding:16px 20px;">
+        <div class="card-header">
             <h3 class="card-title">{{ __tr('My Tickets') }}</h3>
-            <span style="font-size:.75rem;color:var(--muted);">{{ $tickets->total() }} {{ __tr('total') }}</span>
+            <span class="ticket-total-count">{{ $tickets->total() }} {{ __tr('total') }}</span>
         </div>
-        <div style="overflow-x:auto;">
-            <table style="width:100%;border-collapse:collapse;">
+        <div class="tickets-table-wrap">
+            <table class="tickets-table">
                 <thead>
-                    <tr style="border-bottom:1px solid rgba(255,255,255,.07);">
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;">
-                            {{ __tr('Ticket #') }}</th>
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;">
-                            {{ __tr('Subject') }}</th>
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;">
-                            {{ __tr('Priority') }}</th>
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;">
-                            {{ __tr('Status') }}</th>
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;">
-                            {{ __tr('Last Update') }}</th>
-                        <th
-                            style="padding:10px 16px;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:center;">
-                            {{ __tr('Action') }}</th>
+                    <tr>
+                        <th>{{ __tr('Ticket #') }}</th>
+                        <th>{{ __tr('Subject') }}</th>
+                        <th>{{ __tr('Priority') }}</th>
+                        <th>{{ __tr('Status') }}</th>
+                        <th>{{ __tr('Last Update') }}</th>
+                        <th class="text-center">{{ __tr('Action') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($tickets as $ticket)
                         @php
-                            $priorityColor = match ($ticket->priority) {
-                                'urgent' => '#cc0000',
-                                'high' => '#e67e00',
-                                'normal' => '#0088cc',
-                                default => '#888',
+                            $priorityClass = match ($ticket->priority) {
+                                'urgent' => 'ticket-priority-urgent',
+                                'high' => 'ticket-priority-high',
+                                'normal' => 'ticket-priority-normal',
+                                default => 'ticket-priority-low',
                             };
-                            $statusColor = match ($ticket->status) {
-                                1 => '#0088cc',
-                                2 => '#e67e00',
-                                3 => '#555',
-                                4 => '#00bcd4',
-                                default => '#888',
-                            };
+                            $statusClass = 'ticket-status-' . $ticket->status;
                         @endphp
-                        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
-                            <td style="padding:14px 16px;">
-                                <code style="color:#00d46a;font-size:.82rem;">{{ $ticket->ticket_number }}</code>
+                        <tr>
+                            <td>
+                                <code class="ticket-number-code">{{ $ticket->ticket_number }}</code>
                             </td>
-                            <td style="padding:14px 16px;font-size:.88rem;max-width:260px;">
-                                <span
-                                    style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">{{ $ticket->subject }}</span>
+                            <td>
+                                <span class="ticket-subject-wrap">{{ $ticket->subject }}</span>
                                 @if ($ticket->latestReply && !$ticket->latestReply->is_staff_reply === false)
-                                    <span style="font-size:.72rem;color:#00d46a;margin-top:3px;display:block;"><i
-                                            class="fas fa-reply"></i> {{ __tr('Staff replied') }}</span>
+                                    <span class="ticket-staff-note">
+                                        <i class="fas fa-reply"></i> {{ __tr('Staff replied') }}
+                                    </span>
                                 @endif
                             </td>
-                            <td style="padding:14px 16px;">
-                                <span
-                                    style="background:{{ $priorityColor }}22;color:{{ $priorityColor }};padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;">
+                            <td>
+                                <span class="ticket-priority {{ $priorityClass }}">
                                     {{ ucfirst($ticket->priority) }}
                                 </span>
                             </td>
-                            <td style="padding:14px 16px;">
-                                <span
-                                    style="background:{{ $statusColor }}22;color:{{ $statusColor }};padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;">
+                            <td>
+                                <span class="ticket-status {{ $statusClass }}">
                                     {{ $ticket->statusLabel() }}
                                 </span>
                             </td>
-                            <td style="padding:14px 16px;font-size:.82rem;color:var(--muted);">
-                                {{ $ticket->updated_at->diffForHumans() }}</td>
-                            <td style="padding:14px 16px;text-align:center;">
+                            <td class="ticket-time">
+                                {{ $ticket->updated_at->diffForHumans() }}
+                            </td>
+                            <td class="ticket-action-cell">
                                 <a href="{{ route('reseller.tickets.show', $ticket->ticket_number) }}"
-                                    style="background:rgba(255,255,255,.07);color:#fff;padding:6px 14px;border-radius:6px;font-size:.78rem;text-decoration:none;font-weight:600;">
+                                    class="ticket-view-btn">
                                     {{ __tr('View') }}
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding:60px 20px;text-align:center;color:var(--muted);">
-                                <i class="fas fa-ticket-alt"
-                                    style="font-size:2.5rem;opacity:.2;display:block;margin-bottom:12px;"></i>
-                                <p style="margin:0;font-size:.9rem;">{{ __tr('No tickets yet.') }}</p>
-                                <a href="{{ route('reseller.tickets.create') }}"
-                                    style="color:#00d46a;font-size:.82rem;">{{ __tr('Open your first ticket') }}</a>
+                            <td colspan="6">
+                                <div class="tickets-empty">
+                                    <i class="fas fa-ticket-alt tickets-empty-icon"></i>
+                                    <p class="tickets-empty-text">{{ __tr('No tickets yet.') }}</p>
+                                    <a href="{{ route('reseller.tickets.create') }}" class="tickets-empty-link">
+                                        {{ __tr('Open your first ticket') }}
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
@@ -118,7 +98,7 @@
             </table>
         </div>
         @if ($tickets->hasPages())
-            <div style="padding:16px;border-top:1px solid rgba(255,255,255,.07);">
+            <div class="tickets-pagination">
                 {{ $tickets->links() }}
             </div>
         @endif

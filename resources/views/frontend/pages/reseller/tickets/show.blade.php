@@ -4,105 +4,77 @@
 @endsection
 @section('reseller-content')
     <div class="dashboard-header">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-            <div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
-                    <a href="{{ route('reseller.tickets.index') }}"
-                        style="color:var(--muted);font-size:.82rem;text-decoration:none;">
-                        <i class="fas fa-arrow-left"></i> {{ __tr('All Tickets') }}
-                    </a>
-                </div>
-                <h1 class="dash-page-title" style="font-size:1.3rem;">{{ $ticket->subject }}</h1>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px;">
-                    <code style="color:#00d46a;font-size:.82rem;">{{ $ticket->ticket_number }}</code>
-                    @php
-                        $statusColor = match ($ticket->status) {
-                            1 => '#0088cc',
-                            2 => '#e67e00',
-                            3 => '#555',
-                            4 => '#00bcd4',
-                            default => '#888',
-                        };
-                        $priorityColor = match ($ticket->priority) {
-                            'urgent' => '#cc0000',
-                            'high' => '#e67e00',
-                            'normal' => '#0088cc',
-                            default => '#888',
-                        };
-                    @endphp
-                    <span
-                        style="background:{{ $statusColor }}22;color:{{ $statusColor }};padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;">
-                        {{ $ticket->statusLabel() }}
-                    </span>
-                    <span
-                        style="background:{{ $priorityColor }}22;color:{{ $priorityColor }};padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:700;">
-                        {{ ucfirst($ticket->priority) }}
-                    </span>
-                    <span
-                        style="font-size:.78rem;color:var(--muted);">{{ ucfirst($ticket->department ?: 'General') }}</span>
-                </div>
+        <div>
+            <a href="{{ route('reseller.tickets.index') }}" class="ticket-show-back">
+                <i class="fas fa-arrow-left"></i> {{ __tr('All Tickets') }}
+            </a>
+            <h1 class="dash-page-title ticket-show-title">{{ $ticket->subject }}</h1>
+            <div class="ticket-show-meta-row">
+                <code class="ticket-show-ticket-num">{{ $ticket->ticket_number }}</code>
+                @php
+                    $statusClass = 'ticket-status-' . $ticket->status;
+                    $priorityClass = match ($ticket->priority) {
+                        'urgent' => 'ticket-priority-urgent',
+                        'high' => 'ticket-priority-high',
+                        'normal' => 'ticket-priority-normal',
+                        default => 'ticket-priority-low',
+                    };
+                @endphp
+                <span class="ticket-status {{ $statusClass }}">{{ $ticket->statusLabel() }}</span>
+                <span class="ticket-priority {{ $priorityClass }}">{{ ucfirst($ticket->priority) }}</span>
+                <span class="ticket-show-dept">{{ ucfirst($ticket->department ?: 'General') }}</span>
             </div>
-
-            @if ($ticket->status !== \App\Models\SupportTicket::STATUS_CLOSED)
-                <form action="{{ route('reseller.tickets.close', $ticket->ticket_number) }}" method="POST">
-                    @csrf
-                    <button type="submit"
-                        style="padding:8px 18px;border-radius:6px;border:1px solid rgba(204,0,0,.4);background:rgba(204,0,0,.1);color:#ff6b6b;font-size:.82rem;font-weight:600;cursor:pointer;"
-                        onclick="return confirm('{{ __tr('Close this ticket?') }}')">
-                        <i class="fas fa-times-circle"></i> {{ __tr('Close Ticket') }}
-                    </button>
-                </form>
-            @endif
         </div>
+
+        @if ($ticket->status !== \App\Models\SupportTicket::STATUS_CLOSED)
+            <form action="{{ route('reseller.tickets.close', $ticket->ticket_number) }}" method="POST">
+                @csrf
+                <button type="submit" class="ticket-close-btn"
+                    onclick="return confirm('{{ __tr('Close this ticket?') }}')">
+                    <i class="fas fa-times-circle"></i> {{ __tr('Close Ticket') }}
+                </button>
+            </form>
+        @endif
     </div>
 
     @if (session('success'))
-        <div
-            style="background:rgba(0,212,106,.12);border:1px solid rgba(0,212,106,.3);color:#00d46a;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:.88rem;">
+        <div class="alert-success-dark">
             <i class="fas fa-check-circle"></i> {{ session('success') }}
         </div>
     @endif
 
     {{-- Conversation Thread --}}
-    <div class="dashboard-card p-0" style="margin-bottom:20px;">
-        <div class="card-header" style="padding:14px 20px;">
+    <div class="dashboard-card p-0 mb-4">
+        <div class="card-header">
             <h3 class="card-title">{{ __tr('Conversation') }}</h3>
-            <span style="font-size:.75rem;color:var(--muted);">{{ $ticket->replies->count() }}
-                {{ __tr('messages') }}</span>
+            <span class="ticket-thread-message-count">{{ $ticket->replies->count() }} {{ __tr('messages') }}</span>
         </div>
 
-        <div style="padding:0;">
+        <div class="ticket-thread-wrap">
             @foreach ($ticket->replies as $reply)
                 @php $isStaff = $reply->is_staff_reply; @endphp
-                <div
-                    style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.05);background:{{ $isStaff ? 'rgba(0,212,106,.04)' : 'transparent' }};">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                        <div style="display:flex;align-items:center;gap:10px;">
-                            <div
-                                style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;
-                                        background:{{ $isStaff ? 'rgba(0,212,106,.2)' : 'rgba(255,255,255,.08)' }};
-                                        color:{{ $isStaff ? '#00d46a' : '#fff' }};">
+                <div class="ticket-reply-item {{ $isStaff ? 'staff' : '' }}">
+                    <div class="ticket-reply-meta">
+                        <div class="ticket-reply-author-wrap">
+                            <div class="ticket-reply-avatar {{ $isStaff ? 'staff' : 'user' }}">
                                 @if ($isStaff)
-                                    <i class="fas fa-headset" style="font-size:.75rem;"></i>
+                                    <i class="fas fa-headset ticket-reply-role"></i>
                                 @else
                                     {{ strtoupper(substr($reply->user->name ?? 'U', 0, 1)) }}
                                 @endif
                             </div>
                             <div>
-                                <div style="font-size:.85rem;font-weight:600;color:{{ $isStaff ? '#00d46a' : '#fff' }};">
+                                <div class="ticket-reply-name {{ $isStaff ? 'staff' : 'user' }}">
                                     {{ $isStaff ? __tr('Support Team') : $reply->user->name ?? __tr('You') }}
                                 </div>
                                 @if ($isStaff)
-                                    <div style="font-size:.72rem;color:var(--muted);">{{ __tr('Staff') }}</div>
+                                    <div class="ticket-reply-role">{{ __tr('Staff') }}</div>
                                 @endif
                             </div>
                         </div>
-                        <span
-                            style="font-size:.75rem;color:var(--muted);">{{ $reply->created_at->format('M d, Y · H:i') }}</span>
+                        <span class="ticket-reply-time">{{ $reply->created_at->format('M d, Y · H:i') }}</span>
                     </div>
-                    <div
-                        style="font-size:.88rem;line-height:1.7;color:rgba(255,255,255,.85);white-space:pre-wrap;padding-left:44px;">
-                        {!! nl2br(e($reply->message)) !!}</div>
+                    <div class="ticket-reply-text">{!! nl2br(e($reply->message)) !!}</div>
                 </div>
             @endforeach
         </div>
@@ -114,39 +86,31 @@
             <div class="card-header">
                 <h3 class="card-title">{{ __tr('Add Reply') }}</h3>
             </div>
-            <div style="padding:20px;">
+            <div class="ticket-reply-form-body">
                 <form action="{{ route('reseller.tickets.reply', $ticket->ticket_number) }}" method="POST">
                     @csrf
                     @error('message')
-                        <div
-                            style="background:rgba(204,0,0,.12);color:#ff6b6b;padding:10px 14px;border-radius:6px;margin-bottom:12px;font-size:.84rem;">
-                            {{ $message }}
-                        </div>
+                        <div class="ticket-reply-form-error">{{ $message }}</div>
                     @enderror
-                    <textarea name="message" rows="5" required minlength="5" class="form-control"
-                        style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;resize:vertical;margin-bottom:14px;"
+                    <textarea name="message" rows="5" required minlength="5"
+                        class="form-control form-control-dark textarea-resize-v ticket-reply-textarea"
                         placeholder="{{ __tr('Type your message...') }}"></textarea>
-                    <button type="submit" class="cmn-btn"
-                        style="background:#00d46a;color:#000;font-weight:700;padding:10px 24px;">
+                    <button type="submit" class="cmn-btn cmn-btn-green">
                         <i class="fas fa-paper-plane"></i> {{ __tr('Send Reply') }}
                     </button>
                 </form>
             </div>
         </div>
     @else
-        <div
-            style="text-align:center;padding:24px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid rgba(255,255,255,.06);">
-            <i class="fas fa-lock" style="font-size:1.5rem;opacity:.3;display:block;margin-bottom:8px;"></i>
-            <p style="color:var(--muted);font-size:.88rem;margin:0;">
-                {{ __tr('This ticket is closed. Reply to reopen it.') }}</p>
-            <form action="{{ route('reseller.tickets.reply', $ticket->ticket_number) }}" method="POST"
-                style="margin-top:14px;">
+        <div class="ticket-closed-wrap">
+            <i class="fas fa-lock ticket-closed-icon"></i>
+            <p class="ticket-closed-text">{{ __tr('This ticket is closed. Reply to reopen it.') }}</p>
+            <form action="{{ route('reseller.tickets.reply', $ticket->ticket_number) }}" method="POST" class="mt-3">
                 @csrf
-                <textarea name="message" rows="4" required minlength="5" class="form-control"
-                    style="background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;border-radius:6px;resize:vertical;margin-bottom:12px;"
+                <textarea name="message" rows="4" required minlength="5"
+                    class="form-control form-control-dark textarea-resize-v ticket-closed-textarea"
                     placeholder="{{ __tr('Type a reply to reopen this ticket...') }}"></textarea>
-                <button type="submit" class="cmn-btn"
-                    style="background:rgba(0,188,212,.15);color:#00bcd4;border:1px solid rgba(0,188,212,.3);font-weight:700;padding:10px 24px;">
+                <button type="submit" class="cmn-btn ticket-reopen-btn">
                     <i class="fas fa-redo"></i> {{ __tr('Reply & Reopen') }}
                 </button>
             </form>
