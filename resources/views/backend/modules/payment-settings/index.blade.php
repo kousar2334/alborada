@@ -335,6 +335,10 @@
             color: #4f46e5;
             text-decoration: none;
         }
+
+        .ps-currency-input {
+            max-width: 140px;
+        }
     </style>
 @endsection
 @section('page-content')
@@ -456,9 +460,10 @@
                                     <label class="ps-field-label" for="stripe_currency">
                                         {{ __tr('Currency') }}
                                     </label>
-                                    <input type="text" id="stripe_currency" name="stripe_currency" class="form-control"
-                                        style="max-width:140px;" value="{{ get_setting('stripe_currency', 'usd') }}"
-                                        placeholder="usd" maxlength="10">
+                                    <input type="text" id="stripe_currency" name="stripe_currency"
+                                        class="form-control ps-currency-input"
+                                        value="{{ get_setting('stripe_currency', 'usd') }}" placeholder="usd"
+                                        maxlength="10">
                                     <p class="ps-field-hint">{{ __tr('ISO currency code in lowercase — e.g.') }}
                                         <code>usd</code>, <code>eur</code>, <code>gbp</code>.
                                     </p>

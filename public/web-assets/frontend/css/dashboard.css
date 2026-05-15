@@ -1219,106 +1219,298 @@ button.cmn-btn-green:hover {
     font-size: 1.1rem;
 }
 
-/* ── Subscription confirm (moved from inline <style>) ── */
+.sc-hidden {
+    display: none !important;
+}
+
+/* ── Subscription confirm ── */
 .sc-layout {
     display: flex;
     flex-wrap: wrap;
-    gap: 0;
+    gap: 24px;
+    align-items: flex-start;
 }
 
 .sc-sidebar {
-    flex: 0 0 340px;
-    max-width: 340px;
-    padding-right: 24px;
-    margin-bottom: 24px;
+    flex: 0 0 320px;
+    max-width: 320px;
 }
 
 .sc-main {
     flex: 1;
     min-width: 280px;
-    margin-bottom: 24px;
+}
+
+/* Order summary card */
+.sc-order-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.sc-order-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.sc-order-badge {
+    width: 36px;
+    height: 36px;
+    background: #f0fdf4;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #00d46a;
+    font-size: 1rem;
+    flex-shrink: 0;
 }
 
 .sc-summary-title {
-    font-size: 1rem;
+    font-size: .95rem;
     font-weight: 700;
-    margin-bottom: 18px;
+    margin: 0;
     color: var(--heading-color);
 }
 
 .sc-summary-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #f1f1f1;
-}
-
-.sc-summary-row:last-child {
-    border-bottom: none;
-    padding: 14px 0 0;
-    margin-top: 4px;
+    align-items: center;
+    padding: 11px 22px;
+    border-bottom: 1px solid #f7f7f7;
 }
 
 .sc-summary-label {
     color: #6b7280;
+    font-size: .875rem;
+}
+
+.sc-summary-value {
+    font-size: .875rem;
+    color: var(--heading-color);
+}
+
+.sc-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 22px;
+    background: #f8fdf9;
 }
 
 .sc-total-label {
-    font-size: 1.05rem;
+    font-size: .95rem;
     font-weight: 700;
     color: var(--heading-color);
 }
 
 .sc-total-value {
-    font-size: 1.3rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: #00d46a;
 }
 
-.sc-payment-card {
-    margin-bottom: 20px;
-}
-
-.sc-payment-card:last-child {
-    margin-bottom: 0;
-}
-
-.sc-method-header {
+.sc-secure-note {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 7px;
+    padding: 12px 22px;
+    font-size: .78rem;
+    color: #9ca3af;
+    border-top: 1px solid #f1f1f1;
 }
 
-.sc-method-icon {
+.sc-secure-icon {
+    color: #00d46a;
+}
+
+/* Payment card */
+.sc-pay-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.sc-pay-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f1f1;
+    flex-wrap: wrap;
+}
+
+.sc-pay-icon {
     width: 44px;
     height: 44px;
-    border-radius: 10px;
+    background: #ede9fe;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #635bff;
+    font-size: 1.3rem;
     flex-shrink: 0;
 }
 
-.sc-method-title {
-    font-size: 1rem;
+.sc-pay-title {
+    font-size: .95rem;
     font-weight: 700;
     margin: 0;
     color: var(--heading-color);
 }
 
-.sc-method-sub {
-    color: #6b7280;
+.sc-pay-sub {
+    font-size: .8rem;
+    color: #9ca3af;
+    margin: 2px 0 0;
 }
 
-.sc-method-desc {
+.sc-card-logos {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.sc-card-logo {
+    font-size: 1.6rem;
+    color: #9ca3af;
+}
+
+.sc-pay-body {
+    padding: 24px;
+}
+
+.sc-field-group {
+    margin-bottom: 20px;
+}
+
+.sc-field-label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.sc-card-element {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: #fff;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.sc-card-element.StripeElement--focus {
+    border-color: #635bff;
+    box-shadow: 0 0 0 3px rgba(99, 91, 255, .12);
+}
+
+.sc-card-element.StripeElement--invalid {
+    border-color: #e53e3e;
+}
+
+.sc-stripe-error {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 18px;
+    font-size: .875rem;
+    color: #c53030;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sc-pay-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #635bff 0%, #0ea5e9 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .18s, box-shadow .18s;
+    box-shadow: 0 4px 14px rgba(99, 91, 255, .3);
+}
+
+.sc-pay-btn:hover:not(:disabled) {
+    opacity: .92;
+    box-shadow: 0 6px 18px rgba(99, 91, 255, .4);
+}
+
+.sc-pay-btn:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+.sc-btn-lock {
+    font-size: .85rem;
+}
+
+.sc-btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Empty / no payment state */
+.sc-empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.sc-empty-icon {
+    width: 64px;
+    height: 64px;
+    background: #fef3c7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #f59e0b;
+    margin: 0 auto 16px;
+}
+
+.sc-empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--heading-color);
+    margin-bottom: 8px;
+}
+
+.sc-empty-text {
     color: #6b7280;
     font-size: .875rem;
-    margin-bottom: 18px;
+    margin: 0;
 }
 
-.sc-btn-full {
-    width: 100%;
+/* Responsive */
+@media (max-width: 768px) {
+    .sc-sidebar {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .sc-card-logos {
+        display: none;
+    }
 }
 
 /* ── Credits page (moved from inline <style> block) ── */
