@@ -27,22 +27,24 @@
 
         {{-- Main content --}}
         <div class="sl-main">
+
+            {{-- Breadcrumb panel --}}
+            <div class="sl-topbar">
+                <button class="sl-menu-btn" onclick="toggleSettingsSidebar()" title="Toggle menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <nav class="sl-breadcrumb" aria-label="breadcrumb">
+                    <a href="{{ route('admin.appearance.site.setting') }}" class="sl-bc-home">Settings</a>
+                    @hasSection('settings-title')
+                        <span class="sl-bc-sep">/</span>
+                        <span class="sl-bc-current">@yield('settings-title')</span>
+                    @endif
+                </nav>
+            </div>
+
+            {{-- Content panel --}}
             <div class="sl-body">
                 <div class="sl-page">
-
-                    {{-- Breadcrumb row — same width as content --}}
-                    <div class="sl-topbar">
-                        <button class="sl-menu-btn" onclick="toggleSettingsSidebar()" title="Toggle menu">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <nav class="sl-breadcrumb" aria-label="breadcrumb">
-                            <a href="{{ route('admin.appearance.site.setting') }}" class="sl-bc-home">Settings</a>
-                            @hasSection('settings-title')
-                                <span class="sl-bc-sep">/</span>
-                                <span class="sl-bc-current">@yield('settings-title')</span>
-                            @endif
-                        </nav>
-                    </div>
 
                     @hasSection('settings-title')
                         <h1 class="sl-page-title">@yield('settings-title')</h1>
@@ -55,6 +57,7 @@
 
                 </div>
             </div>
+
         </div>
     </div>
 @endsection
