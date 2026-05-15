@@ -65,7 +65,6 @@ class ResellerAuthController extends Controller
         $request->validate([
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|max:255|unique:users,email',
-            'phone'        => 'required|string|max:20',
             'company_name' => 'required|string|max:255',
             'password'     => 'required|min:8|confirmed',
         ]);
@@ -74,7 +73,6 @@ class ResellerAuthController extends Controller
             User::create([
                 'name'         => $request->name,
                 'email'        => $request->email,
-                'phone'        => $request->phone,
                 'company_name' => $request->company_name,
                 'type'         => config('settings.user_type.reseller'),
                 'status'       => config('settings.general_status.in_active'),
