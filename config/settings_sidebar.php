@@ -1,18 +1,14 @@
 <?php
 
 /**
- * Settings sidebar navigation configuration.
+ * Settings sidebar navigation — flat list, no section headers.
  *
  * Types:
- *   section  – { type, label }
- *   link     – { type, label, icon, route, active_routes[], permission }
- *   group    – { type, label, icon, active_routes[], permission, children[] }
+ *   link   – { type, label, icon, route, active_routes[], permission }
+ *   group  – { type, label, icon, active_routes[], permission, children[] }
  */
 
 return [
-
-    // ── System ────────────────────────────────────────────────────────────
-    ['type' => 'section', 'label' => 'System'],
 
     [
         'type'          => 'link',
@@ -41,20 +37,14 @@ return [
         'permission'    => 'Manage Social Login',
     ],
 
-    // ── Site Settings ─────────────────────────────────────────────────────
-    ['type' => 'section', 'label' => 'Site Settings'],
-
     [
         'type'          => 'link',
-        'label'         => 'General',
-        'icon'          => 'fas fa-cog',
+        'label'         => 'Site Settings',
+        'icon'          => 'fas fa-globe',
         'route'         => 'admin.appearance.site.setting',
         'active_routes' => ['admin.appearance.site.setting'],
         'permission'    => 'Manage Site Settings',
     ],
-
-    // ── Content ───────────────────────────────────────────────────────────
-    ['type' => 'section', 'label' => 'Content'],
 
     [
         'type'          => 'link',
@@ -74,34 +64,34 @@ return [
         'permission'    => 'Manage Site Settings',
     ],
 
-    // ── Appearance ────────────────────────────────────────────────────────
-    ['type' => 'section', 'label' => 'Appearance'],
+    [
+        'type'          => 'link',
+        'label'         => 'Colors Setup',
+        'icon'          => 'fas fa-palette',
+        'route'         => 'admin.appearance.site.setting.colors',
+        'active_routes' => ['admin.appearance.site.setting.colors'],
+        'permission'    => 'Manage Site Settings',
+    ],
 
     [
-        'type'          => 'group',
-        'label'         => 'Theme',
-        'icon'          => 'fas fa-paint-brush',
-        'active_routes' => [
-            'admin.appearance.site.setting.colors',
-            'admin.appearance.site.setting.custom.css',
-        ],
+        'type'          => 'link',
+        'label'         => 'Custom CSS',
+        'icon'          => 'fas fa-code',
+        'route'         => 'admin.appearance.site.setting.custom.css',
+        'active_routes' => ['admin.appearance.site.setting.custom.css'],
         'permission'    => 'Manage Site Settings',
-        'children'      => [
-            [
-                'label'         => 'Colors Setup',
-                'icon'          => 'fas fa-palette',
-                'route'         => 'admin.appearance.site.setting.colors',
-                'active_routes' => ['admin.appearance.site.setting.colors'],
-                'permission'    => 'Manage Site Settings',
-            ],
-            [
-                'label'         => 'Custom CSS',
-                'icon'          => 'fas fa-code',
-                'route'         => 'admin.appearance.site.setting.custom.css',
-                'active_routes' => ['admin.appearance.site.setting.custom.css'],
-                'permission'    => 'Manage Site Settings',
-            ],
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'Languages',
+        'icon'          => 'fas fa-language',
+        'route'         => 'admin.system.settings.language.list',
+        'active_routes' => [
+            'admin.system.settings.language.list',
+            'admin.system.settings.language.translation',
         ],
+        'permission'    => 'Manage Language',
     ],
 
 ];

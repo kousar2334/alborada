@@ -1,24 +1,13 @@
 @php
     $settingsNav = config('settings_sidebar', []);
 
-    $navIsActive = function (array $item) use (&$navIsActive): bool {
-        $patterns = (array) ($item['active_routes'] ?? ($item['active_route'] ?? []));
-        if (empty($patterns)) {
-            return false;
-        }
-        return request()->routeIs(...$patterns);
+    $navIsActive = function (array $item): bool {
+        $patterns = (array) ($item['active_routes'] ?? []);
+        return !empty($patterns) && request()->routeIs(...$patterns);
     };
 @endphp
 
-{{-- Sidebar heading + mobile close button --}}
-<div class="settings-nav-heading">
-    <span>Settings</span>
-    <button class="settings-sidebar-close" onclick="closeSettingsSidebar()" title="Close menu">
-        <i class="fas fa-times"></i>
-    </button>
-</div>
-
-<nav class="settings-nav-vertical">
+<nav class="sl-nav">
     @foreach ($settingsNav as $item)
         @php
             $permitted = empty($item['permission']) || (auth()->check() && auth()->user()->can($item['permission']));
@@ -28,12 +17,10 @@
             @continue
         @endif
 
-        @if ($item['type'] === 'section')
-            <div class="settings-nav-section">{{ $item['label'] }}</div>
-        @elseif ($item['type'] === 'link')
+        @if ($item['type'] === 'link')
             @php $active = $navIsActive($item); @endphp
-            <a href="{{ route($item['route']) }}" class="settings-nav-link {{ $active ? 'active' : '' }}">
-                <i class="{{ $item['icon'] }}"></i>
+            <a href="{{ route($item['route']) }}" class="sl-nav-item {{ $active ? 'active' : '' }}">
+                <i class="{{ $item['icon'] }} sl-nav-icon"></i>
                 <span>{{ $item['label'] }}</span>
             </a>
         @elseif ($item['type'] === 'group')
@@ -41,15 +28,14 @@
                 $groupPatterns = (array) ($item['active_routes'] ?? []);
                 $groupOpen = !empty($groupPatterns) && request()->routeIs(...$groupPatterns);
             @endphp
-            <button type="button"
-                class="settings-nav-link settings-nav-group-btn {{ $groupOpen ? 'active open' : '' }}"
+            <button type="button" class="sl-nav-item sl-nav-group-btn {{ $groupOpen ? 'active open' : '' }}"
                 onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
-                <i class="{{ $item['icon'] }}"></i>
+                <i class="{{ $item['icon'] }} sl-nav-icon"></i>
                 <span>{{ $item['label'] }}</span>
-                <i class="fas fa-chevron-down settings-nav-chevron"></i>
+                <i class="fas fa-chevron-down sl-nav-chevron"></i>
             </button>
 
-            <div class="settings-nav-submenu {{ $groupOpen ? 'open' : '' }}">
+            <div class="sl-nav-submenu {{ $groupOpen ? 'open' : '' }}">
                 @foreach ($item['children'] as $child)
                     @php
                         $childPermitted =
@@ -59,11 +45,11 @@
                     @endphp
                     @if ($childPermitted)
                         <a href="{{ route($child['route']) }}"
-                            class="settings-nav-link settings-nav-child {{ $childActive ? 'active' : '' }}">
+                            class="sl-nav-item sl-nav-child {{ $childActive ? 'active' : '' }}">
                             @if (!empty($child['icon']))
-                                <i class="{{ $child['icon'] }}"></i>
+                                <i class="{{ $child['icon'] }} sl-nav-icon"></i>
                             @else
-                                <span class="settings-nav-dot"></span>
+                                <span class="sl-nav-dot"></span>
                             @endif
                             <span>{{ $child['label'] }}</span>
                         </a>

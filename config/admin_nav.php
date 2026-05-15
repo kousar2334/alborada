@@ -163,8 +163,6 @@ return [
         'permission'   => 'Manage Appearances',
         'active_routes' => [
             'admin.home.builder',
-            'admin.appearance.site.setting',
-            'admin.appearance.site.setting.*',
             'admin.appearance.menu.builder',
         ],
         'children' => [
@@ -181,13 +179,6 @@ return [
                 'icon'         => 'fa fa-minus',
                 'permission'   => 'Manage Home Builder',
                 'active_routes' => ['admin.home.builder'],
-            ],
-            [
-                'label'        => 'Site Setting',
-                'route'        => 'admin.appearance.site.setting',
-                'icon'         => 'fa fa-minus',
-                'permission'   => 'Manage Site Settings',
-                'active_routes' => ['admin.appearance.site.setting'],
             ],
         ],
     ],
@@ -223,24 +214,18 @@ return [
     ],
 
     [
-        'label'        => 'Languages',
-        'route'        => 'admin.system.settings.language.list',
-        'icon'         => 'fas fa-language',
-        'permission'   => 'Manage Language',
-        'active_routes' => [
-            'admin.system.settings.language.list',
-            'admin.system.settings.language.translation',
-        ],
-    ],
-    [
-        'label'           => 'System',
-        'route'           => 'admin.system.settings.environment',
+        'label'           => 'Settings',
+        'route'           => 'admin.appearance.site.setting',
         'icon'            => 'fas fa-cog',
-        'any_permissions' => ['Update Environment', 'Update SMTP', 'Manage Social Login'],
+        'any_permissions' => ['Update Environment', 'Update SMTP', 'Manage Social Login', 'Manage Site Settings', 'Manage Language'],
         'active_routes'   => [
-            'admin.system.settings.social.login',
             'admin.system.settings.environment',
             'admin.system.settings.smtp',
+            'admin.system.settings.social.login',
+            'admin.appearance.site.setting',
+            'admin.appearance.site.setting.*',
+            'admin.system.settings.language.list',
+            'admin.system.settings.language.translation',
         ],
     ],
 

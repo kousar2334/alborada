@@ -7,45 +7,50 @@
 @endsection
 
 @section('page-content')
-    <div class="settings-layout" id="settingsLayout">
+    <div class="sl-wrap" id="settingsLayout">
 
         {{-- Mobile backdrop --}}
-        <div class="settings-sidebar-backdrop" id="settingsSidebarBackdrop" onclick="closeSettingsSidebar()"></div>
+        <div class="sl-backdrop" id="settingsSidebarBackdrop" onclick="closeSettingsSidebar()"></div>
 
-        {{-- Left: Settings Navigation Sidebar --}}
-        <aside class="settings-sidebar" id="settingsSidebar">
-            @include('backend.includes.settings_nav')
+        {{-- Sidebar --}}
+        <aside class="sl-sidebar" id="settingsSidebar">
+            <div class="sl-sidebar-inner">
+                <div class="sl-sidebar-title">
+                    <span>Settings</span>
+                    <button class="sl-sidebar-close" onclick="closeSettingsSidebar()" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                @include('backend.includes.settings_nav')
+            </div>
         </aside>
 
-        {{-- Right: Settings Content --}}
-        <div class="settings-content-area">
+        {{-- Main content --}}
+        <div class="sl-main">
 
-            {{-- Sticky toolbar --}}
-            <div class="settings-toolbar">
-                <button class="settings-menu-toggle" id="settingsMenuToggle" onclick="toggleSettingsSidebar()"
-                    title="Toggle sidebar">
+            {{-- Top bar --}}
+            <div class="sl-topbar">
+                <button class="sl-menu-btn" onclick="toggleSettingsSidebar()" title="Toggle menu">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div class="settings-toolbar-breadcrumb">
-                    <span>Settings</span>
+                <nav class="sl-breadcrumb" aria-label="breadcrumb">
+                    <a href="{{ route('admin.appearance.site.setting') }}" class="sl-bc-home">Settings</a>
                     @hasSection('settings-title')
-                        <span class="sep">/</span>
-                        <span class="current">@yield('settings-title')</span>
+                        <span class="sl-bc-sep">/</span>
+                        <span class="sl-bc-current">@yield('settings-title')</span>
                     @endif
-                </div>
+                </nav>
             </div>
 
-            {{-- Scrollable content area --}}
-            <div class="settings-content-scroll">
-                <div class="settings-content-inner">
+            {{-- Scrollable page body --}}
+            <div class="sl-body">
+                <div class="sl-page">
 
                     @hasSection('settings-title')
-                        <div class="settings-section-header">
-                            <h2 class="settings-section-title">@yield('settings-title')</h2>
-                            @hasSection('settings-description')
-                                <p class="settings-section-desc">@yield('settings-description')</p>
-                            @endif
-                        </div>
+                        <h1 class="sl-page-title">@yield('settings-title')</h1>
+                        @hasSection('settings-description')
+                            <p class="sl-page-desc">@yield('settings-description')</p>
+                        @endif
                     @endif
 
                     @yield('settings-content')
@@ -54,7 +59,6 @@
             </div>
 
         </div>
-
     </div>
 @endsection
 
@@ -77,11 +81,8 @@
         }
 
         window.addEventListener('resize', () => {
-            if (!isMobile()) {
-                settingsLayout.classList.remove('sidebar-open');
-            } else {
-                settingsLayout.classList.remove('sidebar-collapsed');
-            }
+            if (!isMobile()) settingsLayout.classList.remove('sidebar-open');
+            else settingsLayout.classList.remove('sidebar-collapsed');
         });
     </script>
 @endsection
