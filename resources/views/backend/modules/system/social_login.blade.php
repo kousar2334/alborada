@@ -15,8 +15,7 @@
                         @csrf
                         <input type="hidden" name="type" value="google">
                         <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="google_login"
-                                name="google_login"
+                            <input type="checkbox" class="form-check-input" id="google_login" name="google_login"
                                 {{ get_setting('google_login') == config('settings.general_status.active') ? 'checked' : '' }}>
                             <label class="form-check-label" for="google_login">
                                 {{ __tr('Enable Login with Google') }}
@@ -25,8 +24,7 @@
                         <div class="form-group">
                             <label>{{ __tr('Google Client ID') }}</label>
                             <input type="text" class="form-control" name="GOOGLE_CLIENT_ID"
-                                value="{{ env('GOOGLE_CLIENT_ID') }}"
-                                placeholder="{{ __tr('Enter Google Client ID') }}">
+                                value="{{ env('GOOGLE_CLIENT_ID') }}" placeholder="{{ __tr('Enter Google Client ID') }}">
                         </div>
                         <div class="form-group">
                             <label>{{ __tr('Google Client Secret') }}</label>
@@ -58,8 +56,7 @@
                         @csrf
                         <input type="hidden" name="type" value="facebook">
                         <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="facebook_login"
-                                name="facebook_login"
+                            <input type="checkbox" class="form-check-input" id="facebook_login" name="facebook_login"
                                 {{ get_setting('facebook_login') == config('settings.general_status.active') ? 'checked' : '' }}>
                             <label class="form-check-label" for="facebook_login">
                                 {{ __tr('Enable Login with Facebook') }}

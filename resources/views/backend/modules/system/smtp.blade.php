@@ -37,7 +37,8 @@
                         <div class="form-group">
                             <label>{{ __tr('MAIL ENCRYPTION') }}</label>
                             <input type="text" class="form-control" name="MAIL_ENCRYPTION"
-                                placeholder="{{ __tr('Enter Encryption (tls / ssl)') }}" value="{{ env('MAIL_ENCRYPTION') }}">
+                                placeholder="{{ __tr('Enter Encryption (tls / ssl)') }}"
+                                value="{{ env('MAIL_ENCRYPTION') }}">
                         </div>
                         <div class="form-group">
                             <label>{{ __tr('MAIL FROM ADDRESS') }}</label>
@@ -83,8 +84,7 @@
                         </div>
                         <div class="form-group">
                             <label>{{ __tr('Message') }}</label>
-                            <textarea class="form-control" name="message" rows="4"
-                                placeholder="{{ __tr('Enter Message') }}"></textarea>
+                            <textarea class="form-control" name="message" rows="4" placeholder="{{ __tr('Enter Message') }}"></textarea>
                             @if ($errors->has('message'))
                                 <div class="text-danger mt-1">{{ $errors->first('message') }}</div>
                             @endif

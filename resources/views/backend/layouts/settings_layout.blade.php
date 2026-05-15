@@ -10,8 +10,7 @@
     <div class="settings-layout" id="settingsLayout">
 
         {{-- Mobile backdrop --}}
-        <div class="settings-sidebar-backdrop" id="settingsSidebarBackdrop"
-            onclick="closeSettingsSidebar()"></div>
+        <div class="settings-sidebar-backdrop" id="settingsSidebarBackdrop" onclick="closeSettingsSidebar()"></div>
 
         {{-- Left: Settings Navigation Sidebar --}}
         <aside class="settings-sidebar" id="settingsSidebar">
@@ -23,8 +22,8 @@
 
             {{-- Sticky toolbar --}}
             <div class="settings-toolbar">
-                <button class="settings-menu-toggle" id="settingsMenuToggle"
-                    onclick="toggleSettingsSidebar()" title="Toggle sidebar">
+                <button class="settings-menu-toggle" id="settingsMenuToggle" onclick="toggleSettingsSidebar()"
+                    title="Toggle sidebar">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="settings-toolbar-breadcrumb">

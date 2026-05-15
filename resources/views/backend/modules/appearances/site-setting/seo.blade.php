@@ -11,18 +11,15 @@
                 <div class="form-group">
                     <label>{{ __tr('Meta Title') }}</label>
                     <input type="text" class="form-control" name="site_meta_title"
-                        placeholder="{{ __tr('Enter Meta Title') }}"
-                        value="{{ get_setting('site_meta_title') }}">
+                        placeholder="{{ __tr('Enter Meta Title') }}" value="{{ get_setting('site_meta_title') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Meta Description') }}</label>
-                    <textarea class="form-control" name="site_meta_description"
-                        rows="3">{{ get_setting('site_meta_description') }}</textarea>
+                    <textarea class="form-control" name="site_meta_description" rows="3">{{ get_setting('site_meta_description') }}</textarea>
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Meta Keywords') }}</label>
-                    <textarea class="form-control" name="site_meta_keys"
-                        rows="3">{{ get_setting('site_meta_keys') }}</textarea>
+                    <textarea class="form-control" name="site_meta_keys" rows="3">{{ get_setting('site_meta_keys') }}</textarea>
                     <small class="text-muted">{{ __tr('Separate each keyword with a comma (,)') }}</small>
                 </div>
                 <div class="form-group">

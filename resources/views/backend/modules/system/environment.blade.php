@@ -10,14 +10,14 @@
                 @csrf
                 <div class="form-group">
                     <label>{{ __tr('APP NAME') }}</label>
-                    <input type="text" class="form-control" name="APP_NAME"
-                        placeholder="{{ __tr('Enter App Name') }}" value="{{ env('APP_NAME') }}">
+                    <input type="text" class="form-control" name="APP_NAME" placeholder="{{ __tr('Enter App Name') }}"
+                        value="{{ env('APP_NAME') }}">
                 </div>
                 <div class="form-row">
                     <div class="form-group col-lg-4 col-12">
                         <label>{{ __tr('APP URL') }}</label>
-                        <input type="text" class="form-control" name="APP_URL"
-                            placeholder="{{ __tr('Enter App URL') }}" value="{{ env('APP_URL') }}">
+                        <input type="text" class="form-control" name="APP_URL" placeholder="{{ __tr('Enter App URL') }}"
+                            value="{{ env('APP_URL') }}">
                     </div>
                     <div class="form-group col-lg-4 col-12">
                         <label>{{ __tr('APP DEBUG') }}</label>
@@ -37,8 +37,8 @@
                 <div class="form-row">
                     <div class="form-group col-lg-4 col-12">
                         <label>{{ __tr('DB CONNECTION') }}</label>
-                        <input type="text" class="form-control" name="DB_CONNECTION"
-                            value="{{ env('DB_CONNECTION') }}" readonly>
+                        <input type="text" class="form-control" name="DB_CONNECTION" value="{{ env('DB_CONNECTION') }}"
+                            readonly>
                     </div>
                     <div class="form-group col-lg-4 col-12">
                         <label>{{ __tr('DB HOST') }}</label>

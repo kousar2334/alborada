@@ -21,8 +21,7 @@
 <nav class="settings-nav-vertical">
     @foreach ($settingsNav as $item)
         @php
-            $permitted = empty($item['permission'])
-                || (auth()->check() && auth()->user()->can($item['permission']));
+            $permitted = empty($item['permission']) || (auth()->check() && auth()->user()->can($item['permission']));
         @endphp
 
         @if (!$permitted)
@@ -31,15 +30,12 @@
 
         @if ($item['type'] === 'section')
             <div class="settings-nav-section">{{ $item['label'] }}</div>
-
         @elseif ($item['type'] === 'link')
             @php $active = $navIsActive($item); @endphp
-            <a href="{{ route($item['route']) }}"
-               class="settings-nav-link {{ $active ? 'active' : '' }}">
+            <a href="{{ route($item['route']) }}" class="settings-nav-link {{ $active ? 'active' : '' }}">
                 <i class="{{ $item['icon'] }}"></i>
                 <span>{{ $item['label'] }}</span>
             </a>
-
         @elseif ($item['type'] === 'group')
             @php
                 $groupPatterns = (array) ($item['active_routes'] ?? []);
@@ -56,13 +52,14 @@
             <div class="settings-nav-submenu {{ $groupOpen ? 'open' : '' }}">
                 @foreach ($item['children'] as $child)
                     @php
-                        $childPermitted = empty($child['permission'])
-                            || (auth()->check() && auth()->user()->can($child['permission']));
+                        $childPermitted =
+                            empty($child['permission']) ||
+                            (auth()->check() && auth()->user()->can($child['permission']));
                         $childActive = $navIsActive($child);
                     @endphp
                     @if ($childPermitted)
                         <a href="{{ route($child['route']) }}"
-                           class="settings-nav-link settings-nav-child {{ $childActive ? 'active' : '' }}">
+                            class="settings-nav-link settings-nav-child {{ $childActive ? 'active' : '' }}">
                             @if (!empty($child['icon']))
                                 <i class="{{ $child['icon'] }}"></i>
                             @else

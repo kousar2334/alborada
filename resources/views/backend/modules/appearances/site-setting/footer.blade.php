@@ -14,8 +14,7 @@
                 @csrf
                 <div class="form-group">
                     <label>{{ __tr('Copy Right Text') }}</label>
-                    <textarea class="form-control" id="contentSummernote"
-                        name="site_copy_right_text">{{ get_setting('site_copy_right_text') }}</textarea>
+                    <textarea class="form-control" id="contentSummernote" name="site_copy_right_text">{{ get_setting('site_copy_right_text') }}</textarea>
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Subscribe Text') }}</label>
@@ -24,26 +23,22 @@
                 <div class="form-group">
                     <label>{{ __tr('Address') }}</label>
                     <input type="text" class="form-control" name="footer_address"
-                        value="{{ get_setting('footer_address') }}"
-                        placeholder="{{ __tr('Enter Address') }}">
+                        value="{{ get_setting('footer_address') }}" placeholder="{{ __tr('Enter Address') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Address 2') }}</label>
                     <input type="text" class="form-control" name="footer_address_2"
-                        value="{{ get_setting('footer_address_2') }}"
-                        placeholder="{{ __tr('Enter Address 2') }}">
+                        value="{{ get_setting('footer_address_2') }}" placeholder="{{ __tr('Enter Address 2') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Phone') }}</label>
                     <input type="text" class="form-control" name="footer_phone_number"
-                        value="{{ get_setting('footer_phone_number') }}"
-                        placeholder="{{ __tr('Enter Phone') }}">
+                        value="{{ get_setting('footer_phone_number') }}" placeholder="{{ __tr('Enter Phone') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Hotline') }}</label>
                     <input type="text" class="form-control" name="footer_hotline"
-                        value="{{ get_setting('footer_hotline') }}"
-                        placeholder="{{ __tr('Enter Hotline Number') }}">
+                        value="{{ get_setting('footer_hotline') }}" placeholder="{{ __tr('Enter Hotline Number') }}">
                 </div>
 
                 <hr>
@@ -52,26 +47,22 @@
                 <div class="form-group">
                     <label>{{ __tr('Facebook URL') }}</label>
                     <input type="text" class="form-control" name="site_fb_link"
-                        value="{{ get_setting('site_fb_link') }}"
-                        placeholder="{{ __tr('Enter Facebook URL') }}">
+                        value="{{ get_setting('site_fb_link') }}" placeholder="{{ __tr('Enter Facebook URL') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('LinkedIn URL') }}</label>
                     <input type="text" class="form-control" name="site_linkedin_link"
-                        value="{{ get_setting('site_linkedin_link') }}"
-                        placeholder="{{ __tr('Enter LinkedIn URL') }}">
+                        value="{{ get_setting('site_linkedin_link') }}" placeholder="{{ __tr('Enter LinkedIn URL') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('YouTube URL') }}</label>
                     <input type="text" class="form-control" name="site_youtube_link"
-                        value="{{ get_setting('site_youtube_link') }}"
-                        placeholder="{{ __tr('Enter YouTube URL') }}">
+                        value="{{ get_setting('site_youtube_link') }}" placeholder="{{ __tr('Enter YouTube URL') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Instagram URL') }}</label>
                     <input type="text" class="form-control" name="site_instagram_link"
-                        value="{{ get_setting('site_instagram_link') }}"
-                        placeholder="{{ __tr('Enter Instagram URL') }}">
+                        value="{{ get_setting('site_instagram_link') }}" placeholder="{{ __tr('Enter Instagram URL') }}">
                 </div>
 
                 <div class="d-flex justify-content-end">
