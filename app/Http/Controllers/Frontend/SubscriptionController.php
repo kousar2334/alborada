@@ -134,11 +134,15 @@ class SubscriptionController extends Controller
             return response()->json(['error' => 'You already have an active subscription.'], 422);
         }
 
+        $secretKey = get_setting('stripe_secret_key');
+        if (empty($secretKey)) {
+            return response()->json(['error' => 'Stripe is not configured. Please contact the administrator.'], 422);
+        }
+
         try {
             $stripe = new StripeService();
             $intentData = $stripe->createPaymentIntent($plan, $user);
 
-            // Create a pending subscription record
             $transactionId = 'STRIPE-' . strtoupper(Str::random(14));
 
             $subscription = UserSubscription::create([
@@ -155,7 +159,14 @@ class SubscriptionController extends Controller
                 'client_secret'   => $intentData['client_secret'],
                 'subscription_id' => $subscription->id,
             ]);
+        } catch (\Stripe\Exception\AuthenticationException $e) {
+            \Log::error('Stripe auth error: ' . $e->getMessage());
+            return response()->json(['error' => 'Invalid Stripe API key. Please contact the administrator.'], 422);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            \Log::error('Stripe API error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 422);
         } catch (\Exception $e) {
+            \Log::error('Stripe payment initiation error: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to initiate payment. Please try again.'], 500);
         }
     }
@@ -242,5 +253,4 @@ class SubscriptionController extends Controller
 
         return view('frontend.pages.member.subscriptions', compact('subscriptions', 'activeSubscription'));
     }
-
 }

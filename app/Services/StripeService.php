@@ -14,7 +14,12 @@ class StripeService
 
     public function __construct()
     {
-        $secret = get_setting('stripe_secret_key', config('services.stripe.secret'));
+        $secret = get_setting('stripe_secret_key') ?: config('services.stripe.secret');
+
+        if (empty($secret)) {
+            throw new \RuntimeException('Stripe secret key is not configured.');
+        }
+
         $this->stripe = new StripeClient($secret);
     }
 
