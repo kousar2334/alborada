@@ -12,6 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('admin', 'admin/*')) {
+                return route('admin.auth.login');
+            }
+            if ($request->is('reseller', 'reseller/*')) {
+                return route('reseller.login');
+            }
+            return route('member.login');
+        });
+
         $middleware->alias([
             'admin'    => \App\Http\Middleware\IsAdmin::class,
             'member'   => \App\Http\Middleware\IsMember::class,
@@ -27,10 +37,4 @@ return Application::configure(basePath: dirname(__DIR__))
             '/membership/ssl-ipn',
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
-            if (! $request->expectsJson()) {
-                return redirect()->route('member.login');
-            }
-        });
-    })->create();
+    ->withExceptions(function (Exceptions $_): void {})->create();

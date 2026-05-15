@@ -515,21 +515,22 @@ button.cmn-btn-green:hover {
 }
 
 .form-control-dark {
-    background: #111;
-    border: 1px solid rgba(255, 255, 255, .1);
-    color: #fff;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    color: #1f2937;
     border-radius: 6px;
 }
 
 .form-control-dark:focus {
-    background: #111;
+    background: #fff;
     border-color: #00c853;
-    color: #fff;
+    color: #1f2937;
     box-shadow: 0 0 0 2px rgba(0, 200, 83, .15);
+    outline: none;
 }
 
 .form-control-dark::placeholder {
-    color: rgba(255, 255, 255, .35);
+    color: #9ca3af;
 }
 
 .ticket-submit-row {
@@ -541,8 +542,8 @@ button.cmn-btn-green:hover {
 .ticket-cancel-btn {
     padding: 12px 24px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, .1);
-    color: #9ca3af;
+    border: 1px solid #d1d5db;
+    color: #6b7280;
     text-decoration: none;
     font-size: .88rem;
     display: inline-flex;
@@ -550,8 +551,8 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-cancel-btn:hover {
-    color: #fff;
-    border-color: rgba(255, 255, 255, .2);
+    color: #374151;
+    border-color: #9ca3af;
 }
 
 .textarea-resize-v {
@@ -1292,6 +1293,7 @@ button.cmn-btn-green:hover {
 
 .api-doc-section {
     padding: 1.25rem;
+    color: #374151;
 }
 
 .api-doc-base {
