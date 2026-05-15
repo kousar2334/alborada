@@ -3,7 +3,8 @@
 @section('settings-title', __tr('Colors Setup'))
 @section('settings-description', __tr('Customize the primary, accent and text colors used across your site.'))
 
-@section('settings-style')
+@section('page-style')
+    @parent
     <style>
         .color-var-badge {
             font-family: monospace;
@@ -130,7 +131,8 @@
                             <input type="text" class="form-control" name="site_primary_color_shadow"
                                 value="{{ get_setting('site_primary_color_shadow', '#f766310f') }}"
                                 placeholder="#rrggbbaa — 8-digit hex with alpha">
-                            <small class="text-muted">{{ __tr('Supports 8-digit hex with alpha (e.g. #f766310f)') }}</small>
+                            <small
+                                class="text-muted">{{ __tr('Supports 8-digit hex with alpha (e.g. #f766310f)') }}</small>
                         </div>
                     </div>
                     <div class="col-sm-6">
@@ -238,7 +240,8 @@
     </div>
 @endsection
 
-@section('settings-script')
+@section('page-script')
+    @parent
     <script>
         (function($) {
             "use strict";

@@ -34,7 +34,8 @@
     </div>
 @endsection
 
-@section('settings-script')
+@section('page-script')
+    @parent
     <script>
         (function($) {
             "use strict";

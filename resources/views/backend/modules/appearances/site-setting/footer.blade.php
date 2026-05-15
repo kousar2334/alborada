@@ -3,7 +3,8 @@
 @section('settings-title', __tr('Footer'))
 @section('settings-description', __tr('Manage footer content, copyright text, contact details and social media links.'))
 
-@section('settings-style')
+@section('page-style')
+    @parent
     <link rel="stylesheet" href="{{ asset('public/web-assets/backend/plugins/summernote/summernote-bs4.min.css') }}">
 @endsection
 
@@ -73,7 +74,8 @@
     </div>
 @endsection
 
-@section('settings-script')
+@section('page-script')
+    @parent
     <script src="{{ asset('public/web-assets/backend/plugins/summernote/summernote-bs4.min.js') }}"></script>
     <script>
         (function($) {

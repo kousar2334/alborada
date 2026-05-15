@@ -10,8 +10,7 @@
                 @csrf
                 <div class="form-group">
                     <label>{{ __tr('Site Name') }}</label>
-                    <input type="text" class="form-control" name="site_name"
-                        placeholder="{{ __tr('Enter Site Name') }}"
+                    <input type="text" class="form-control" name="site_name" placeholder="{{ __tr('Enter Site Name') }}"
                         value="{{ get_setting('site_name') }}">
                 </div>
                 <div class="form-group">
@@ -21,8 +20,7 @@
                 <div class="form-group">
                     <label>{{ __tr('Site Slogan') }}</label>
                     <input type="text" class="form-control" name="site_tagline"
-                        placeholder="{{ __tr('Enter Site Slogan') }}"
-                        value="{{ get_setting('site_tagline') }}">
+                        placeholder="{{ __tr('Enter Site Slogan') }}" value="{{ get_setting('site_tagline') }}">
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Site Logo') }}</label>
@@ -44,7 +42,8 @@
     </div>
 @endsection
 
-@section('settings-script')
+@section('page-script')
+    @parent
     <script>
         (function($) {
             "use strict";

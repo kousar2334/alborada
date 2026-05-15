@@ -2,8 +2,8 @@
 
 @section('page-title', 'Settings')
 
+{{-- Declare the section so child views can extend it with @parent --}}
 @section('page-style')
-    @yield('settings-style')
 @endsection
 
 @section('page-content')
@@ -62,8 +62,8 @@
     </div>
 @endsection
 
+{{-- Declare the section so child views can extend it with @parent --}}
 @section('page-script')
-    @yield('settings-script')
     <script>
         const settingsLayout = document.getElementById('settingsLayout');
         const isMobile = () => window.innerWidth < 768;
