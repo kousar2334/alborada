@@ -10,6 +10,7 @@ use App\Http\Controllers\Frontend\AccountController;
 use App\Http\Controllers\Frontend\SubscriptionController;
 use App\Http\Controllers\Frontend\ResellerAuthController;
 use App\Http\Controllers\Frontend\ResellerController;
+use App\Http\Controllers\Frontend\ResellerTicketController;
 use App\Http\Controllers\Backend\LanguageController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\NewsletterController;
@@ -88,7 +89,7 @@ Route::group(['middleware' => ['auth', 'member']], function () {
     Route::post('/membership/buy', [SubscriptionController::class, 'buy'])->name('membership.buy');
     Route::get('/membership/buy/free', [SubscriptionController::class, 'buy'])->name('membership.buy.free');
     Route::get('/membership/confirm/{planId}', [SubscriptionController::class, 'confirm'])->name('subscription.confirm');
-Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
+    Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
     Route::get('/membership/stripe/success', [SubscriptionController::class, 'stripeSuccess'])->name('membership.stripe.success');
 
     // Support tickets
@@ -138,6 +139,16 @@ Route::prefix('reseller')->group(function () {
         Route::get('/api-keys', [ResellerController::class, 'apiKeys'])->name('reseller.api.keys');
         Route::post('/api-keys/create', [ResellerController::class, 'createApiToken'])->name('reseller.api.keys.create');
         Route::post('/api-keys/revoke', [ResellerController::class, 'revokeApiToken'])->name('reseller.api.keys.revoke');
+
+        // Support Tickets
+        Route::prefix('tickets')->group(function () {
+            Route::get('/', [ResellerTicketController::class, 'index'])->name('reseller.tickets.index');
+            Route::get('/create', [ResellerTicketController::class, 'create'])->name('reseller.tickets.create');
+            Route::post('/', [ResellerTicketController::class, 'store'])->name('reseller.tickets.store');
+            Route::get('/{ticketNumber}', [ResellerTicketController::class, 'show'])->name('reseller.tickets.show');
+            Route::post('/{ticketNumber}/reply', [ResellerTicketController::class, 'reply'])->name('reseller.tickets.reply');
+            Route::post('/{ticketNumber}/close', [ResellerTicketController::class, 'close'])->name('reseller.tickets.close');
+        });
     });
 });
 

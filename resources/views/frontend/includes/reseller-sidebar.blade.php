@@ -18,7 +18,7 @@
             <div class="sidebar-user-role" style="color:#00d46a;">
                 <i class="fa-solid fa-store" style="font-size:.7rem;"></i> Reseller
             </div>
-            @if(auth()->user()->company_name)
+            @if (auth()->user()->company_name)
                 <div style="font-size:0.72rem;color:var(--muted-2);margin-top:2px;">
                     {{ auth()->user()->company_name }}
                 </div>
@@ -47,6 +47,13 @@
                     class="{{ Request::routeIs('reseller.account') ? 'active' : '' }}">
                     <span class="sidebar-icon"><i class="fa-solid fa-user-gear"></i></span>
                     Account
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('reseller.tickets.index') }}"
+                    class="{{ Request::routeIs('reseller.tickets.*') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-headset"></i></span>
+                    Support
                 </a>
             </li>
         </ul>
