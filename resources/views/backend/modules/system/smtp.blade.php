@@ -35,6 +35,7 @@
                                 <div class="card-body">
                                     <form method="POST" action="{{ route('admin.system.settings.smtp.update') }}">
                                         @csrf
+                                        <input type="hidden" name="MAIL_MAILER" value="smtp">
                                         <div class="form-group">
                                             <label>MAIL HOST</label>
                                             <input type="text" class="form-control" name="MAIL_HOST"

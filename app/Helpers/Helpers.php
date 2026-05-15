@@ -83,11 +83,19 @@ if (!function_exists('setEnv')) {
         $value = trim($value);
         $path = base_path('.env');
         if (file_exists($path)) {
-            file_put_contents($path, str_replace(
-                $name . '=' . env($name),
-                $name . '=' . $value,
-                file_get_contents($path)
-            ));
+            $content = file_get_contents($path);
+            $content = preg_replace_callback(
+                '/^' . preg_quote($name, '/') . '=.*/m',
+                fn($matches) => $name . '=' . $value,
+                $content
+            );
+            file_put_contents($path, $content);
+            // Update the live process environment so env() reflects the new
+            // value immediately — PHP-FPM workers are long-lived and DotEnv
+            // createImmutable won't re-apply .env changes otherwise.
+            putenv("$name=$value");
+            $_ENV[$name]    = $value;
+            $_SERVER[$name] = $value;
         }
     }
 }

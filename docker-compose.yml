@@ -45,6 +45,19 @@ services:
     networks:
       - alborada
 
+  worker:
+    image: alborada_app:latest
+    container_name: alborada_worker
+    working_dir: /var/www/html
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - alborada
+    restart: unless-stopped
+
   composer:
     image: composer:2
     container_name: alborada_composer
