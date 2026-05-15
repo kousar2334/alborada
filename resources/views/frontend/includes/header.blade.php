@@ -30,7 +30,13 @@
                                     <span class="dropdown-header">{{ __tr('My Account') }}</span>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                    @if (auth()->user()->type === config('settings.user_type.admin'))
+                                        <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                        <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
+                                    @else
+                                        <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                    @endif
                                         <i class="las la-tachometer-alt"></i>
                                         {{ __tr('Dashboard') }}
                                     </a>
@@ -39,7 +45,13 @@
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li>
-                                    <a class="dropdown-item logout-item" href="{{ route('member.logout') }}">
+                                    @if (auth()->user()->type === config('settings.user_type.admin'))
+                                        <a class="dropdown-item logout-item" href="{{ route('admin.auth.logout') }}">
+                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                        <a class="dropdown-item logout-item" href="{{ route('reseller.logout') }}">
+                                    @else
+                                        <a class="dropdown-item logout-item" href="{{ route('member.logout') }}">
+                                    @endif
                                         <i class="las la-sign-out-alt"></i>
                                         {{ __tr('Logout') }}
                                     </a>
@@ -163,7 +175,13 @@
                                     <span class="dropdown-header">{{ __tr('My Account') }}</span>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                    @if (auth()->user()->type === config('settings.user_type.admin'))
+                                        <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                        <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
+                                    @else
+                                        <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                    @endif
                                         <i class="las la-tachometer-alt"></i>
                                         {{ __tr('Dashboard') }}
                                     </a>
@@ -172,7 +190,13 @@
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li>
-                                    <a class="dropdown-item logout-item" href="{{ route('member.logout') }}">
+                                    @if (auth()->user()->type === config('settings.user_type.admin'))
+                                        <a class="dropdown-item logout-item" href="{{ route('admin.auth.logout') }}">
+                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                        <a class="dropdown-item logout-item" href="{{ route('reseller.logout') }}">
+                                    @else
+                                        <a class="dropdown-item logout-item" href="{{ route('member.logout') }}">
+                                    @endif
                                         <i class="las la-sign-out-alt"></i>
                                         {{ __tr('Logout') }}
                                     </a>
