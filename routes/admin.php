@@ -63,8 +63,8 @@ Route::prefix('admin')->group(function () {
             Route::get('/clear-cache', [UtilityController::class, 'clearCache'])->name('utility.clear.cache');
         });
 
-        Route::get('/core/page', fn () => to_route('admin.page.list'))->name('core.page');
-        Route::get('/core/email/smtp-configuration', fn () => to_route('admin.system.settings.smtp'))->name('core.email.smtp.configuration');
+        Route::get('/core/page', fn() => to_route('admin.page.list'))->name('core.page');
+        Route::get('/core/email/smtp-configuration', fn() => to_route('admin.system.settings.smtp'))->name('core.email.smtp.configuration');
 
         /**
          * LANGUAGES
@@ -322,6 +322,10 @@ Route::prefix('admin')->group(function () {
             Route::get('/', [ResellerManagementController::class, 'index'])->name('admin.resellers.index');
             Route::post('/top-up', [ResellerManagementController::class, 'topUpCredits'])->name('admin.resellers.top.up');
             Route::get('/{id}/logs', [ResellerManagementController::class, 'creditLogs'])->name('admin.resellers.credit.logs');
+            Route::get('/{id}/edit', [ResellerManagementController::class, 'edit'])->name('admin.resellers.edit');
+            Route::put('/{id}', [ResellerManagementController::class, 'update'])->name('admin.resellers.update');
+            Route::post('/{id}/approve', [ResellerManagementController::class, 'approve'])->name('admin.resellers.approve');
+            Route::post('/{id}/reject', [ResellerManagementController::class, 'reject'])->name('admin.resellers.reject');
         });
 
         /**

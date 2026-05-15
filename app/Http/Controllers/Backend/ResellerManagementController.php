@@ -17,13 +17,66 @@ class ResellerManagementController extends Controller
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->q . '%')
-                  ->orWhere('email', 'like', '%' . $request->q . '%');
+                    ->orWhere('email', 'like', '%' . $request->q . '%');
             });
         }
 
-        $resellers = $query->paginate(20)->withQueryString();
+        if ($request->filled('status') && in_array($request->status, ['0', '1'])) {
+            $query->where('status', $request->status);
+        }
 
-        return view('backend.modules.resellers.index', compact('resellers'));
+        $resellers = $query->paginate(20)->withQueryString();
+        $pendingCount = User::where('type', config('settings.user_type.reseller', 3))->where('status', 0)->count();
+
+        return view('backend.modules.resellers.index', compact('resellers', 'pendingCount'));
+    }
+
+    public function edit(int $id)
+    {
+        $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);
+        return view('backend.modules.resellers.edit', compact('reseller'));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);
+
+        $request->validate([
+            'name'             => 'required|string|max:255',
+            'email'            => 'required|email|max:255|unique:users,email,' . $reseller->id,
+            'company_name'     => 'nullable|string|max:255',
+            'markup_percentage' => 'required|numeric|min:0|max:100',
+            'status'           => 'required|in:0,1',
+        ]);
+
+        $reseller->update([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'company_name'      => $request->company_name,
+            'markup_percentage' => $request->markup_percentage,
+            'status'            => $request->status,
+        ]);
+
+        toastNotification('success', __tr('Reseller updated successfully'));
+        return redirect()->route('admin.resellers.index');
+    }
+
+    public function approve(int $id)
+    {
+        $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);
+        $reseller->update(['status' => 1]);
+
+        toastNotification('success', __tr('Reseller approved: ') . $reseller->name);
+        return back();
+    }
+
+    public function reject(int $id)
+    {
+        $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);
+        $reseller->update(['status' => 0]);
+
+        toastNotification('warning', __tr('Reseller rejected: ') . $reseller->name);
+        return back();
     }
 
     public function topUpCredits(Request $request)
