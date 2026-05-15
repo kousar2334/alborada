@@ -35,16 +35,27 @@
                     <strong class="sc-summary-value">{{ $plan->duration_days }} {{ __tr('days') }}</strong>
                 </div>
                 <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Ad Postings') }}</span>
-                    <strong class="sc-summary-value">{{ $plan->listing_quantity }}</strong>
+                    <span class="sc-summary-label">{{ __tr('Connections') }}</span>
+                    <strong class="sc-summary-value">{{ $plan->max_connections }}</strong>
                 </div>
                 <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Featured Ads') }}</span>
-                    <strong class="sc-summary-value">{{ $plan->featured_listing_quantity }}</strong>
+                    <span class="sc-summary-label">{{ __tr('Quality') }}</span>
+                    <strong class="sc-summary-value">{{ $plan->streaming_quality }}</strong>
                 </div>
                 <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Gallery Images') }}</span>
-                    <strong class="sc-summary-value">{{ $plan->gallery_image_quantity }}</strong>
+                    <span class="sc-summary-label">{{ __tr('Catch-up TV') }}</span>
+                    <strong class="sc-summary-value">
+                        @if ($plan->catchup_days > 0)
+                            {{ $plan->catchup_days }} {{ __tr('days') }}
+                        @else
+                            {{ __tr('Not included') }}
+                        @endif
+                    </strong>
+                </div>
+                <div class="sc-summary-row">
+                    <span class="sc-summary-label">{{ __tr('DVR') }}</span>
+                    <strong
+                        class="sc-summary-value">{{ $plan->dvr_enabled ? __tr('Included') : __tr('Not included') }}</strong>
                 </div>
 
                 <div class="sc-total-row">
@@ -78,19 +89,28 @@
                             <h4 class="sc-pay-title">{{ __tr('Pay with Card') }}</h4>
                             <p class="sc-pay-sub">{{ __tr('Your card details are processed securely by Stripe.') }}</p>
                         </div>
-                        <div class="sc-card-logos">
-                            <i class="fab fa-cc-visa sc-card-logo"></i>
-                            <i class="fab fa-cc-mastercard sc-card-logo"></i>
-                            <i class="fab fa-cc-amex sc-card-logo"></i>
-                        </div>
                     </div>
 
                     <div class="sc-pay-body">
                         <div id="sc-stripe-error" class="sc-stripe-error sc-hidden"></div>
 
                         <div class="sc-field-group">
-                            <label class="sc-field-label">{{ __tr('Card Information') }}</label>
-                            <div id="sc-card-element" class="sc-card-element"></div>
+                            <label class="sc-field-label">{{ __tr('Card Number') }}</label>
+                            <div class="sc-card-number-wrap">
+                                <div id="sc-card-number" class="sc-card-element"></div>
+                                <i id="sc-brand-icon" class="sc-brand-icon sc-hidden"></i>
+                            </div>
+                        </div>
+
+                        <div class="sc-field-row">
+                            <div class="sc-field-group sc-field-col">
+                                <label class="sc-field-label">{{ __tr('Expiry Date') }}</label>
+                                <div id="sc-card-expiry" class="sc-card-element"></div>
+                            </div>
+                            <div class="sc-field-group sc-field-col">
+                                <label class="sc-field-label">{{ __tr('CVC') }}</label>
+                                <div id="sc-card-cvc" class="sc-card-element"></div>
+                            </div>
                         </div>
 
                         <button id="sc-pay-btn" class="sc-pay-btn" type="button">
@@ -125,24 +145,64 @@
                 var stripe = Stripe('{{ $stripePublicKey }}');
                 var elements = stripe.elements();
 
-                var cardElement = elements.create('card', {
-                    style: {
-                        base: {
-                            fontSize: '15px',
-                            color: '#1f2937',
-                            fontFamily: 'inherit',
-                            '::placeholder': {
-                                color: '#9ca3af'
-                            }
-                        },
-                        invalid: {
-                            color: '#e53e3e'
+                var elementStyle = {
+                    base: {
+                        fontSize: '15px',
+                        color: '#1f2937',
+                        fontFamily: 'inherit',
+                        '::placeholder': {
+                            color: '#9ca3af'
                         }
+                    },
+                    invalid: {
+                        color: '#e53e3e'
                     }
-                });
-                cardElement.mount('#sc-card-element');
+                };
 
-                cardElement.on('change', function(event) {
+                var cardNumber = elements.create('cardNumber', {
+                    style: elementStyle
+                });
+                var cardExpiry = elements.create('cardExpiry', {
+                    style: elementStyle
+                });
+                var cardCvc = elements.create('cardCvc', {
+                    style: elementStyle
+                });
+
+                cardNumber.mount('#sc-card-number');
+                cardExpiry.mount('#sc-card-expiry');
+                cardCvc.mount('#sc-card-cvc');
+
+                cardNumber.on('change', function(event) {
+                    handleError(event);
+                    updateBrand(event.brand);
+                });
+
+                [cardExpiry, cardCvc].forEach(function(el) {
+                    el.on('change', handleError);
+                });
+
+                var brandIconMap = {
+                    visa: 'fab fa-cc-visa',
+                    mastercard: 'fab fa-cc-mastercard',
+                    amex: 'fab fa-cc-amex',
+                    discover: 'fab fa-cc-discover',
+                    diners: 'fab fa-cc-diners-club',
+                    jcb: 'fab fa-cc-jcb',
+                    unionpay: 'fas fa-credit-card',
+                };
+
+                function updateBrand(brand) {
+                    var icon = document.getElementById('sc-brand-icon');
+                    var cls = brandIconMap[brand];
+                    if (cls) {
+                        icon.className = 'sc-brand-icon ' + cls;
+                    } else {
+                        icon.className = 'sc-brand-icon sc-hidden';
+                    }
+                }
+
+                function handleError(event) {
                     var errorEl = document.getElementById('sc-stripe-error');
                     if (event.error) {
                         errorEl.textContent = event.error.message;
@@ -150,7 +210,7 @@
                     } else {
                         errorEl.classList.add('sc-hidden');
                     }
-                });
+                }
 
                 document.getElementById('sc-pay-btn').addEventListener('click', function() {
                     setLoading(true);
@@ -177,7 +237,7 @@
                             }
                             return stripe.confirmCardPayment(data.client_secret, {
                                 payment_method: {
-                                    card: cardElement
+                                    card: cardNumber
                                 }
                             });
                         })

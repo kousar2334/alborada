@@ -1375,10 +1375,6 @@ button.cmn-btn-green:hover {
     align-items: center;
 }
 
-.sc-card-logo {
-    font-size: 1.6rem;
-    color: #9ca3af;
-}
 
 .sc-pay-body {
     padding: 24px;
@@ -1398,12 +1394,41 @@ button.cmn-btn-green:hover {
     margin-bottom: 8px;
 }
 
+.sc-field-row {
+    display: flex;
+    gap: 16px;
+}
+
+.sc-field-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.sc-card-number-wrap {
+    position: relative;
+}
+
+.sc-brand-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.75rem;
+    color: #374151;
+    pointer-events: none;
+    transition: opacity .2s;
+}
+
 .sc-card-element {
     border: 1px solid #e5e7eb;
     border-radius: 10px;
     padding: 14px 16px;
     background: #fff;
     transition: border-color .2s, box-shadow .2s;
+}
+
+.sc-card-number-wrap .sc-card-element {
+    padding-right: 52px;
 }
 
 .sc-card-element.StripeElement--focus {
