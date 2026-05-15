@@ -110,7 +110,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .04);
+    border-bottom: 1px solid rgba(0, 0, 0, .06);
 }
 
 .expiring-item:last-child {
@@ -124,7 +124,7 @@
 
 .expiring-item-email {
     font-size: .75rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .expiring-item-date {
@@ -135,7 +135,7 @@
 }
 
 .expiring-item-relative {
-    color: var(--muted);
+    color: #9ca3af;
     font-weight: 400;
 }
 
@@ -153,7 +153,7 @@
 /* ── Form label small (replaces repeated inline label styles) ── */
 .form-label-sm {
     font-size: .8rem;
-    color: var(--muted);
+    color: #6b7280;
     margin-bottom: 6px;
     display: block;
 }
@@ -161,7 +161,7 @@
 /* ── Common button green variant ── */
 .cmn-btn.cmn-btn-green,
 button.cmn-btn-green {
-    background: var(--green, #00d46a);
+    background: #00d46a;
     color: #000;
 }
 
@@ -187,26 +187,26 @@ button.cmn-btn-green:hover {
 }
 
 .clients-table thead tr {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #e9f5ef;
 }
 
 .clients-table th {
     padding: 14px 20px;
     text-align: left;
     font-size: .75rem;
-    color: var(--muted);
+    color: #6b7280;
     font-weight: 600;
     letter-spacing: .5px;
     text-transform: uppercase;
 }
 
 .clients-table tbody tr {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid #f3f4f6;
     transition: background .15s;
 }
 
 .clients-table tbody tr:hover {
-    background: rgba(255, 255, 255, .02);
+    background: #f0fdf4;
 }
 
 .clients-table td {
@@ -237,29 +237,29 @@ button.cmn-btn-green:hover {
 .client-name {
     font-size: .88rem;
     font-weight: 500;
-    color: var(--text);
+    color: #1f2937;
 }
 
 .client-email {
     font-size: .82rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .client-phone {
     font-size: .78rem;
-    color: var(--muted-2, #9ca3af);
+    color: #9ca3af;
 }
 
 .client-sub-plan {
     font-size: .82rem;
-    color: var(--text);
+    color: #1f2937;
 }
 
 .client-sub-expiry,
 .client-no-plan,
 .client-date {
     font-size: .75rem;
-    color: var(--muted-2, #9ca3af);
+    color: #9ca3af;
 }
 
 .clients-pagination {
@@ -281,7 +281,7 @@ button.cmn-btn-green:hover {
 }
 
 .tickets-table thead tr {
-    border-bottom: 1px solid rgba(255, 255, 255, .07);
+    border-bottom: 1px solid #e9f5ef;
 }
 
 .tickets-table th {
@@ -289,7 +289,7 @@ button.cmn-btn-green:hover {
     font-size: .75rem;
     text-transform: uppercase;
     letter-spacing: .5px;
-    color: var(--muted);
+    color: #6b7280;
     text-align: left;
 }
 
@@ -298,7 +298,7 @@ button.cmn-btn-green:hover {
 }
 
 .tickets-table tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, .04);
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .tickets-table td {
@@ -329,7 +329,7 @@ button.cmn-btn-green:hover {
 
 .ticket-time {
     font-size: .82rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .ticket-action-cell {
@@ -337,8 +337,9 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-view-btn {
-    background: rgba(255, 255, 255, .07);
-    color: #fff;
+    background: #f0fdf4;
+    color: #00a046;
+    border: 1px solid #d1fae5;
     padding: 6px 14px;
     border-radius: 6px;
     font-size: .78rem;
@@ -348,8 +349,8 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-view-btn:hover {
-    background: rgba(255, 255, 255, .12);
-    color: #fff;
+    background: #e8faf0;
+    color: #00a046;
 }
 
 /* Ticket priority badges */
@@ -435,7 +436,7 @@ button.cmn-btn-green:hover {
 .tickets-empty {
     padding: 60px 20px;
     text-align: center;
-    color: var(--muted);
+    color: #9ca3af;
 }
 
 .tickets-empty-icon {
@@ -457,12 +458,12 @@ button.cmn-btn-green:hover {
 
 .tickets-pagination {
     padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, .07);
+    border-top: 1px solid #e9f5ef;
 }
 
 .ticket-total-count {
     font-size: .75rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 /* ── Ticket form ── */
@@ -476,7 +477,7 @@ button.cmn-btn-green:hover {
 
 .ticket-form-back-link {
     font-size: .8rem;
-    color: var(--muted);
+    color: #6b7280;
     text-decoration: none;
 }
 
@@ -489,7 +490,7 @@ button.cmn-btn-green:hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .5px;
-    color: var(--muted);
+    color: #6b7280;
     display: block;
     margin-bottom: 6px;
 }
@@ -541,7 +542,7 @@ button.cmn-btn-green:hover {
     padding: 12px 24px;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, .1);
-    color: var(--muted);
+    color: #9ca3af;
     text-decoration: none;
     font-size: .88rem;
     display: inline-flex;
@@ -559,7 +560,7 @@ button.cmn-btn-green:hover {
 
 /* ── Ticket show ── */
 .ticket-show-back {
-    color: var(--muted);
+    color: #6b7280;
     font-size: .82rem;
     text-decoration: none;
     display: inline-flex;
@@ -591,7 +592,7 @@ button.cmn-btn-green:hover {
 
 .ticket-show-dept {
     font-size: .78rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .ticket-close-btn {
@@ -613,12 +614,12 @@ button.cmn-btn-green:hover {
 /* Conversation thread */
 .ticket-thread-message-count {
     font-size: .75rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .ticket-reply-item {
     padding: 18px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, .05);
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .ticket-reply-item.staff {
@@ -651,8 +652,8 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-reply-avatar.user {
-    background: rgba(255, 255, 255, .08);
-    color: #fff;
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .ticket-reply-avatar.staff {
@@ -670,23 +671,23 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-reply-name.user {
-    color: #fff;
+    color: #1f2937;
 }
 
 .ticket-reply-role {
     font-size: .72rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .ticket-reply-time {
     font-size: .75rem;
-    color: var(--muted);
+    color: #6b7280;
 }
 
 .ticket-reply-text {
     font-size: .88rem;
     line-height: 1.7;
-    color: rgba(255, 255, 255, .85);
+    color: #374151;
     white-space: pre-wrap;
     padding-left: 44px;
 }
@@ -713,9 +714,9 @@ button.cmn-btn-green:hover {
 .ticket-closed-wrap {
     text-align: center;
     padding: 24px;
-    background: rgba(255, 255, 255, .03);
+    background: #f9fafb;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, .06);
+    border: 1px solid #e5e7eb;
 }
 
 .ticket-closed-icon {
@@ -726,7 +727,7 @@ button.cmn-btn-green:hover {
 }
 
 .ticket-closed-text {
-    color: var(--muted);
+    color: #6b7280;
     font-size: .88rem;
     margin: 0;
 }
@@ -906,7 +907,7 @@ button.cmn-btn-green:hover {
 .sc-total-value {
     font-size: 1.3rem;
     font-weight: 800;
-    color: var(--main-color);
+    color: #00d46a;
 }
 
 .sc-payment-card {
