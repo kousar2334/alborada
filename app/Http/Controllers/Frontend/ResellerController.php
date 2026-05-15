@@ -170,7 +170,7 @@ class ResellerController extends Controller
             "Credit top-up request from reseller: {$reseller->name} ({$reseller->email})\n\nAmount requested: \${$request->amount}\n\nMessage: {$request->message}",
             function ($m) use ($adminEmail, $reseller) {
                 $m->to($adminEmail)
-                  ->subject("Credit Top-Up Request from {$reseller->name}");
+                    ->subject("Credit Top-Up Request from {$reseller->name}");
             }
         );
 

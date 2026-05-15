@@ -43,12 +43,13 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('reseller.account') }}"
-                    class="{{ Request::routeIs('reseller.account') ? 'active' : '' }}">
-                    <span class="sidebar-icon"><i class="fa-solid fa-user-gear"></i></span>
-                    Account
+                <a href="{{ route('reseller.api.keys') }}"
+                    class="{{ Request::routeIs(['reseller.api.keys']) ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-key"></i></span>
+                    API Keys
                 </a>
             </li>
+
             <li>
                 <a href="{{ route('reseller.tickets.index') }}"
                     class="{{ Request::routeIs('reseller.tickets.*') ? 'active' : '' }}">
@@ -56,11 +57,13 @@
                     Support
                 </a>
             </li>
-        </ul>
-
-        <hr class="sidebar-divider">
-
-        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ route('reseller.account') }}"
+                    class="{{ Request::routeIs('reseller.account') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fa-solid fa-user-gear"></i></span>
+                    Account
+                </a>
+            </li>
             <li>
                 <a href="{{ route('reseller.logout') }}">
                     <span class="sidebar-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
