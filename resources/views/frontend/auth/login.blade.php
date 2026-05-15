@@ -48,7 +48,7 @@
             @endif
 
             {{-- Login Form --}}
-            <form method="post" action="{{ route('member.login.attempt') }}">
+            <form method="post" action="{{ route('member.login.attempt') }}" class="mb-3">
                 @if ($errors->has('login_error'))
                     <div class="alert alert-danger text-center mb-3">{{ $errors->first('login_error') }}</div>
                 @endif

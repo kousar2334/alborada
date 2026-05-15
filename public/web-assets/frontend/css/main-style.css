@@ -4361,6 +4361,16 @@ input[type="range"]::-moz-range-thumb {
     letter-spacing: .02em;
 }
 
+.sidebar-role-icon {
+    font-size: .65rem;
+}
+
+.sidebar-user-company {
+    font-size: .72rem;
+    color: rgba(255, 255, 255, .65);
+    margin-top: 2px;
+}
+
 .dashboard-sidebar nav {
     flex: 1;
     overflow-y: auto;

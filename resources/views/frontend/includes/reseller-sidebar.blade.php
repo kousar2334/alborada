@@ -9,17 +9,17 @@
             <img src="{{ asset(getFilePath(auth()->user()->image)) }}" alt="{{ auth()->user()->name }}"
                 class="sidebar-user-img">
         @else
-            <div class="sidebar-avatar" style="background:linear-gradient(135deg,#00d46a22,#00d46a44);color:#00d46a;">
+            <div class="sidebar-avatar">
                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
             </div>
         @endif
         <div>
             <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-            <div class="sidebar-user-role" style="color:#00d46a;">
-                <i class="fa-solid fa-store" style="font-size:.7rem;"></i> Reseller
+            <div class="sidebar-user-role">
+                <i class="fa-solid fa-store sidebar-role-icon"></i> Reseller
             </div>
             @if (auth()->user()->company_name)
-                <div style="font-size:0.72rem;color:var(--muted-2);margin-top:2px;">
+                <div class="sidebar-user-company">
                     {{ auth()->user()->company_name }}
                 </div>
             @endif

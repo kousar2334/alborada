@@ -73,13 +73,13 @@
 /* ── Action button primary (green/black) ── */
 .action-btn.primary {
     background: #00d46a;
-    color: #000;
+    color: #fff;
     box-shadow: 0 2px 8px rgba(0, 212, 106, .2);
 }
 
 .action-btn.primary:hover {
     background: #00c061;
-    color: #000;
+    color: #fff;
     box-shadow: 0 4px 14px rgba(0, 212, 106, .3);
 }
 
@@ -162,13 +162,13 @@
 .cmn-btn.cmn-btn-green,
 button.cmn-btn-green {
     background: #00d46a;
-    color: #000;
+    color: #fff;
 }
 
 .cmn-btn.cmn-btn-green:hover,
 button.cmn-btn-green:hover {
     background: #00b359;
-    color: #000;
+    color: #fff;
 }
 
 /* ── Card body padded ── */
@@ -514,7 +514,9 @@ button.cmn-btn-green:hover {
     gap: 5px;
 }
 
-.nt-breadcrumb-link:hover { color: #00c853; }
+.nt-breadcrumb-link:hover {
+    color: #00c853;
+}
 
 .nt-breadcrumb-sep {
     color: #d1d5db;
@@ -588,7 +590,9 @@ button.cmn-btn-green:hover {
     box-shadow: 0 0 0 3px rgba(0, 200, 83, .11);
 }
 
-.nt-input::placeholder { color: #9ca3af; }
+.nt-input::placeholder {
+    color: #9ca3af;
+}
 
 .nt-row-two {
     display: grid;
@@ -619,17 +623,45 @@ button.cmn-btn-green:hover {
     color: #6b7280;
 }
 
-.nt-priority-chip input[type="radio"] { display: none; }
+.nt-priority-chip input[type="radio"] {
+    display: none;
+}
 
-.nt-priority-chip.nt-p-low   { color: #6b7280; }
-.nt-priority-chip.nt-p-normal { color: #0088cc; }
-.nt-priority-chip.nt-p-high  { color: #e67e00; }
-.nt-priority-chip.nt-p-urgent { color: #dc2626; }
+.nt-priority-chip.nt-p-low {
+    color: #6b7280;
+}
 
-.nt-priority-chip.nt-p-low.is-active   { background: rgba(107,114,128,.1); border-color: #9ca3af; }
-.nt-priority-chip.nt-p-normal.is-active { background: rgba(0,136,204,.1); border-color: #0088cc; }
-.nt-priority-chip.nt-p-high.is-active  { background: rgba(230,126,0,.1); border-color: #e67e00; }
-.nt-priority-chip.nt-p-urgent.is-active { background: rgba(220,38,38,.1); border-color: #dc2626; }
+.nt-priority-chip.nt-p-normal {
+    color: #0088cc;
+}
+
+.nt-priority-chip.nt-p-high {
+    color: #e67e00;
+}
+
+.nt-priority-chip.nt-p-urgent {
+    color: #dc2626;
+}
+
+.nt-priority-chip.nt-p-low.is-active {
+    background: rgba(107, 114, 128, .1);
+    border-color: #9ca3af;
+}
+
+.nt-priority-chip.nt-p-normal.is-active {
+    background: rgba(0, 136, 204, .1);
+    border-color: #0088cc;
+}
+
+.nt-priority-chip.nt-p-high.is-active {
+    background: rgba(230, 126, 0, .1);
+    border-color: #e67e00;
+}
+
+.nt-priority-chip.nt-p-urgent.is-active {
+    background: rgba(220, 38, 38, .1);
+    border-color: #dc2626;
+}
 
 /* Department select */
 .nt-select-wrap {
@@ -689,7 +721,9 @@ button.cmn-btn-green:hover {
     box-shadow: 0 0 0 3px rgba(0, 200, 83, .11);
 }
 
-.nt-textarea::placeholder { color: #9ca3af; }
+.nt-textarea::placeholder {
+    color: #9ca3af;
+}
 
 .nt-hint {
     font-size: .74rem;
@@ -726,7 +760,9 @@ button.cmn-btn-green:hover {
     font-family: inherit;
 }
 
-.nt-submit-btn:hover { background: #00a046; }
+.nt-submit-btn:hover {
+    background: #00a046;
+}
 
 .nt-cancel-btn {
     padding: 11px 22px;
@@ -800,8 +836,15 @@ button.cmn-btn-green:hover {
     border-bottom: 1px solid #f3f4f6;
 }
 
-.nt-help-list li:last-child { border-bottom: none; }
-.nt-help-list .fa-check { color: #00c853; font-size: .65rem; flex-shrink: 0; }
+.nt-help-list li:last-child {
+    border-bottom: none;
+}
+
+.nt-help-list .fa-check {
+    color: #00c853;
+    font-size: .65rem;
+    flex-shrink: 0;
+}
 
 .nt-response-badge {
     display: inline-flex;
@@ -815,7 +858,9 @@ button.cmn-btn-green:hover {
     border-radius: 20px;
 }
 
-.nt-response-badge .fa-clock { color: #00c853; }
+.nt-response-badge .fa-clock {
+    color: #00c853;
+}
 
 .nt-tips-card {
     padding: 18px 20px;
@@ -831,7 +876,9 @@ button.cmn-btn-green:hover {
     gap: 7px;
 }
 
-.nt-tips-title .fa-lightbulb { color: #f59e0b; }
+.nt-tips-title .fa-lightbulb {
+    color: #f59e0b;
+}
 
 .nt-tips-list {
     list-style: none;
@@ -848,7 +895,9 @@ button.cmn-btn-green:hover {
     line-height: 1.45;
 }
 
-.nt-tips-list li:last-child { border-bottom: none; }
+.nt-tips-list li:last-child {
+    border-bottom: none;
+}
 
 .nt-tips-list li::before {
     content: '•';
@@ -864,9 +913,11 @@ button.cmn-btn-green:hover {
     .new-ticket-layout {
         grid-template-columns: 1fr;
     }
+
     .nt-sidebar {
         order: -1;
     }
+
     .nt-row-two {
         grid-template-columns: 1fr;
     }
