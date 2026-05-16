@@ -57,38 +57,10 @@ return [
     ],
 
     [
-        'label'        => 'Payment Settings',
-        'route'        => 'admin.payment.settings',
-        'icon'         => 'fas fa-credit-card',
-        'active_routes' => ['admin.payment.settings'],
-    ],
-
-    [
-        'label'        => 'IPTV Settings',
-        'route'        => 'admin.system.settings.iptv',
-        'icon'         => 'fas fa-tv',
-        'active_routes' => ['admin.system.settings.iptv'],
-    ],
-
-    [
-        'label'        => 'App Codes',
-        'route'        => 'admin.downloader-codes.index',
-        'icon'         => 'fas fa-download',
-        'active_routes' => ['admin.downloader-codes.*'],
-    ],
-
-    [
         'label'        => 'Featured Content',
         'route'        => 'admin.featured-content.index',
         'icon'         => 'fas fa-film',
         'active_routes' => ['admin.featured-content.*'],
-    ],
-
-    [
-        'label'        => 'Chat Widget',
-        'route'        => 'admin.settings.chat-widget',
-        'icon'         => 'fas fa-comments',
-        'active_routes' => ['admin.settings.chat-widget'],
     ],
 
     [
@@ -226,6 +198,10 @@ return [
             'admin.appearance.site.setting.*',
             'admin.system.settings.language.list',
             'admin.system.settings.language.translation',
+            'admin.payment.settings',
+            'admin.system.settings.iptv',
+            'admin.downloader-codes.*',
+            'admin.settings.chat-widget',
         ],
     ],
 

@@ -9,49 +9,12 @@
  */
 
 return [
-
-    [
-        'type'          => 'link',
-        'label'         => 'Environment',
-        'icon'          => 'fas fa-server',
-        'route'         => 'admin.system.settings.environment',
-        'active_routes' => ['admin.system.settings.environment'],
-        'permission'    => 'Update Environment',
-    ],
-
-    [
-        'type'          => 'link',
-        'label'         => 'SMTP',
-        'icon'          => 'fas fa-envelope',
-        'route'         => 'admin.system.settings.smtp',
-        'active_routes' => ['admin.system.settings.smtp'],
-        'permission'    => 'Update SMTP',
-    ],
-
-    [
-        'type'          => 'link',
-        'label'         => 'Social Logins',
-        'icon'          => 'fas fa-share-alt',
-        'route'         => 'admin.system.settings.social.login',
-        'active_routes' => ['admin.system.settings.social.login'],
-        'permission'    => 'Manage Social Login',
-    ],
-
     [
         'type'          => 'link',
         'label'         => 'Site Settings',
         'icon'          => 'fas fa-globe',
         'route'         => 'admin.appearance.site.setting',
         'active_routes' => ['admin.appearance.site.setting'],
-        'permission'    => 'Manage Site Settings',
-    ],
-
-    [
-        'type'          => 'link',
-        'label'         => 'Footer',
-        'icon'          => 'fas fa-layer-group',
-        'route'         => 'admin.appearance.site.setting.footer',
-        'active_routes' => ['admin.appearance.site.setting.footer'],
         'permission'    => 'Manage Site Settings',
     ],
 
@@ -82,6 +45,69 @@ return [
         'permission'    => 'Manage Site Settings',
     ],
 
+
+
+    [
+        'type'          => 'link',
+        'label'         => 'Payment Settings',
+        'icon'          => 'fas fa-credit-card',
+        'route'         => 'admin.payment.settings',
+        'active_routes' => ['admin.payment.settings'],
+        'permission'    => null,
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'IPTV Settings',
+        'icon'          => 'fas fa-tv',
+        'route'         => 'admin.system.settings.iptv',
+        'active_routes' => ['admin.system.settings.iptv'],
+        'permission'    => null,
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'App Codes',
+        'icon'          => 'fas fa-download',
+        'route'         => 'admin.downloader-codes.index',
+        'active_routes' => ['admin.downloader-codes.*'],
+        'permission'    => null,
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'Chat Widget',
+        'icon'          => 'fas fa-comments',
+        'route'         => 'admin.settings.chat-widget',
+        'active_routes' => ['admin.settings.chat-widget'],
+        'permission'    => null,
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'Social Logins',
+        'icon'          => 'fas fa-share-alt',
+        'route'         => 'admin.system.settings.social.login',
+        'active_routes' => ['admin.system.settings.social.login'],
+        'permission'    => 'Manage Social Login',
+    ],
+
+    [
+        'type'          => 'link',
+        'label'         => 'Footer',
+        'icon'          => 'fas fa-layer-group',
+        'route'         => 'admin.appearance.site.setting.footer',
+        'active_routes' => ['admin.appearance.site.setting.footer'],
+        'permission'    => 'Manage Site Settings',
+    ],
+    [
+        'type'          => 'link',
+        'label'         => 'Email Configuration',
+        'icon'          => 'fas fa-envelope',
+        'route'         => 'admin.system.settings.smtp',
+        'active_routes' => ['admin.system.settings.smtp'],
+        'permission'    => 'Update SMTP',
+    ],
     [
         'type'          => 'link',
         'label'         => 'Languages',
@@ -92,6 +118,14 @@ return [
             'admin.system.settings.language.translation',
         ],
         'permission'    => 'Manage Language',
+    ],
+    [
+        'type'          => 'link',
+        'label'         => 'Environment',
+        'icon'          => 'fas fa-server',
+        'route'         => 'admin.system.settings.environment',
+        'active_routes' => ['admin.system.settings.environment'],
+        'permission'    => 'Update Environment',
     ],
 
 ];
