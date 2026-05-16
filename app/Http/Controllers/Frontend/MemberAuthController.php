@@ -207,8 +207,10 @@ class MemberAuthController extends Controller
             ->first();
 
         $daysRemaining = $activeSubscription && $activeSubscription->expires_at
-            ? max(0, now()->diffInDays($activeSubscription->expires_at, false))
+            ? max(0, (int) now()->diffInDays($activeSubscription->expires_at, false))
             : 0;
+
+
 
         $openTickets = SupportTicket::where('user_id', $userId)
             ->whereIn('status', ['NEW', 'IN_PROGRESS', 'RE_OPEN'])
