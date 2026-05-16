@@ -13,8 +13,8 @@
     {{-- Upload Tab --}}
     <div class="tab-pane fade" id="upload-files" role="tabpanel" aria-labelledby="upload-files-tab">
         <div id="file-drop-area-wrappper" class="dz-wrapper">
-            <form method="post" action="#" id="media-upload" enctype="multipart/form-data"
-                class="dropzone media-upload">
+            <form method="post" action="{{ route('upload.media.file') }}" id="media-upload"
+                enctype="multipart/form-data" class="dropzone media-upload">
                 @csrf
                 <div class="dz-message" data-dz-message>
                     <div class="dz-icon-wrap">

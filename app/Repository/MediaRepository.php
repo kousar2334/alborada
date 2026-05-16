@@ -19,6 +19,15 @@ class MediaRepository
     {
         try {
             $files = $request->file('file');
+
+            if (empty($files)) {
+                return ['success' => false, 'message' => 'No file received'];
+            }
+
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+
             $uploaded_files = [];
             foreach ($files as $file) {
                 $extension = $file->getClientOriginalExtension();

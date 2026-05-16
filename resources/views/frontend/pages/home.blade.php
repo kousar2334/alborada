@@ -17,33 +17,37 @@
         {{-- ── HERO ── --}}
         @if (!isset($sections['hero']) || $sections['hero']->is_active)
             <section class="hero" id="hero">
-                <div class="hero-content-wrap">
-                    <div class="hero-left">
-                        <h1>{!! p_trans('home_hero_heading', null, 'Best IPTV subscription #1<br>for the USA and Canada.') !!}</h1>
-                        <p class="hero-desc">
-                            {{ p_trans('home_hero_desc', null, 'Experience unbeatable entertainment with the best IPTV service, offering the fastest and most reliable server in 4K, FHD, HD, and SD quality.') }}
-                        </p>
-                        <div class="hero-ctas">
-                            <a href="#pricing"
-                                class="btn btn-pink btn-lg">{{ p_trans('home_hero_btn1', null, 'Get Started') }}</a>
-                            <a href="{{ route('member.register') }}"
-                                class="btn btn-pink btn-lg">{{ p_trans('home_hero_btn2', null, 'Free Trial') }}</a>
-                        </div>
-                    </div>
-                    <div class="hero-right">
-                        @if (get_setting('home_hero_image'))
-                            <img src="{{ asset(getFilePath(get_setting('home_hero_image'))) }}"
-                                alt="{{ p_trans('home_hero_heading', null, 'Premium IPTV Streaming') }}" class="hero-img">
-                        @else
-                            <img src="https://picsum.photos/seed/iptv-hero/700/460" alt="Premium IPTV Streaming"
-                                class="hero-img">
-                        @endif
-                        <div class="hero-price-tag">
-                            <span class="from-label">{{ p_trans('home_hero_from_label', null, 'FROM') }}</span>
-                            <span class="price-num">{{ p_trans('home_hero_from_price', null, '11.99$') }}</span>
-                        </div>
-                    </div>
+                {{-- Background image (set from Home Page Builder) --}}
+                <div class="hero-bg" aria-hidden="true">
+                    @php $heroBgImage = p_trans('home_hero_bg_image', null, ''); @endphp
+                    @if ($heroBgImage)
+                        <img src="{{ asset(getFilePath($heroBgImage)) }}" alt="" class="hero-bg-img">
+                    @endif
                 </div>
+                {{-- Dark gradient overlay --}}
+                <div class="hero-overlay" aria-hidden="true"></div>
+                {{-- Center content --}}
+                <div class="hero-center">
+                    <h1>{!! p_trans('home_hero_heading', null, 'Unlimited channels, movies,<br>series, and more.') !!}</h1>
+                    <p class="hero-tagline">
+                        {{ p_trans('home_hero_from_label', null, 'Starts at') }}
+                        {{ p_trans('home_hero_from_price', null, '$11.99') }}.
+                        {{ p_trans('home_hero_cancel', null, 'Cancel anytime.') }}
+                    </p>
+                    <p class="hero-cta-hint">
+                        {{ p_trans('home_hero_cta_hint', null, 'Ready to watch? Enter your email to get started.') }}
+                    </p>
+                    <form class="hero-email-form" action="{{ route('member.register') }}" method="GET">
+                        <input type="email" name="email"
+                            placeholder="{{ p_trans('home_hero_email_placeholder', null, 'Email address') }}"
+                            class="hero-email-input">
+                        <button type="submit" class="hero-get-started-btn">
+                            {{ p_trans('home_hero_btn1', null, 'Get Started') }}
+                            <span class="hero-btn-arrow">&#8250;</span>
+                        </button>
+                    </form>
+                </div>
+                {{-- Stats bar --}}
                 <div class="hero-stats-bar">
                     <div class="hero-stats-row">
                         <div class="hero-stat-item">
