@@ -56,13 +56,11 @@
                 </div>
             @endif
         </div>
-        <form class="d-none">
-            <div class="d-flex gap-10 justify-content-end flex-wrap mt-2">
-                <button type="button" class="btn btn-link text-danger">
-                    {{ __tr('Delete Permanently') }}
-                </button>
-            </div>
-        </form>
+        <div class="d-flex justify-content-end mt-2 px-2 pb-2">
+            <button type="button" class="btn btn-sm btn-outline-danger delete-file" data-id="{{ $files[0]->id }}">
+                <i class="fas fa-trash-alt mr-1"></i> {{ __tr('Delete') }}
+            </button>
+        </div>
     </div>
 @endif
 @if ($files->count() > 1)
