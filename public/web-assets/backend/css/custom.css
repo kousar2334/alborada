@@ -634,6 +634,8 @@ div#filtered_media {
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin !important;
+    display: flex;
+    flex-direction: column;
 }
 
 .no-media {
@@ -1100,7 +1102,7 @@ div#filtered_media {
 .media-manager-wrap {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 192px);
+    height: calc(100vh - 196px);
     min-height: 520px;
 }
 
@@ -1126,9 +1128,34 @@ div#filtered_media {
     flex-shrink: 0;
 }
 
+/* Sidebar placeholder shown when no file is selected */
+.media-sidebar-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    gap: 14px;
+    min-height: 200px;
+}
+
+.media-sidebar-placeholder i {
+    font-size: 2.8rem;
+    color: #dee2e6;
+}
+
+.media-sidebar-placeholder p {
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.5;
+    color: #adb5bd;
+}
+
 @media (max-width: 991px) {
     .media-manager-wrap {
         height: auto;
-        min-height: calc(100vh - 192px);
+        min-height: 520px;
     }
 }

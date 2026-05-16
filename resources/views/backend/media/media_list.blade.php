@@ -83,9 +83,10 @@
 
             {{-- Preview sidebar: always visible, stacks below grid on mobile --}}
             <div class="media-preview-sidebar col-12 col-lg-2 border-left p-0" id="media-preview-section">
-                <h6 class="media-attachments-filter-heading mb-2 px-2 pt-2">
-                    {{ __tr('Media Details') }}
-                </h6>
+                <div class="media-sidebar-placeholder">
+                    <i class="fas fa-photo-video"></i>
+                    <p>{{ __tr('Select a file to view details') }}</p>
+                </div>
             </div>
 
         </div>
