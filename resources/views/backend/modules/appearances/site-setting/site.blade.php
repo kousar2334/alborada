@@ -15,24 +15,27 @@
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Site Description') }}</label>
-                    <textarea class="form-control" name="site_description" rows="3">{{ get_setting('site_description') }}</textarea>
+                    <textarea class="form-control" name="site_description" rows="3"
+                        placeholder="{{ __tr('Enter Site Description') }}">{{ get_setting('site_description') }}</textarea>
                 </div>
                 <div class="form-group">
                     <label>{{ __tr('Site Slogan') }}</label>
                     <input type="text" class="form-control" name="site_tagline"
                         placeholder="{{ __tr('Enter Site Slogan') }}" value="{{ get_setting('site_tagline') }}">
                 </div>
-                <div class="form-group">
-                    <label>{{ __tr('Site Logo') }}</label>
-                    <x-media name="site_logo" :value="get_setting('site_logo')"></x-media>
-                </div>
-                <div class="form-group">
-                    <label>{{ __tr('Site Logo (Dark Background)') }}</label>
-                    <x-media name="site_dark_logo" :value="get_setting('site_dark_logo')"></x-media>
-                </div>
-                <div class="form-group">
-                    <label>{{ __tr('Site Favicon') }}</label>
-                    <x-media name="site_favicon" :value="get_setting('site_favicon')"></x-media>
+                <div class="form-row">
+                    <div class="form-group col-lg-4">
+                        <label>{{ __tr('Site Logo') }}</label>
+                        <x-media name="site_logo" :value="get_setting('site_logo')"></x-media>
+                    </div>
+                    <div class="form-group col-lg-4">
+                        <label>{{ __tr('Site Logo (Dark Background)') }}</label>
+                        <x-media name="site_dark_logo" :value="get_setting('site_dark_logo')"></x-media>
+                    </div>
+                    <div class="form-group col-lg-4">
+                        <label>{{ __tr('Site Favicon') }}</label>
+                        <x-media name="site_favicon" :value="get_setting('site_favicon')"></x-media>
+                    </div>
                 </div>
                 <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary">{{ __tr('Save Changes') }}</button>
