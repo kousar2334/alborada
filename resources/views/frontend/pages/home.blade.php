@@ -151,7 +151,7 @@
         <div class="section-divider"></div>
 
         {{-- ── CHANNELS ── --}}
-        @if (!isset($sections['channels']) || $sections['channels']->is_active)
+        @if ((!isset($sections['channels']) || $sections['channels']->is_active) && isset($channels) && $channels->isNotEmpty())
             <section id="channels">
                 <div class="wrap">
                     <div class="sec-label">{{ p_trans('home_channels_label', null, 'Channel Lineup') }}</div>
@@ -163,42 +163,32 @@
                     {{-- Infinite auto-scroll ticker – pauses on hover --}}
                     <div class="ch-ticker-outer">
                         <div class="ch-ticker-track">
-                            @php
-                                $tickerChannels = [
-                                    ['logo' => 'ch-tl-espn', 'abbr' => 'ESPN', 'name' => 'ESPN'],
-                                    ['logo' => 'ch-tl-bbc', 'abbr' => 'BBC', 'name' => 'BBC One'],
-                                    ['logo' => 'ch-tl-cnn', 'abbr' => 'CNN', 'name' => 'CNN'],
-                                    ['logo' => 'ch-tl-sky', 'abbr' => 'SKY', 'name' => 'Sky Sports'],
-                                    ['logo' => 'ch-tl-fox', 'abbr' => 'FOX', 'name' => 'Fox Sports'],
-                                    ['logo' => 'ch-tl-hbo', 'abbr' => 'HBO', 'name' => 'HBO Max'],
-                                    ['logo' => 'ch-tl-natgeo', 'abbr' => 'NAT', 'name' => 'Nat Geo'],
-                                    ['logo' => 'ch-tl-disc', 'abbr' => 'DSC', 'name' => 'Discovery'],
-                                    ['logo' => 'ch-tl-mtv', 'abbr' => 'MTV', 'name' => 'MTV'],
-                                    ['logo' => 'ch-tl-bein', 'abbr' => 'beiN', 'name' => 'beIN Sports'],
-                                    ['logo' => 'ch-tl-euro', 'abbr' => 'EURO', 'name' => 'Eurosport'],
-                                    ['logo' => 'ch-tl-alj', 'abbr' => 'AJZ', 'name' => 'Al Jazeera'],
-                                    ['logo' => 'ch-tl-nfl', 'abbr' => 'NFL', 'name' => 'NFL Network'],
-                                    ['logo' => 'ch-tl-nba', 'abbr' => 'NBA', 'name' => 'NBA TV'],
-                                    ['logo' => 'ch-tl-tnt', 'abbr' => 'TNT', 'name' => 'TNT Sports'],
-                                    ['logo' => 'ch-tl-disney', 'abbr' => 'D+', 'name' => 'Disney+'],
-                                    ['logo' => 'ch-tl-ufc', 'abbr' => 'UFC', 'name' => 'UFC Fight'],
-                                    ['logo' => 'ch-tl-prime', 'abbr' => 'PRIME', 'name' => 'Prime Video'],
-                                    ['logo' => 'ch-tl-dazn', 'abbr' => 'DAZN', 'name' => 'DAZN'],
-                                    ['logo' => 'ch-tl-comedy', 'abbr' => 'COM', 'name' => 'Comedy Central'],
-                                ];
-                            @endphp
                             {{-- First set --}}
-                            @foreach ($tickerChannels as $ch)
+                            @foreach ($channels as $ch)
                                 <div class="ch-ticker-item">
-                                    <div class="ch-tl-logo {{ $ch['logo'] }}">{{ $ch['abbr'] }}</div>
-                                    <span class="ch-ticker-name">{{ $ch['name'] }}</span>
+                                    <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
+                                        @if ($ch->logo)
+                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}"
+                                                alt="{{ $ch->name }}" class="ch-tl-logo-img">
+                                        @else
+                                            <span class="ch-tl-logo-abbr">{{ strtoupper(substr($ch->name, 0, 3)) }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="ch-ticker-name">{{ $ch->name }}</span>
                                 </div>
                             @endforeach
                             {{-- Duplicate set for seamless loop --}}
-                            @foreach ($tickerChannels as $ch)
+                            @foreach ($channels as $ch)
                                 <div class="ch-ticker-item" aria-hidden="true">
-                                    <div class="ch-tl-logo {{ $ch['logo'] }}">{{ $ch['abbr'] }}</div>
-                                    <span class="ch-ticker-name">{{ $ch['name'] }}</span>
+                                    <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
+                                        @if ($ch->logo)
+                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}"
+                                                alt="{{ $ch->name }}" class="ch-tl-logo-img">
+                                        @else
+                                            <span class="ch-tl-logo-abbr">{{ strtoupper(substr($ch->name, 0, 3)) }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="ch-ticker-name">{{ $ch->name }}</span>
                                 </div>
                             @endforeach
                         </div>

@@ -64,6 +64,13 @@ return [
     ],
 
     [
+        'label'        => 'Channels',
+        'route'        => 'admin.channels.index',
+        'icon'         => 'fas fa-tv',
+        'active_routes' => ['admin.channels.*'],
+    ],
+
+    [
         'label'        => 'Media',
         'route'        => 'admin.media.list',
         'icon'         => 'fas fa-photo-video',

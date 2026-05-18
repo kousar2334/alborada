@@ -26,6 +26,7 @@ use App\Http\Controllers\Backend\ApiLogController;
 use App\Http\Controllers\Backend\AppDownloaderCodeController;
 use App\Http\Controllers\Backend\FeaturedContentController;
 use App\Http\Controllers\Backend\MediaContentController;
+use App\Http\Controllers\Backend\ChannelController;
 
 Route::prefix('admin')->group(function () {
 
@@ -406,5 +407,19 @@ Route::prefix('admin')->group(function () {
         // ── Chat Widget Settings ──────────────────────────────────────────────
         Route::get('/settings/chat-widget', [SettingController::class, 'chatWidget'])->name('admin.settings.chat-widget');
         Route::post('/settings/chat-widget/update', [SettingController::class, 'updateChatWidget'])->name('admin.settings.chat-widget.update');
+
+        // ── Channels ──────────────────────────────────────────────────────────
+        Route::resource('channels', ChannelController::class)
+            ->except(['show'])
+            ->names([
+                'index'   => 'admin.channels.index',
+                'create'  => 'admin.channels.create',
+                'store'   => 'admin.channels.store',
+                'edit'    => 'admin.channels.edit',
+                'update'  => 'admin.channels.update',
+                'destroy' => 'admin.channels.destroy',
+            ]);
+        Route::post('/channels/{channel}/toggle', [ChannelController::class, 'toggleStatus'])
+            ->name('admin.channels.toggle');
     });
 });

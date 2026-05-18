@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Channel;
 use App\Models\FeaturedContent;
 use App\Models\HomePageSection;
 use App\Models\MediaContent;
@@ -43,7 +44,12 @@ class HomepageController extends Controller
             ->take(12)
             ->get();
 
-        return view('frontend.pages.home', compact('sections', 'plans', 'featuredContent', 'upcomingEvents', 'tvShows'));
+        $channels = Channel::where('status', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        return view('frontend.pages.home', compact('sections', 'plans', 'featuredContent', 'upcomingEvents', 'tvShows', 'channels'));
     }
 
     private function activeSections(): array
