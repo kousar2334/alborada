@@ -5,11 +5,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── AUTO-SCROLL MOVIE SLIDER ──
     const slider = document.getElementById('movieSlider');
     if (slider) {
+        const cardStep = () => {
+            const card = slider.querySelector('.movie-card');
+            return card ? card.offsetWidth + 18 : 238;
+        };
+
         let paused = false;
         let interval = setInterval(() => {
             if (paused) return;
-            const card = slider.querySelector('.movie-card');
-            const cardW = card ? card.offsetWidth + 18 : 238;
+            const cardW = cardStep();
             if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - cardW) {
                 slider.scrollTo({ left: 0, behavior: 'smooth' });
             } else {
@@ -20,7 +24,43 @@ document.addEventListener('DOMContentLoaded', function () {
         slider.addEventListener('mouseleave', () => paused = false);
         slider.addEventListener('touchstart', () => paused = true, { passive: true });
         slider.addEventListener('touchend', () => setTimeout(() => paused = false, 2000), { passive: true });
+
+        // ── PREV / NEXT ARROWS ──
+        const prevBtn = document.getElementById('moviePrev');
+        const nextBtn = document.getElementById('movieNext');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                paused = true;
+                slider.scrollBy({ left: -cardStep(), behavior: 'smooth' });
+                setTimeout(() => paused = false, 1500);
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                paused = true;
+                slider.scrollBy({ left: cardStep(), behavior: 'smooth' });
+                setTimeout(() => paused = false, 1500);
+            });
+        }
     }
+
+    // ── TV SHOWS FILTER TABS ──
+    const filterBtns = document.querySelectorAll('.tvs-filter-btn');
+    const tvsCards   = document.querySelectorAll('.tvs-card');
+    filterBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            filterBtns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            const filter = btn.getAttribute('data-filter');
+            tvsCards.forEach(function (card) {
+                if (filter === 'all' || card.getAttribute('data-type') === filter) {
+                    card.classList.remove('tvs-hidden');
+                } else {
+                    card.classList.add('tvs-hidden');
+                }
+            });
+        });
+    });
 
     // ── STAGGERED FADE-IN ON SCROLL ──
     const observer = new IntersectionObserver((entries) => {

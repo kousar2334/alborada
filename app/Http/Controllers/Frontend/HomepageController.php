@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\FeaturedContent;
 use App\Models\HomePageSection;
+use App\Models\MediaContent;
 use App\Models\PricingPlan;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
@@ -35,7 +36,14 @@ class HomepageController extends Controller
             ->take(6)
             ->get();
 
-        return view('frontend.pages.home', compact('sections', 'plans', 'featuredContent', 'upcomingEvents'));
+        $tvShows = MediaContent::where('is_active', true)
+            ->where('featured_on_home', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at')
+            ->take(12)
+            ->get();
+
+        return view('frontend.pages.home', compact('sections', 'plans', 'featuredContent', 'upcomingEvents', 'tvShows'));
     }
 
     private function activeSections(): array
@@ -53,6 +61,7 @@ class HomepageController extends Controller
             'devices'          => ['title' => 'Compatible Devices', 'sort_order' => 80],
             'setup'            => ['title' => 'How to Order', 'sort_order' => 90],
             'why'              => ['title' => 'Why Choose Us', 'sort_order' => 100],
+            'tv_shows'         => ['title' => 'Movies & TV Shows', 'sort_order' => 105],
             'channels'         => ['title' => 'Channel Lineup', 'sort_order' => 110],
             'faq'              => ['title' => 'FAQ', 'sort_order' => 120],
             'reseller'         => ['title' => 'Reseller Program', 'sort_order' => 130],

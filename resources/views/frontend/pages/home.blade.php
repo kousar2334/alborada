@@ -68,7 +68,146 @@
         @endif
 
         <div class="section-divider"></div>
+        {{-- ── MOVIES ── --}}
+        <section id="movies">
+            <div class="wrap">
+                <div class="sec-label">{{ p_trans('home_movies_label', null, 'Content Library') }}</div>
+                <div class="sec-head">
+                    <h2>{{ p_trans('home_movies_heading', null, 'Featured titles & live events') }}</h2>
+                    <p>{{ p_trans('home_movies_desc', null, 'Browse top films, series and sports in a cinematic preview — all instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
+                    </p>
+                </div>
+            </div>
+            <div class="wrap">
+                <div class="slider-outer">
+                    <button class="movie-arrow-btn movie-arrow-prev" id="moviePrev" aria-label="Previous">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="slider-track" id="movieSlider">
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf01/320/460" alt="Action" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Action</span>
+                                <h4>Blockbuster Hits</h4>
+                                <p>Live-action thrillers & exclusive premieres.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf02/320/460" alt="Drama" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Drama</span>
+                                <h4>Award Dramas</h4>
+                                <p>High-quality series instantly on demand.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf03/320/460" alt="Sports" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Sports</span>
+                                <h4>Live Sports</h4>
+                                <p>Top leagues & tournaments worldwide.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf04/320/460" alt="Kids" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Family</span>
+                                <h4>Kids & Family</h4>
+                                <p>Cartoons and family-friendly content.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
+                                <h4>Sci-Fi & Fantasy</h4>
+                                <p>Mind-bending worlds and epic adventures.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf05/320/460" alt="Documentary" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Documentary</span>
+                                <h4>Top Documentaries</h4>
+                                <p>Premium true stories curated for you.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
+                                <h4>Sci-Fi & Fantasy</h4>
+                                <p>Mind-bending worlds and epic adventures.</p>
+                            </div>
+                        </div>
+                        <div class="movie-card">
+                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
+                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
+                                <h4>Sci-Fi & Fantasy</h4>
+                                <p>Mind-bending worlds and epic adventures.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="movie-arrow-btn movie-arrow-next" id="movieNext" aria-label="Next">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
 
+        <div class="section-divider"></div>
+
+        {{-- ── CHANNELS ── --}}
+        @if (!isset($sections['channels']) || $sections['channels']->is_active)
+            <section id="channels">
+                <div class="wrap">
+                    <div class="sec-label">{{ p_trans('home_channels_label', null, 'Channel Lineup') }}</div>
+                    <div class="sec-head">
+                        <h2>{{ p_trans('home_channels_heading', null, 'Premium channels, curated') }}</h2>
+                        <p>{{ p_trans('home_channels_desc', null, 'Scroll through our top channel categories — 40,000+ live feeds available instantly.') }}
+                        </p>
+                    </div>
+                    {{-- Infinite auto-scroll ticker – pauses on hover --}}
+                    <div class="ch-ticker-outer">
+                        <div class="ch-ticker-track">
+                            @php
+                                $tickerChannels = [
+                                    ['logo' => 'ch-tl-espn', 'abbr' => 'ESPN', 'name' => 'ESPN'],
+                                    ['logo' => 'ch-tl-bbc', 'abbr' => 'BBC', 'name' => 'BBC One'],
+                                    ['logo' => 'ch-tl-cnn', 'abbr' => 'CNN', 'name' => 'CNN'],
+                                    ['logo' => 'ch-tl-sky', 'abbr' => 'SKY', 'name' => 'Sky Sports'],
+                                    ['logo' => 'ch-tl-fox', 'abbr' => 'FOX', 'name' => 'Fox Sports'],
+                                    ['logo' => 'ch-tl-hbo', 'abbr' => 'HBO', 'name' => 'HBO Max'],
+                                    ['logo' => 'ch-tl-natgeo', 'abbr' => 'NAT', 'name' => 'Nat Geo'],
+                                    ['logo' => 'ch-tl-disc', 'abbr' => 'DSC', 'name' => 'Discovery'],
+                                    ['logo' => 'ch-tl-mtv', 'abbr' => 'MTV', 'name' => 'MTV'],
+                                    ['logo' => 'ch-tl-bein', 'abbr' => 'beiN', 'name' => 'beIN Sports'],
+                                    ['logo' => 'ch-tl-euro', 'abbr' => 'EURO', 'name' => 'Eurosport'],
+                                    ['logo' => 'ch-tl-alj', 'abbr' => 'AJZ', 'name' => 'Al Jazeera'],
+                                    ['logo' => 'ch-tl-nfl', 'abbr' => 'NFL', 'name' => 'NFL Network'],
+                                    ['logo' => 'ch-tl-nba', 'abbr' => 'NBA', 'name' => 'NBA TV'],
+                                    ['logo' => 'ch-tl-tnt', 'abbr' => 'TNT', 'name' => 'TNT Sports'],
+                                    ['logo' => 'ch-tl-disney', 'abbr' => 'D+', 'name' => 'Disney+'],
+                                    ['logo' => 'ch-tl-ufc', 'abbr' => 'UFC', 'name' => 'UFC Fight'],
+                                    ['logo' => 'ch-tl-prime', 'abbr' => 'PRIME', 'name' => 'Prime Video'],
+                                    ['logo' => 'ch-tl-dazn', 'abbr' => 'DAZN', 'name' => 'DAZN'],
+                                    ['logo' => 'ch-tl-comedy', 'abbr' => 'COM', 'name' => 'Comedy Central'],
+                                ];
+                            @endphp
+                            {{-- First set --}}
+                            @foreach ($tickerChannels as $ch)
+                                <div class="ch-ticker-item">
+                                    <div class="ch-tl-logo {{ $ch['logo'] }}">{{ $ch['abbr'] }}</div>
+                                    <span class="ch-ticker-name">{{ $ch['name'] }}</span>
+                                </div>
+                            @endforeach
+                            {{-- Duplicate set for seamless loop --}}
+                            @foreach ($tickerChannels as $ch)
+                                <div class="ch-ticker-item" aria-hidden="true">
+                                    <div class="ch-tl-logo {{ $ch['logo'] }}">{{ $ch['abbr'] }}</div>
+                                    <span class="ch-ticker-name">{{ $ch['name'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <div class="section-divider"></div>
         {{-- ── ABOUT ── --}}
         @if (!isset($sections['about']) || $sections['about']->is_active)
             <section id="about">
@@ -116,67 +255,6 @@
 
         <div class="section-divider"></div>
 
-        {{-- ── MOVIES ── --}}
-        <section id="movies">
-            <div class="wrap">
-                <div class="sec-label">{{ p_trans('home_movies_label', null, 'Content Library') }}</div>
-                <div class="sec-head">
-                    <h2>{{ p_trans('home_movies_heading', null, 'Featured titles & live events') }}</h2>
-                    <p>{{ p_trans('home_movies_desc', null, 'Browse top films, series and sports in a cinematic preview — all instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
-                    </p>
-                </div>
-            </div>
-            <div class="wrap">
-                <div class="slider-outer">
-                    <div class="slider-track" id="movieSlider">
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf01/320/460" alt="Action" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Action</span>
-                                <h4>Blockbuster Hits</h4>
-                                <p>Live-action thrillers & exclusive premieres.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf02/320/460" alt="Drama" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Drama</span>
-                                <h4>Award Dramas</h4>
-                                <p>High-quality series instantly on demand.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf03/320/460" alt="Sports" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sports</span>
-                                <h4>Live Sports</h4>
-                                <p>Top leagues & tournaments worldwide.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf04/320/460" alt="Kids" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Family</span>
-                                <h4>Kids & Family</h4>
-                                <p>Cartoons and family-friendly content.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf05/320/460" alt="Documentary" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Documentary</span>
-                                <h4>Top Documentaries</h4>
-                                <p>Premium true stories curated for you.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
-                                <h4>Sci-Fi & Fantasy</h4>
-                                <p>Mind-bending worlds and epic adventures.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="section-divider"></div>
 
         {{-- ── FEATURED CONTENT ── --}}
         @if ((!isset($sections['featured_content']) || $sections['featured_content']->is_active) && $featuredContent->count())
@@ -197,7 +275,7 @@
                                     <span class="home-content-badge">{{ $fc->badge_text }}</span>
                                 @endif
                                 @if ($fc->thumbnail)
-                                    <img src="{{ asset($fc->thumbnail) }}" alt="{{ $fc->title }}"
+                                    <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}" alt="{{ $fc->title }}"
                                         class="home-content-thumb">
                                 @else
                                     <div class="home-content-thumb-placeholder">
@@ -728,43 +806,78 @@
 
         <div class="section-divider"></div>
 
-        {{-- ── CHANNELS ── --}}
-        @if (!isset($sections['channels']) || $sections['channels']->is_active)
-            <section id="channels">
+        {{-- ── MOVIES & TV SHOWS ── --}}
+        @if ((!isset($sections['tv_shows']) || $sections['tv_shows']->is_active) && isset($tvShows) && $tvShows->count())
+            <section id="tv-shows">
                 <div class="wrap">
-                    <div class="sec-label">{{ p_trans('home_channels_label', null, 'Channel Lineup') }}</div>
-                    <div class="sec-head">
-                        <h2>{{ p_trans('home_channels_heading', null, 'Premium channels, curated') }}</h2>
-                        <p>{{ p_trans('home_channels_desc', null, 'Scroll through our top channel categories — 40,000+ live feeds available instantly.') }}
+                    <div class="sec-label">{{ p_trans('home_tvshows_label', null, 'Movies & TV Shows') }}</div>
+                    <div class="sec-head centered">
+                        <h2>{{ p_trans('home_tvshows_heading', null, 'Blockbusters & Binge-Worthy Series') }}</h2>
+                        <p>{{ p_trans('home_tvshows_desc', null, 'Stream the latest movies and top TV series on demand — all included in your subscription.') }}
                         </p>
                     </div>
-                    <div class="channels-grid">
-                        <div class="ch-card">
-                            <div class="ch-icon sports">⚽</div><span class="ch-name">Sports Hub</span>
-                            <div class="ch-sub">Live sports channels</div>
-                        </div>
-                        <div class="ch-card">
-                            <div class="ch-icon movies">🎬</div><span class="ch-name">Movie Max</span>
-                            <div class="ch-sub">Blockbusters & premieres</div>
-                        </div>
-                        <div class="ch-card">
-                            <div class="ch-icon kids">🧒</div><span class="ch-name">Kids TV</span>
-                            <div class="ch-sub">Family entertainment</div>
-                        </div>
-                        <div class="ch-card">
-                            <div class="ch-icon music">🎵</div><span class="ch-name">Music Live</span>
-                            <div class="ch-sub">Top music channels</div>
-                        </div>
-                        <div class="ch-card">
-                            <div class="ch-icon news">📰</div><span class="ch-name">News 24/7</span>
-                            <div class="ch-sub">Global news coverage</div>
-                        </div>
+
+                    {{-- Filter tabs --}}
+                    <div class="tvs-filter-row">
+                        <button class="tvs-filter-btn active" data-filter="all">All</button>
+                        <button class="tvs-filter-btn" data-filter="movie">Movies</button>
+                        <button class="tvs-filter-btn" data-filter="tv_show">TV Shows</button>
+                    </div>
+
+                    <div class="tvs-grid" id="tvsGrid">
+                        @foreach ($tvShows as $show)
+                            <div class="tvs-card" data-type="{{ $show->type }}">
+                                <div class="tvs-poster">
+                                    @if ($show->thumbnail)
+                                        <img src="{{ asset($show->thumbnail) }}" alt="{{ $show->title }}"
+                                            class="tvs-poster-img">
+                                    @else
+                                        <div class="tvs-poster-placeholder">
+                                            <i class="fas {{ $show->type_icon }}"></i>
+                                        </div>
+                                    @endif
+                                    <div class="tvs-poster-overlay"></div>
+                                    @if ($show->badge_text)
+                                        <span class="tvs-badge">{{ $show->badge_text }}</span>
+                                    @endif
+                                    <span class="tvs-type-pill tvs-type-{{ $show->type }}">
+                                        {{ $show->type_label }}
+                                    </span>
+                                    @if ($show->youtube_embed_id)
+                                        <a href="https://www.youtube.com/watch?v={{ $show->youtube_embed_id }}"
+                                            target="_blank" rel="noopener" class="tvs-play-btn" title="Watch Trailer">
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                                <div class="tvs-info">
+                                    <div class="tvs-meta-row">
+                                        @if ($show->release_year)
+                                            <span class="tvs-year">{{ $show->release_year }}</span>
+                                        @endif
+                                        @if ($show->rating)
+                                            <span class="tvs-rating">⭐ {{ number_format($show->rating, 1) }}</span>
+                                        @endif
+                                        @if ($show->type === 'tv_show' && $show->seasons)
+                                            <span class="tvs-seasons">{{ $show->seasons }}S</span>
+                                        @endif
+                                    </div>
+                                    <h4 class="tvs-title">{{ $show->title }}</h4>
+                                    @if ($show->genre)
+                                        <p class="tvs-genre">{{ $show->genre }}</p>
+                                    @endif
+                                    @if ($show->description)
+                                        <p class="tvs-desc">{{ Str::limit($show->description, 100) }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </section>
-        @endif
 
-        <div class="section-divider"></div>
+            <div class="section-divider"></div>
+        @endif
 
         {{-- ── FAQ ── --}}
         @if (!isset($sections['faq']) || $sections['faq']->is_active)

@@ -1639,19 +1639,19 @@ header.header-style-01 {
     font-weight: 600;
     border-radius: 50px;
     gap: 6px;
-    background: linear-gradient(135deg, #e91e8c 0%, #c2185b 100%);
+    background: linear-gradient(135deg, #ff3b3b 0%, #cc0000 100%);
     color: #fff;
     border: none;
-    box-shadow: 0 4px 18px rgba(233, 30, 140, 0.4);
+    box-shadow: 0 4px 18px rgba(255, 59, 59, 0.45);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .nav-post-btn .cmn-btn:hover {
-    background: linear-gradient(135deg, #f72ea0 0%, #d81b60 100%);
+    background: linear-gradient(135deg, #ff5555 0%, #e60000 100%);
     color: #fff;
-    box-shadow: 0 6px 24px rgba(233, 30, 140, 0.6);
+    box-shadow: 0 6px 28px rgba(255, 59, 59, 0.65);
     transform: translateY(-1px);
 }
 
@@ -10613,6 +10613,42 @@ section {
     box-shadow: 0 0 8px var(--green-glow);
 }
 
+/* ─────────────────── MOVIE SLIDER ARROWS ─────────────────── */
+.movie-arrow-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-60%);
+    z-index: 3;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(13, 17, 37, 0.82);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    backdrop-filter: blur(8px);
+    transition: background 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.movie-arrow-prev {
+    left: 14px;
+}
+
+.movie-arrow-next {
+    right: 14px;
+}
+
+.movie-arrow-btn:hover {
+    background: #e50914;
+    border-color: rgba(229, 9, 20, 0.6);
+    transform: translateY(-60%) scale(1.12);
+    box-shadow: 0 4px 20px rgba(229, 9, 20, 0.45);
+}
+
 /* ─────────────────── MOVIE SLIDER ─────────────────── */
 .slider-outer {
     position: relative;
@@ -11164,48 +11200,159 @@ section {
     text-align: center;
 }
 
-/* ─────────────────── CHANNELS GRID ─────────────────── */
-.channels-grid {
+/* ─────────────────── CHANNEL TICKER ─────────────────── */
+@keyframes chScroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.ch-ticker-outer {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+}
+
+.ch-ticker-track {
     display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    scrollbar-width: none;
+    gap: 20px;
+    width: max-content;
+    animation: chScroll 40s linear infinite;
+    padding: 12px 0 16px;
 }
 
-.channels-grid::-webkit-scrollbar {
-    display: none;
+.ch-ticker-outer:hover .ch-ticker-track {
+    animation-play-state: paused;
 }
 
-.ch-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    margin: 0 auto 14px;
+.ch-ticker-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.ch-tl-logo {
+    width: 88px;
+    height: 88px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
 }
 
-.ch-icon.sports {
-    background: linear-gradient(135deg, #1a0505, #3d0000);
+.ch-ticker-item:hover .ch-tl-logo {
+    transform: translateY(-5px) scale(1.07);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
-.ch-icon.movies {
-    background: linear-gradient(135deg, #030d1a, #001935);
+.ch-ticker-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color 0.2s;
 }
 
-.ch-icon.kids {
-    background: linear-gradient(135deg, #0a1a03, #0d2e00);
+.ch-ticker-item:hover .ch-ticker-name {
+    color: var(--text);
 }
 
-.ch-icon.music {
-    background: linear-gradient(135deg, #1a0a03, #2e1500);
+/* ── Channel logo brand colours ── */
+.ch-tl-espn {
+    background: linear-gradient(135deg, #cc0c39, #8b0020);
 }
 
-.ch-icon.news {
-    background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+.ch-tl-bbc {
+    background: linear-gradient(135deg, #bb1919, #7a0000);
+}
+
+.ch-tl-cnn {
+    background: linear-gradient(135deg, #cc0000, #8b0000);
+}
+
+.ch-tl-sky {
+    background: linear-gradient(135deg, #005fab, #003d7a);
+}
+
+.ch-tl-fox {
+    background: linear-gradient(135deg, #003da5, #001f60);
+}
+
+.ch-tl-hbo {
+    background: linear-gradient(135deg, #1c1c2e, #0d0d1a);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.ch-tl-natgeo {
+    background: linear-gradient(135deg, #f5c400, #c49800);
+    color: #000;
+}
+
+.ch-tl-disc {
+    background: linear-gradient(135deg, #005daa, #003d7a);
+}
+
+.ch-tl-mtv {
+    background: linear-gradient(135deg, #111, #2a2a2a);
+}
+
+.ch-tl-bein {
+    background: linear-gradient(135deg, #8b0000, #5a0000);
+}
+
+.ch-tl-euro {
+    background: linear-gradient(135deg, #003bac, #001f70);
+}
+
+.ch-tl-alj {
+    background: linear-gradient(135deg, #009e47, #006630);
+}
+
+.ch-tl-nfl {
+    background: linear-gradient(135deg, #013369, #001a40);
+}
+
+.ch-tl-nba {
+    background: linear-gradient(135deg, #c9082a, #8b0020);
+}
+
+.ch-tl-tnt {
+    background: linear-gradient(135deg, #1a356e, #0a1a40);
+}
+
+.ch-tl-disney {
+    background: linear-gradient(135deg, #003087, #001a5c);
+}
+
+.ch-tl-ufc {
+    background: linear-gradient(135deg, #d4001a, #8b0011);
+}
+
+.ch-tl-prime {
+    background: linear-gradient(135deg, #00a8e1, #0077a8);
+}
+
+.ch-tl-dazn {
+    background: linear-gradient(135deg, #0f0f0f, #252525);
+}
+
+.ch-tl-comedy {
+    background: linear-gradient(135deg, #f5ed00, #c4bc00);
+    color: #000;
 }
 
 /* ─────────────────── FAQ ─────────────────── */
@@ -12561,5 +12708,600 @@ details[open] .faq-chevron {
     .pricing-toggle-wrap {
         flex-wrap: wrap;
         justify-content: center;
+    }
+}
+
+/* ════════════════════════════════════════════════
+   COLORFUL ENHANCEMENTS
+   ════════════════════════════════════════════════ */
+
+/* ── HERO: red/green decorative orbs behind bg image ── */
+.hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 55% 50% at 12% 42%, rgba(255, 59, 59, 0.2) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 40% at 88% 28%, rgba(0, 230, 118, 0.16) 0%, transparent 55%),
+        radial-gradient(ellipse 38% 32% at 52% 82%, rgba(255, 59, 59, 0.12) 0%, transparent 55%);
+    pointer-events: none;
+}
+
+/* Hero heading – red-to-green gradient text */
+.hero-center h1 {
+    background: linear-gradient(135deg, #ffffff 0%, #ffe5e5 40%, #e5fff2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Hero stat numbers – red / green / red-green mix */
+.hero-stats-row .hero-stat-item:nth-child(1) .stat-num {
+    color: #00e676;
+}
+
+.hero-stats-row .hero-stat-item:nth-child(2) .stat-num {
+    color: #ff3b3b;
+}
+
+.hero-stats-row .hero-stat-item:nth-child(3) .stat-num {
+    color: #00e676;
+}
+
+/* ── SECTION BACKGROUND TINTS – red/green alternation ── */
+#about {
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.04) 0%, transparent 55%);
+}
+
+#categories {
+    background: linear-gradient(135deg, rgba(255, 59, 59, 0.04) 0%, transparent 55%);
+}
+
+#features {
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.04) 0%, transparent 55%);
+}
+
+#why {
+    background: linear-gradient(135deg, rgba(255, 59, 59, 0.04) 0%, transparent 55%);
+}
+
+#setup {
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.04) 0%, transparent 55%);
+}
+
+#channels {
+    background: linear-gradient(135deg, rgba(255, 59, 59, 0.04) 0%, transparent 55%);
+}
+
+/* ── SECTION LABELS – alternating red/green per section ── */
+#features .sec-label {
+    color: #ff3b3b;
+}
+
+#features .sec-label::before {
+    background: #ff3b3b;
+}
+
+#categories .sec-label {
+    color: #00e676;
+}
+
+#categories .sec-label::before {
+    background: #00e676;
+}
+
+#devices .sec-label {
+    color: #ff3b3b;
+}
+
+#devices .sec-label::before {
+    background: #ff3b3b;
+}
+
+#reviews .sec-label {
+    color: #00e676;
+}
+
+#reviews .sec-label::before {
+    background: #00e676;
+}
+
+#why .sec-label {
+    color: #ff3b3b;
+}
+
+#why .sec-label::before {
+    background: #ff3b3b;
+}
+
+#faq .sec-label {
+    color: #00e676;
+}
+
+#faq .sec-label::before {
+    background: #00e676;
+}
+
+#setup .sec-label {
+    color: #ff3b3b;
+}
+
+#setup .sec-label::before {
+    background: #ff3b3b;
+}
+
+#channels .sec-label {
+    color: #00e676;
+}
+
+#channels .sec-label::before {
+    background: #00e676;
+}
+
+/* ── ABOUT STAT CARDS – alternating green/red values ── */
+.about-stats .about-stat-card:nth-child(1) {
+    border-color: rgba(0, 230, 118, 0.3);
+}
+
+.about-stats .about-stat-card:nth-child(2) {
+    border-color: rgba(255, 59, 59, 0.3);
+}
+
+.about-stats .about-stat-card:nth-child(3) {
+    border-color: rgba(0, 230, 118, 0.3);
+}
+
+.about-stats .about-stat-card:nth-child(4) {
+    border-color: rgba(255, 59, 59, 0.3);
+}
+
+.about-stats .about-stat-card:nth-child(1) .about-stat-val {
+    color: #00e676;
+}
+
+.about-stats .about-stat-card:nth-child(2) .about-stat-val {
+    color: #ff3b3b;
+}
+
+.about-stats .about-stat-card:nth-child(3) .about-stat-val {
+    color: #00e676;
+}
+
+.about-stats .about-stat-card:nth-child(4) .about-stat-val {
+    color: #ff3b3b;
+}
+
+/* ── CATEGORY CARDS – alternating red/green per card ── */
+.categories-grid .category-card:nth-child(1) {
+    border-top: 2px solid rgba(255, 59, 59, 0.5);
+}
+
+.categories-grid .category-card:nth-child(2) {
+    border-top: 2px solid rgba(0, 230, 118, 0.5);
+}
+
+.categories-grid .category-card:nth-child(3) {
+    border-top: 2px solid rgba(255, 59, 59, 0.5);
+}
+
+.categories-grid .category-card:nth-child(4) {
+    border-top: 2px solid rgba(0, 230, 118, 0.5);
+}
+
+.categories-grid .category-card:nth-child(1)::after {
+    background: linear-gradient(90deg, #ff3b3b, #00e676);
+}
+
+.categories-grid .category-card:nth-child(2)::after {
+    background: linear-gradient(90deg, #00e676, #ff3b3b);
+}
+
+.categories-grid .category-card:nth-child(3)::after {
+    background: linear-gradient(90deg, #ff3b3b, #00e676);
+}
+
+.categories-grid .category-card:nth-child(4)::after {
+    background: linear-gradient(90deg, #00e676, #ff3b3b);
+}
+
+/* ── CHANNEL ICONS – red/green gradient backgrounds ── */
+.ch-icon.sports {
+    background: linear-gradient(135deg, #7f1d1d, #dc2626);
+}
+
+.ch-icon.movies {
+    background: linear-gradient(135deg, #064e3b, #10b981);
+}
+
+.ch-icon.kids {
+    background: linear-gradient(135deg, #064e3b, #00e676);
+}
+
+.ch-icon.music {
+    background: linear-gradient(135deg, #7f1d1d, #ff3b3b);
+}
+
+.ch-icon.news {
+    background: linear-gradient(135deg, #022c22, #00e676);
+}
+
+/* ── ORDER STEPS – step 1 red, step 2 green, step 3 red ── */
+.order-steps-grid .order-step:nth-child(1) .order-step-num {
+    background: rgba(255, 59, 59, 0.12);
+    border-color: rgba(255, 59, 59, 0.35);
+    color: #ff3b3b;
+}
+
+.order-steps-grid .order-step:nth-child(2) .order-step-num {
+    background: rgba(0, 230, 118, 0.12);
+    border-color: rgba(0, 230, 118, 0.35);
+    color: #00e676;
+}
+
+.order-steps-grid .order-step:nth-child(3) .order-step-num {
+    background: rgba(255, 59, 59, 0.12);
+    border-color: rgba(255, 59, 59, 0.35);
+    color: #ff3b3b;
+}
+
+/* ── WHY CARDS – third card gets green icon ── */
+.why-grid .why-card:nth-child(3) .why-icon.w {
+    background: rgba(0, 230, 118, 0.1);
+    color: #00e676;
+}
+
+/* ── REVIEW CARDS – red / green / red left border ── */
+.reviews-grid .review-card:nth-child(1) {
+    border-left: 3px solid #ff3b3b;
+}
+
+.reviews-grid .review-card:nth-child(2) {
+    border-left: 3px solid #00e676;
+}
+
+.reviews-grid .review-card:nth-child(3) {
+    border-left: 3px solid #ff3b3b;
+}
+
+/* ── DEVICE CARDS – red/green emoji icon wrapper ── */
+.device-emoji {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    font-size: 2rem;
+}
+
+.devices-grid .device-card:nth-child(1) .device-emoji {
+    background: rgba(0, 230, 118, 0.12);
+}
+
+.devices-grid .device-card:nth-child(2) .device-emoji {
+    background: rgba(255, 59, 59, 0.12);
+}
+
+.devices-grid .device-card:nth-child(3) .device-emoji {
+    background: rgba(0, 230, 118, 0.12);
+}
+
+.devices-grid .device-card:nth-child(4) .device-emoji {
+    background: rgba(255, 59, 59, 0.12);
+}
+
+/* ── MOVIE GENRE TAGS – alternating red/green badges ── */
+.movie-card:nth-child(1) .genre-tag {
+    background: rgba(255, 59, 59, 0.2);
+    color: #ff7b7b;
+}
+
+.movie-card:nth-child(2) .genre-tag {
+    background: rgba(0, 230, 118, 0.2);
+    color: #4ade80;
+}
+
+.movie-card:nth-child(3) .genre-tag {
+    background: rgba(255, 59, 59, 0.2);
+    color: #ff7b7b;
+}
+
+.movie-card:nth-child(4) .genre-tag {
+    background: rgba(0, 230, 118, 0.2);
+    color: #4ade80;
+}
+
+.movie-card:nth-child(5) .genre-tag {
+    background: rgba(255, 59, 59, 0.2);
+    color: #ff7b7b;
+}
+
+.movie-card:nth-child(6) .genre-tag {
+    background: rgba(0, 230, 118, 0.2);
+    color: #4ade80;
+}
+
+
+/* ── NEWSLETTER – green/red gradient ── */
+.newsletter-section {
+    background: linear-gradient(135deg,
+            rgba(0, 230, 118, 0.07) 0%,
+            rgba(255, 59, 59, 0.06) 50%,
+            rgba(0, 230, 118, 0.07) 100%);
+    border-color: rgba(0, 230, 118, 0.2);
+}
+
+.newsletter-section::before {
+    background: radial-gradient(circle, rgba(0, 230, 118, 0.12), transparent 65%);
+}
+
+/* ── PRICING FEATURED – green highlight ── */
+.price-card.featured {
+    background: linear-gradient(160deg, rgba(0, 230, 118, 0.09), rgba(255, 59, 59, 0.05));
+    border-color: rgba(0, 230, 118, 0.4);
+    box-shadow: 0 4px 24px rgba(0, 230, 118, 0.12), 0 0 0 1px rgba(0, 230, 118, 0.1);
+}
+
+/* ── SECTION DIVIDERS – red-to-green gradient ── */
+.section-divider {
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 59, 59, 0.35),
+            rgba(0, 230, 118, 0.35),
+            rgba(255, 59, 59, 0.35),
+            transparent);
+}
+
+/* ════════════════════════════════════════════════
+   MOVIES & TV SHOWS SECTION
+   ════════════════════════════════════════════════ */
+
+#tv-shows {
+    background: linear-gradient(135deg, rgba(255, 59, 59, 0.04) 0%, transparent 55%);
+}
+
+.tvs-filter-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.tvs-filter-btn {
+    padding: 8px 24px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-2);
+    color: var(--muted);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+}
+
+.tvs-filter-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+}
+
+.tvs-filter-btn.active {
+    background: var(--red);
+    border-color: var(--red);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(255, 59, 59, 0.35);
+}
+
+.tvs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 22px;
+}
+
+.tvs-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tvs-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--border-strong);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+}
+
+.tvs-card.tvs-hidden {
+    display: none;
+}
+
+.tvs-poster {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    background: var(--surface-2);
+    overflow: hidden;
+}
+
+.tvs-poster-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s;
+}
+
+.tvs-card:hover .tvs-poster-img {
+    transform: scale(1.06);
+}
+
+.tvs-poster-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    color: rgba(255, 255, 255, 0.12);
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.tvs-poster-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 45%, transparent 70%);
+    pointer-events: none;
+}
+
+.tvs-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--red);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.tvs-type-pill {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+}
+
+.tvs-type-movie {
+    background: rgba(255, 59, 59, 0.8);
+    color: #fff;
+}
+
+.tvs-type-tv_show {
+    background: rgba(0, 230, 118, 0.8);
+    color: #011a0b;
+}
+
+.tvs-play-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 59, 59, 0.9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    backdrop-filter: blur(4px);
+}
+
+.tvs-play-btn:hover {
+    background: var(--red);
+    transform: scale(1.15);
+    color: #fff;
+    text-decoration: none;
+}
+
+.tvs-info {
+    padding: 14px 14px 16px;
+}
+
+.tvs-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.tvs-year {
+    font-size: 0.72rem;
+    color: var(--muted-2);
+    font-weight: 500;
+}
+
+.tvs-rating {
+    font-size: 0.72rem;
+    color: #f59e0b;
+    font-weight: 700;
+}
+
+.tvs-seasons {
+    font-size: 0.68rem;
+    font-weight: 700;
+    background: var(--green-dim);
+    color: var(--green);
+    padding: 1px 7px;
+    border-radius: 999px;
+}
+
+.tvs-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text);
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tvs-genre {
+    font-size: 0.72rem;
+    color: var(--muted-2);
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tvs-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+    .tvs-grid {
+        grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tvs-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tvs-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
 }

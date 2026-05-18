@@ -25,6 +25,7 @@ use App\Http\Controllers\Backend\ReportController;
 use App\Http\Controllers\Backend\ApiLogController;
 use App\Http\Controllers\Backend\AppDownloaderCodeController;
 use App\Http\Controllers\Backend\FeaturedContentController;
+use App\Http\Controllers\Backend\MediaContentController;
 
 Route::prefix('admin')->group(function () {
 
@@ -388,6 +389,18 @@ Route::prefix('admin')->group(function () {
                 'edit'    => 'admin.featured-content.edit',
                 'update'  => 'admin.featured-content.update',
                 'destroy' => 'admin.featured-content.destroy',
+            ]);
+
+        // ── Movies & TV Shows ─────────────────────────────────────────────────
+        Route::resource('media-content', MediaContentController::class)
+            ->except(['show'])
+            ->names([
+                'index'   => 'admin.media-content.index',
+                'create'  => 'admin.media-content.create',
+                'store'   => 'admin.media-content.store',
+                'edit'    => 'admin.media-content.edit',
+                'update'  => 'admin.media-content.update',
+                'destroy' => 'admin.media-content.destroy',
             ]);
 
         // ── Chat Widget Settings ──────────────────────────────────────────────
