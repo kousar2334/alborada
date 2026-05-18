@@ -5,243 +5,280 @@
 @section('page-title')
     {{ __tr('Channels') }}
 @endsection
-@section('page-style')
-    <style>
-        .ch-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-        }
-
-        .ch-card {
-            border-radius: 14px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,.07);
-            transition: box-shadow .25s, transform .25s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .ch-card:hover {
-            box-shadow: 0 10px 28px rgba(0,0,0,.12);
-            transform: translateY(-3px);
-        }
-
-        .ch-logo-wrap {
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .ch-logo-wrap img {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
-        }
-
-        .ch-logo-placeholder {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: .04em;
-            color: rgba(255,255,255,.7);
-        }
-
-        .ch-card-body {
-            padding: 12px 14px 8px;
-            flex: 1;
-        }
-
-        .ch-name {
-            font-weight: 700;
-            font-size: .9rem;
-            color: #111827;
-            margin: 0 0 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .ch-card-footer {
-            padding: 8px 10px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            gap: 6px;
-        }
-
-        .ch-btn-edit {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: .74rem;
-            font-weight: 600;
-            padding: 6px 0;
-            border-radius: 8px;
-            border: none;
-            background: #fef9ec;
-            color: #b45309;
-            text-decoration: none;
-            transition: background .2s, color .2s;
-        }
-
-        .ch-btn-edit:hover {
-            background: #fde68a;
-            color: #92400e;
-            text-decoration: none;
-        }
-
-        .ch-btn-delete {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: .74rem;
-            font-weight: 600;
-            padding: 6px 0;
-            border-radius: 8px;
-            border: none;
-            background: #fef2f2;
-            color: #b91c1c;
-            cursor: pointer;
-            width: 100%;
-            transition: background .2s, color .2s;
-        }
-
-        .ch-btn-delete:hover {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        .ch-empty {
-            text-align: center;
-            padding: 70px 20px;
-            color: #9ca3af;
-        }
-
-        .ch-empty i {
-            font-size: 3rem;
-            margin-bottom: 14px;
-            display: block;
-            opacity: .4;
-        }
-
-        .ch-empty h5 {
-            color: #6b7280;
-            margin-bottom: 6px;
-        }
-
-        .ch-stats {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .ch-stat-pill {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: .8rem;
-            color: #374151;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,.04);
-        }
-
-        .ch-stat-pill .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-    </style>
-@endsection
 @section('page-content')
     <x-admin-page-header title="{{ __tr('Channels') }}" :links="$links" />
 
     <section class="content">
         <div class="container-fluid">
-
-            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap" style="gap:10px;">
-                <div class="ch-stats">
-                    <span class="ch-stat-pill">
-                        <span class="dot" style="background:#635bff;"></span>
-                        {{ $channels->count() }} {{ __tr('total') }}
-                    </span>
-                    <span class="ch-stat-pill">
-                        <span class="dot" style="background:#16a34a;"></span>
-                        {{ $channels->where('status', true)->count() }} {{ __tr('active') }}
-                    </span>
-                    <span class="ch-stat-pill">
-                        <span class="dot" style="background:#9ca3af;"></span>
-                        {{ $channels->where('status', false)->count() }} {{ __tr('inactive') }}
-                    </span>
-                </div>
-                <a href="{{ route('admin.channels.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus mr-1"></i> {{ __tr('Add Channel') }}
-                </a>
-            </div>
-
-            @if ($channels->isEmpty())
-                <div class="card">
-                    <div class="card-body ch-empty">
-                        <i class="fas fa-tv"></i>
-                        <h5>{{ __tr('No channels yet') }}</h5>
-                        <p>{{ __tr('Click "Add Channel" to get started.') }}</p>
-                        <a href="{{ route('admin.channels.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus mr-1"></i> {{ __tr('Add Channel') }}
-                        </a>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ __tr('All Channels') }}</h3>
+                            <button class="btn btn-primary btn-sm float-right" onclick="openChannelModal()">
+                                <i class="fas fa-plus mr-1"></i> {{ __tr('Add Channel') }}
+                            </button>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover table-bordered text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th style="width:80px;">{{ __tr('Logo') }}</th>
+                                        <th>{{ __tr('Name') }}</th>
+                                        <th style="width:130px;">{{ __tr('BG Color') }}</th>
+                                        <th style="width:90px;">{{ __tr('Status') }}</th>
+                                        <th style="width:90px;">{{ __tr('Order') }}</th>
+                                        <th class="text-right" style="width:130px;">{{ __tr('Action') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($channels as $i => $channel)
+                                        <tr>
+                                            <td>{{ $i + 1 }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center justify-content-center"
+                                                    style="width:48px;height:34px;border-radius:6px;background:{{ $channel->bg_color }};overflow:hidden;">
+                                                    @if ($channel->logo)
+                                                        <img src="{{ asset(getFilePath($channel->logo, true)) }}"
+                                                            alt="{{ $channel->name }}"
+                                                            style="max-width:90%;max-height:90%;object-fit:contain;">
+                                                    @else
+                                                        <span
+                                                            style="font-size:.6rem;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:.05em;">
+                                                            {{ strtoupper(substr($channel->name, 0, 3)) }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>{{ $channel->name }}</td>
+                                            <td>
+                                                <span class="d-inline-flex align-items-center" style="gap:7px;">
+                                                    <span
+                                                        style="display:inline-block;width:18px;height:18px;border-radius:4px;background:{{ $channel->bg_color }};border:1px solid #e2e8f0;"></span>
+                                                    <code style="font-size:.78rem;">{{ $channel->bg_color }}</code>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{{ $channel->status ? 'success' : 'secondary' }}">
+                                                    {{ $channel->status ? __tr('Active') : __tr('Inactive') }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $channel->sort_order }}</td>
+                                            <td class="text-right">
+                                                <button class="btn btn-sm btn-warning mr-1"
+                                                    onclick="openChannelModal({{ $channel->id }}, '{{ addslashes($channel->name) }}', '{{ $channel->logo }}', '{{ $channel->bg_color }}', {{ $channel->status ? 1 : 0 }}, {{ $channel->sort_order }})">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                                <form action="{{ route('admin.channels.destroy', $channel) }}"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('{{ __tr('Delete this channel?') }}')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7">
+                                                <p class="text-center text-muted my-3">
+                                                    {{ __tr('No channels yet. Click "Add Channel" to get started.') }}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            @else
-                <div class="ch-grid">
-                    @foreach ($channels as $channel)
-                        <div class="ch-card">
-                            <div class="ch-logo-wrap" style="background:{{ $channel->bg_color }};">
-                                @if ($channel->logo)
-                                    <img src="{{ asset(getFilePath($channel->logo, true)) }}" alt="{{ $channel->name }}">
-                                @else
-                                    <div class="ch-logo-placeholder">
-                                        {{ strtoupper(substr($channel->name, 0, 3)) }}
-                                    </div>
-                                @endif
-                            </div>
+            </div>
+        </div>
 
-                            <div class="ch-card-body">
-                                <p class="ch-name" title="{{ $channel->name }}">{{ $channel->name }}</p>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <span class="badge badge-{{ $channel->status ? 'success' : 'secondary' }}">
-                                        {{ $channel->status ? __tr('Active') : __tr('Inactive') }}
-                                    </span>
-                                    <small class="text-muted">#{{ $channel->sort_order }}</small>
+        {{-- ── Add / Edit Modal ── --}}
+        <div class="modal fade" id="channelModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="channelModalTitle">{{ __tr('Add Channel') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <form id="channelForm" method="POST">
+                        @csrf
+                        <input type="hidden" name="_method" id="channelFormMethod" value="POST">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-8">
+
+                                    <div class="form-group">
+                                        <label>{{ __tr('Channel Name') }} <span class="text-danger">*</span></label>
+                                        <input type="text" name="name" id="ch_name" class="form-control"
+                                            placeholder="{{ __tr('e.g. ESPN, BBC One') }}" required>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Background Color') }}</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text p-1">
+                                                            <input type="color" id="ch_color_picker" value="#1e293b"
+                                                                class="border-0"
+                                                                style="width:32px;height:32px;cursor:pointer;">
+                                                        </span>
+                                                    </div>
+                                                    <input type="text" name="bg_color" id="ch_bg_color"
+                                                        class="form-control" value="#1e293b" placeholder="#1e293b"
+                                                        maxlength="20">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Sort Order') }}</label>
+                                                <input type="number" name="sort_order" id="ch_sort_order"
+                                                    class="form-control" value="0" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" name="status" value="1"
+                                                class="custom-control-input" id="ch_status" checked>
+                                            <label class="custom-control-label" for="ch_status">
+                                                {{ __tr('Active (visible on site)') }}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{ __tr('Channel Logo') }}</label>
+                                        <x-media name="logo" :value="null" width="100"></x-media>
+                                        <small
+                                            class="form-text text-muted">{{ __tr('PNG with transparent background recommended.') }}</small>
+                                    </div>
+
+                                    <div class="text-center mt-2">
+                                        <div id="ch_preview_tile"
+                                            style="width:88px;height:88px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:#1e293b;border:1px solid rgba(0,0,0,.08);">
+                                            <span id="ch_preview_label"
+                                                style="font-size:.78rem;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.05em;">
+                                                CH
+                                            </span>
+                                        </div>
+                                        <p class="mt-1 mb-0 text-muted" style="font-size:.73rem;">{{ __tr('Preview') }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div class="ch-card-footer">
-                                <a href="{{ route('admin.channels.edit', $channel) }}" class="ch-btn-edit">
-                                    <i class="fas fa-pen"></i> {{ __tr('Edit') }}
-                                </a>
-                                <form action="{{ route('admin.channels.destroy', $channel) }}" method="POST"
-                                    style="flex:1;display:flex;"
-                                    onsubmit="return confirm('{{ __tr('Delete this channel?') }}')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="ch-btn-delete">
-                                        <i class="fas fa-trash"></i> {{ __tr('Delete') }}
-                                    </button>
-                                </form>
-                            </div>
                         </div>
-                    @endforeach
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                            <button type="submit" class="btn btn-primary"
+                                id="channelSubmitBtn">{{ __tr('Add Channel') }}</button>
+                        </div>
+                    </form>
                 </div>
-            @endif
-
+            </div>
         </div>
+
     </section>
+@endsection
+@section('page-script')
+    <script>
+        initMediaManager();
+        (function() {
+            var storeUrl = '{{ route('admin.channels.store') }}';
+            var editBaseUrl = '{{ url('admin/channels') }}';
+
+            var picker = document.getElementById('ch_color_picker');
+            var bgText = document.getElementById('ch_bg_color');
+            var tile = document.getElementById('ch_preview_tile');
+            var label = document.getElementById('ch_preview_label');
+            var nameIn = document.getElementById('ch_name');
+
+            picker.addEventListener('input', function() {
+                bgText.value = this.value;
+                tile.style.background = this.value;
+            });
+
+            bgText.addEventListener('input', function() {
+                if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(this.value)) {
+                    picker.value = this.value;
+                    tile.style.background = this.value;
+                }
+            });
+
+            nameIn.addEventListener('input', function() {
+                label.textContent = this.value.substring(0, 3).toUpperCase() || 'CH';
+            });
+
+            window.openChannelModal = function(id, name, logo, bgColor, status, sortOrder) {
+                var isEdit = !!id;
+
+                document.getElementById('channelModalTitle').textContent = isEdit ?
+                    '{{ __tr('Edit Channel') }}' :
+                    '{{ __tr('Add Channel') }}';
+                document.getElementById('channelSubmitBtn').textContent = isEdit ?
+                    '{{ __tr('Update Channel') }}' :
+                    '{{ __tr('Add Channel') }}';
+
+                if (isEdit) {
+                    document.getElementById('channelForm').action = editBaseUrl + '/' + id;
+                    document.getElementById('channelFormMethod').value = 'PUT';
+                } else {
+                    document.getElementById('channelForm').action = storeUrl;
+                    document.getElementById('channelFormMethod').value = 'POST';
+                }
+
+                nameIn.value = name || '';
+                label.textContent = (name || 'CH').substring(0, 3).toUpperCase();
+
+                var color = bgColor || '#1e293b';
+                bgText.value = color;
+                picker.value = color;
+                tile.style.background = color;
+
+                document.getElementById('ch_sort_order').value = sortOrder || 0;
+                document.getElementById('ch_status').checked = isEdit ? !!status : true;
+
+                // Populate media picker
+                var logoPath = logo || '';
+                document.getElementById('input-logo').value = logoPath;
+                if (logoPath) {
+                    document.getElementById('single-img-wrap-logo').classList.remove('media-hidden');
+                    document.getElementById('single-placeholder-logo').classList.add('media-hidden');
+                    document.getElementById('media-input-preview-logo').src = logoPath.startsWith('http') ?
+                        logoPath :
+                        '{{ asset('') }}' + logoPath;
+                } else {
+                    document.getElementById('single-img-wrap-logo').classList.add('media-hidden');
+                    document.getElementById('single-placeholder-logo').classList.remove('media-hidden');
+                }
+
+                $('#channelModal').modal('show');
+            };
+
+            // Reset form on modal hidden
+            $('#channelModal').on('hidden.bs.modal', function() {
+                document.getElementById('channelForm').reset();
+                bgText.value = '#1e293b';
+                picker.value = '#1e293b';
+                tile.style.background = '#1e293b';
+                label.textContent = 'CH';
+                document.getElementById('input-logo').value = '';
+                document.getElementById('single-img-wrap-logo').classList.add('media-hidden');
+                document.getElementById('single-placeholder-logo').classList.remove('media-hidden');
+            });
+        })();
+    </script>
 @endsection

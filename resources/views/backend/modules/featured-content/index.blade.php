@@ -1,400 +1,312 @@
 @php
     $links = [['title' => __tr('Featured Content'), 'route' => '', 'active' => true]];
     $typeColors = ['movie' => 'danger', 'series' => 'info', 'sports_event' => 'warning', 'new_release' => 'primary'];
+    $typeLabels = [
+        'movie' => 'Movie',
+        'series' => 'Series',
+        'sports_event' => 'Sports Event',
+        'new_release' => 'New Release',
+    ];
 @endphp
 @extends('backend.layouts.dashboard_layout')
 @section('page-title')
     {{ __tr('Featured Content') }}
-@endsection
-@section('page-style')
-    <style>
-        .fc-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 22px;
-        }
-
-        /* ── Card shell ── */
-        .fc-card {
-            border-radius: 16px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, .07);
-            transition: box-shadow .25s, transform .25s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .fc-card:hover {
-            box-shadow: 0 12px 32px rgba(0, 0, 0, .13);
-            transform: translateY(-3px);
-        }
-
-        /* ── Thumbnail ── */
-        .fc-thumb {
-            position: relative;
-            height: 165px;
-            background: #0f172a;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .fc-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform .35s;
-        }
-
-        .fc-card:hover .fc-thumb img {
-            transform: scale(1.04);
-        }
-
-        .fc-thumb-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, .55) 0%, transparent 55%);
-            pointer-events: none;
-        }
-
-        .fc-thumb-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: rgba(255, 255, 255, .18);
-            font-size: 2.4rem;
-        }
-
-        /* badges sit in top corners */
-        .fc-thumb-badges {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-        }
-
-        .fc-badge-type {
-            font-size: .68rem;
-            font-weight: 700;
-            letter-spacing: .04em;
-            text-transform: uppercase;
-            padding: 3px 9px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
-        }
-
-        .fc-badge-status {
-            font-size: .68rem;
-            font-weight: 700;
-            letter-spacing: .04em;
-            padding: 3px 9px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
-        }
-
-        /* order chip sits bottom-left, over the gradient */
-        .fc-thumb-order {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, .55);
-            color: rgba(255, 255, 255, .85);
-            font-size: .68rem;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 20px;
-            letter-spacing: .03em;
-        }
-
-        /* ── Body ── */
-        .fc-card-body {
-            padding: 14px 16px 10px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .fc-title {
-            font-weight: 700;
-            font-size: .92rem;
-            color: #111827;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
-
-        .fc-subtitle {
-            font-size: .76rem;
-            color: #9ca3af;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* ── Meta row ── */
-        .fc-meta {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .fc-meta-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: #f3f4f6;
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: .71rem;
-            color: #374151;
-            font-weight: 500;
-        }
-
-        .fc-meta-chip i {
-            color: #9ca3af;
-            font-size: .65rem;
-        }
-
-        .fc-badge-label {
-            display: inline-flex;
-            align-items: center;
-            background: #1e293b;
-            color: #f8fafc;
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: .68rem;
-            font-weight: 600;
-            letter-spacing: .03em;
-        }
-
-        /* ── Footer actions ── */
-        .fc-card-footer {
-            padding: 10px 12px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            gap: 8px;
-        }
-
-        .fc-btn-edit {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-size: .76rem;
-            font-weight: 600;
-            padding: 6px 0;
-            border-radius: 8px;
-            border: none;
-            background: #fef9ec;
-            color: #b45309;
-            text-decoration: none;
-            transition: background .2s, color .2s;
-        }
-
-        .fc-btn-edit:hover {
-            background: #fde68a;
-            color: #92400e;
-            text-decoration: none;
-        }
-
-        .fc-btn-delete {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-size: .76rem;
-            font-weight: 600;
-            padding: 6px 0;
-            border-radius: 8px;
-            border: none;
-            background: #fef2f2;
-            color: #b91c1c;
-            cursor: pointer;
-            width: 100%;
-            transition: background .2s, color .2s;
-        }
-
-        .fc-btn-delete:hover {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        /* ── Empty state ── */
-        .fc-empty {
-            text-align: center;
-            padding: 70px 20px;
-            color: #9ca3af;
-        }
-
-        .fc-empty i {
-            font-size: 3rem;
-            margin-bottom: 14px;
-            display: block;
-            opacity: .4;
-        }
-
-        .fc-empty h5 {
-            color: #6b7280;
-            margin-bottom: 6px;
-        }
-
-        /* ── Stat pills ── */
-        .fc-stats {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .fc-stat-pill {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: .8rem;
-            color: #374151;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
-        }
-
-        .fc-stat-pill .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-    </style>
 @endsection
 @section('page-content')
     <x-admin-page-header title="{{ __tr('Featured Content') }}" :links="$links" />
 
     <section class="content">
         <div class="container-fluid">
-
-            {{-- Toolbar --}}
-            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap" style="gap:10px;">
-                <div class="fc-stats">
-                    <span class="fc-stat-pill">
-                        <span class="dot" style="background:#635bff;"></span>
-                        {{ $items->count() }} {{ __tr('total') }}
-                    </span>
-                    <span class="fc-stat-pill">
-                        <span class="dot" style="background:#16a34a;"></span>
-                        {{ $items->where('is_active', true)->count() }} {{ __tr('live') }}
-                    </span>
-                    <span class="fc-stat-pill">
-                        <span class="dot" style="background:#9ca3af;"></span>
-                        {{ $items->where('is_active', false)->count() }} {{ __tr('hidden') }}
-                    </span>
-                </div>
-                <a href="{{ route('admin.featured-content.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus mr-1"></i> {{ __tr('Add Content') }}
-                </a>
-            </div>
-
-            @if ($items->isEmpty())
-                <div class="card">
-                    <div class="card-body fc-empty">
-                        <i class="fas fa-film"></i>
-                        <h5>{{ __tr('No featured content yet') }}</h5>
-                        <p>{{ __tr('Click "Add Content" to get started.') }}</p>
-                        <a href="{{ route('admin.featured-content.create') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus mr-1"></i> {{ __tr('Add Content') }}
-                        </a>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ __tr('All Featured Content') }}</h3>
+                            <button class="btn btn-primary btn-sm float-right" onclick="openFcModal()">
+                                <i class="fas fa-plus mr-1"></i> {{ __tr('Add Content') }}
+                            </button>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th style="width:80px;">{{ __tr('Thumbnail') }}</th>
+                                        <th>{{ __tr('Title') }}</th>
+                                        <th style="width:110px;">{{ __tr('Type') }}</th>
+                                        <th style="width:100px;">{{ __tr('Genre') }}</th>
+                                        <th style="width:90px;">{{ __tr('Status') }}</th>
+                                        <th style="width:80px;">{{ __tr('Order') }}</th>
+                                        <th class="text-right" style="width:130px;">{{ __tr('Action') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($items as $i => $item)
+                                        <tr>
+                                            <td>{{ $i + 1 }}</td>
+                                            <td>
+                                                @if ($item->thumbnail)
+                                                    <img src="{{ asset(getFilePath($item->thumbnail, true)) }}"
+                                                        alt="{{ $item->title }}"
+                                                        style="width:52px;height:36px;object-fit:cover;border-radius:5px;">
+                                                @else
+                                                    <div class="d-flex align-items-center justify-content-center"
+                                                        style="width:52px;height:36px;border-radius:5px;background:#0f172a;">
+                                                        <i class="fas {{ $item->type_icon }} text-white"
+                                                            style="font-size:.7rem;opacity:.5;"></i>
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <div style="font-weight:600;">{{ $item->title }}</div>
+                                                @if ($item->subtitle)
+                                                    <div style="font-size:.78rem;color:#6b7280;">
+                                                        {{ Str::limit($item->subtitle, 50) }}</div>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{{ $typeColors[$item->type] ?? 'secondary' }}">
+                                                    {{ $typeLabels[$item->type] ?? $item->type }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $item->genre ?: '—' }}</td>
+                                            <td>
+                                                <span class="badge badge-{{ $item->is_active ? 'success' : 'secondary' }}">
+                                                    {{ $item->is_active ? __tr('Active') : __tr('Hidden') }}
+                                                </span>
+                                            </td>
+                                            <td>{{ $item->sort_order }}</td>
+                                            <td class="text-right">
+                                                <button class="btn btn-sm btn-warning mr-1"
+                                                    onclick="openFcModal(
+                                                        {{ $item->id }},
+                                                        '{{ addslashes($item->title) }}',
+                                                        '{{ addslashes($item->subtitle ?? '') }}',
+                                                        '{{ $item->thumbnail }}',
+                                                        '{{ $item->trailer_url }}',
+                                                        '{{ $item->type }}',
+                                                        '{{ addslashes($item->genre ?? '') }}',
+                                                        '{{ $item->event_date?->format('Y-m-d') }}',
+                                                        '{{ addslashes($item->badge_text ?? '') }}',
+                                                        {{ $item->sort_order }},
+                                                        {{ $item->is_active ? 1 : 0 }}
+                                                    )">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                                <form action="{{ route('admin.featured-content.destroy', $item) }}"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('{{ __tr('Delete this item?') }}')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="8">
+                                                <p class="text-center text-muted my-3">
+                                                    {{ __tr('No content yet. Click "Add Content" to get started.') }}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            @else
-                <div class="fc-grid">
-                    @foreach ($items as $item)
-                        <div class="fc-card">
-
-                            {{-- Thumbnail --}}
-                            <div class="fc-thumb">
-                                @if ($item->thumbnail)
-                                    <img src="{{ asset(getFilePath($item->thumbnail, true)) }}" alt="{{ $item->title }}">
-                                @else
-                                    <div class="fc-thumb-placeholder">
-                                        <i class="fas {{ $item->type_icon ?? 'fa-film' }}"></i>
-                                    </div>
-                                @endif
-
-                                <div class="fc-thumb-overlay"></div>
-
-                                <div class="fc-thumb-badges">
-                                    <span class="fc-badge-type badge badge-{{ $typeColors[$item->type] ?? 'secondary' }}">
-                                        {{ $item->type_label }}
-                                    </span>
-                                    <span
-                                        class="fc-badge-status badge badge-{{ $item->is_active ? 'success' : 'secondary' }}">
-                                        {{ $item->is_active ? __tr('Live') : __tr('Hidden') }}
-                                    </span>
-                                </div>
-
-                                <span class="fc-thumb-order">#{{ $item->sort_order }}</span>
-                            </div>
-
-                            {{-- Body --}}
-                            <div class="fc-card-body">
-                                <p class="fc-title" title="{{ $item->title }}">{{ $item->title }}</p>
-                                @if ($item->subtitle)
-                                    <p class="fc-subtitle" title="{{ $item->subtitle }}">{{ $item->subtitle }}</p>
-                                @endif
-                                <div class="fc-meta">
-                                    @if ($item->badge_text)
-                                        <span class="fc-badge-label">{{ $item->badge_text }}</span>
-                                    @endif
-                                    @if ($item->event_date)
-                                        <span class="fc-meta-chip">
-                                            <i class="fas fa-calendar-alt"></i>
-                                            {{ $item->event_date->format('M d, Y') }}
-                                        </span>
-                                    @endif
-                                    @if ($item->genre)
-                                        <span class="fc-meta-chip">
-                                            <i class="fas fa-tag"></i>
-                                            {{ $item->genre }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            {{-- Actions --}}
-                            <div class="fc-card-footer">
-                                <a href="{{ route('admin.featured-content.edit', $item) }}" class="fc-btn-edit">
-                                    <i class="fas fa-pen"></i> {{ __tr('Edit') }}
-                                </a>
-                                <form action="{{ route('admin.featured-content.destroy', $item) }}" method="POST"
-                                    style="flex:1;display:flex;"
-                                    onsubmit="return confirm('{{ __tr('Delete this item?') }}')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="fc-btn-delete">
-                                        <i class="fas fa-trash"></i> {{ __tr('Delete') }}
-                                    </button>
-                                </form>
-                            </div>
-
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
+            </div>
         </div>
+
+        {{-- ── Add / Edit Modal ── --}}
+        <div class="modal fade" id="fcModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="fcModalTitle">{{ __tr('Add Content') }}</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <form id="fcForm" method="POST">
+                        @csrf
+                        <input type="hidden" name="_method" id="fcFormMethod" value="POST">
+                        <div class="modal-body">
+                            <div class="row">
+
+                                {{-- Left: main fields --}}
+                                <div class="col-md-8">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Title') }} <span class="text-danger">*</span></label>
+                                                <input type="text" name="title" id="fc_title" class="form-control"
+                                                    placeholder="{{ __tr('e.g. Avengers: Endgame') }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Type') }} <span class="text-danger">*</span></label>
+                                                <select name="type" id="fc_type" class="form-control">
+                                                    <option value="movie">Movie</option>
+                                                    <option value="series">Series</option>
+                                                    <option value="sports_event">Sports Event</option>
+                                                    <option value="new_release">New Release</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Subtitle / Tagline') }}</label>
+                                                <input type="text" name="subtitle" id="fc_subtitle" class="form-control"
+                                                    placeholder="{{ __tr('Short description or tagline') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Genre') }}</label>
+                                                <input type="text" name="genre" id="fc_genre" class="form-control"
+                                                    placeholder="{{ __tr('e.g. Action, Drama') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>{{ __tr('Trailer / Preview URL') }}</label>
+                                        <input type="text" name="trailer_url" id="fc_trailer_url"
+                                            class="form-control"
+                                            placeholder="{{ __tr('YouTube URL or 11-char video ID') }}">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Event Date') }}</label>
+                                                <input type="date" name="event_date" id="fc_event_date"
+                                                    class="form-control">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Badge Text') }}</label>
+                                                <input type="text" name="badge_text" id="fc_badge_text"
+                                                    class="form-control" placeholder="{{ __tr('e.g. NEW, LIVE, 4K') }}"
+                                                    maxlength="20">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>{{ __tr('Sort Order') }}</label>
+                                                <input type="number" name="sort_order" id="fc_sort_order"
+                                                    class="form-control" value="0" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" name="is_active" value="1"
+                                                class="custom-control-input" id="fc_is_active" checked>
+                                            <label class="custom-control-label" for="fc_is_active">
+                                                {{ __tr('Active (visible on site)') }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Right: thumbnail --}}
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{ __tr('Thumbnail Image') }}</label>
+                                        <x-media name="thumbnail" :value="null" width="100"></x-media>
+                                        <small class="form-text text-muted mt-1">
+                                            {{ __tr('Recommended: 16:9 ratio. JPG or PNG.') }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary"
+                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                            <button type="submit" class="btn btn-primary"
+                                id="fcSubmitBtn">{{ __tr('Add Content') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </section>
+@endsection
+@section('page-script')
+    <script>
+        initMediaManager();
+        (function() {
+            var storeUrl = '{{ route('admin.featured-content.store') }}';
+            var editBase = '{{ url('admin/featured-content') }}';
+
+            window.openFcModal = function(id, title, subtitle, thumbnail, trailerUrl, type, genre, eventDate, badgeText,
+                sortOrder, isActive) {
+                var isEdit = !!id;
+
+                document.getElementById('fcModalTitle').textContent = isEdit ?
+                    '{{ __tr('Edit Content') }}' :
+                    '{{ __tr('Add Content') }}';
+                document.getElementById('fcSubmitBtn').textContent = isEdit ?
+                    '{{ __tr('Update Content') }}' :
+                    '{{ __tr('Add Content') }}';
+
+                if (isEdit) {
+                    document.getElementById('fcForm').action = editBase + '/' + id;
+                    document.getElementById('fcFormMethod').value = 'PUT';
+                } else {
+                    document.getElementById('fcForm').action = storeUrl;
+                    document.getElementById('fcFormMethod').value = 'POST';
+                }
+
+                document.getElementById('fc_title').value = title || '';
+                document.getElementById('fc_subtitle').value = subtitle || '';
+                document.getElementById('fc_trailer_url').value = trailerUrl || '';
+                document.getElementById('fc_genre').value = genre || '';
+                document.getElementById('fc_event_date').value = eventDate || '';
+                document.getElementById('fc_badge_text').value = badgeText || '';
+                document.getElementById('fc_sort_order').value = sortOrder || 0;
+                document.getElementById('fc_is_active').checked = isEdit ? !!isActive : true;
+
+                var sel = document.getElementById('fc_type');
+                if (type) sel.value = type;
+
+                // Populate thumbnail media picker
+                var thumb = thumbnail || '';
+                document.getElementById('input-thumbnail').value = thumb;
+                if (thumb) {
+                    document.getElementById('single-img-wrap-thumbnail').classList.remove('media-hidden');
+                    document.getElementById('single-placeholder-thumbnail').classList.add('media-hidden');
+                    document.getElementById('media-input-preview-thumbnail').src = thumb.startsWith('http') ?
+                        thumb :
+                        '{{ asset('') }}' + thumb;
+                } else {
+                    document.getElementById('single-img-wrap-thumbnail').classList.add('media-hidden');
+                    document.getElementById('single-placeholder-thumbnail').classList.remove('media-hidden');
+                }
+
+                $('#fcModal').modal('show');
+            };
+
+            // Reset on close
+            $('#fcModal').on('hidden.bs.modal', function() {
+                document.getElementById('fcForm').reset();
+                document.getElementById('input-thumbnail').value = '';
+                document.getElementById('single-img-wrap-thumbnail').classList.add('media-hidden');
+                document.getElementById('single-placeholder-thumbnail').classList.remove('media-hidden');
+            });
+        })();
+    </script>
 @endsection
