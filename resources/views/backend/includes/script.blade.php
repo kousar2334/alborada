@@ -119,8 +119,8 @@
             // Hide image container, show placeholder
             var imgWrap = document.getElementById('single-img-wrap-' + name);
             var placeholder = document.getElementById('single-placeholder-' + name);
-            if (imgWrap) imgWrap.style.display = 'none';
-            if (placeholder) placeholder.style.display = '';
+            if (imgWrap) imgWrap.classList.add('media-hidden');
+            if (placeholder) placeholder.classList.remove('media-hidden');
             var img = document.getElementById('media-input-preview-' + name);
             if (img) img.src = '';
         }
@@ -207,8 +207,8 @@
             var imgWrap = document.getElementById('single-img-wrap-' + input_name);
             var placeholder = document.getElementById('single-placeholder-' + input_name);
             var img = document.getElementById('media-input-preview-' + input_name);
-            if (imgWrap) imgWrap.style.display = '';
-            if (placeholder) placeholder.style.display = 'none';
+            if (imgWrap) imgWrap.classList.remove('media-hidden');
+            if (placeholder) placeholder.classList.add('media-hidden');
             if (img) img.src = '/public/' + file_path;
 
             $("#mediaManagerModal").modal('hide');

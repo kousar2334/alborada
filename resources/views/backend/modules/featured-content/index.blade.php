@@ -124,107 +124,172 @@
         <div class="modal fade" id="fcModal" tabindex="-1">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="fcModalTitle">{{ __tr('Add Content') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal">
+
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-film mr-2"></i>
+                            <span id="fcModalTitle">{{ __tr('Add Content') }}</span>
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">
                             <span>&times;</span>
                         </button>
                     </div>
+
                     <form id="fcForm" method="POST">
                         @csrf
                         <input type="hidden" name="_method" id="fcFormMethod" value="POST">
-                        <div class="modal-body">
-                            <div class="row">
 
-                                {{-- Left: main fields --}}
-                                <div class="col-md-8">
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Title') }} <span class="text-danger">*</span></label>
-                                                <input type="text" name="title" id="fc_title" class="form-control"
-                                                    placeholder="{{ __tr('e.g. Avengers: Endgame') }}" required>
+                        <div class="modal-body p-0">
+                            <div class="row no-gutters">
+
+                                {{-- Left panel ── Content Details --}}
+                                <div class="col-md-8 border-right">
+
+                                    {{-- Section: Basic Info --}}
+                                    <div class="px-4 py-2 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-info-circle mr-1 text-primary"></i>
+                                            {{ __tr('Basic Information') }}
+                                        </h6>
+                                    </div>
+                                    <div class="px-4 py-3 border-bottom">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="form-group mb-0">
+                                                    <label class="font-weight-600">
+                                                        {{ __tr('Title') }} <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="text" name="title" id="fc_title"
+                                                        class="form-control form-control-lg"
+                                                        placeholder="{{ __tr('e.g. Avengers: Endgame') }}" required>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Type') }} <span class="text-danger">*</span></label>
-                                                <select name="type" id="fc_type" class="form-control">
-                                                    <option value="movie">Movie</option>
-                                                    <option value="series">Series</option>
-                                                    <option value="sports_event">Sports Event</option>
-                                                    <option value="new_release">New Release</option>
-                                                </select>
+                                            <div class="col-md-4">
+                                                <div class="form-group mb-0">
+                                                    <label class="font-weight-600">
+                                                        {{ __tr('Type') }} <span class="text-danger">*</span>
+                                                    </label>
+                                                    <select name="type" id="fc_type"
+                                                        class="form-control form-control-lg">
+                                                        <option value="movie">🎬 Movie</option>
+                                                        <option value="series">📺 Series</option>
+                                                        <option value="sports_event">🏆 Sports Event</option>
+                                                        <option value="new_release">⭐ New Release</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Subtitle / Tagline') }}</label>
-                                                <input type="text" name="subtitle" id="fc_subtitle" class="form-control"
-                                                    placeholder="{{ __tr('Short description or tagline') }}">
+                                    {{-- Section: Details --}}
+                                    <div class="px-4 py-2 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-align-left mr-1 text-info"></i>
+                                            {{ __tr('Details') }}
+                                        </h6>
+                                    </div>
+                                    <div class="px-4 py-3 border-bottom">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Subtitle / Tagline') }}</label>
+                                                    <input type="text" name="subtitle" id="fc_subtitle"
+                                                        class="form-control"
+                                                        placeholder="{{ __tr('Short description or tagline') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Genre') }}</label>
+                                                    <input type="text" name="genre" id="fc_genre"
+                                                        class="form-control"
+                                                        placeholder="{{ __tr('e.g. Action, Drama') }}">
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Genre') }}</label>
-                                                <input type="text" name="genre" id="fc_genre" class="form-control"
-                                                    placeholder="{{ __tr('e.g. Action, Drama') }}">
+                                        <div class="form-group mb-0">
+                                            <label class="font-weight-600">{{ __tr('Trailer / Preview URL') }}</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fab fa-youtube text-danger"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" name="trailer_url" id="fc_trailer_url"
+                                                    class="form-control"
+                                                    placeholder="{{ __tr('YouTube URL or 11-char video ID') }}">
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="form-group">
-                                        <label>{{ __tr('Trailer / Preview URL') }}</label>
-                                        <input type="text" name="trailer_url" id="fc_trailer_url"
-                                            class="form-control"
-                                            placeholder="{{ __tr('YouTube URL or 11-char video ID') }}">
+                                    {{-- Section: Meta --}}
+                                    <div class="px-4 py-2 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-tag mr-1 text-warning"></i>
+                                            {{ __tr('Meta & Ordering') }}
+                                        </h6>
+                                    </div>
+                                    <div class="px-4 py-3">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Event Date') }}</label>
+                                                    <input type="date" name="event_date" id="fc_event_date"
+                                                        class="form-control">
+                                                    <small
+                                                        class="form-text text-muted">{{ __tr('For sports events / premieres') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Badge Text') }}</label>
+                                                    <input type="text" name="badge_text" id="fc_badge_text"
+                                                        class="form-control"
+                                                        placeholder="{{ __tr('e.g. NEW, LIVE, 4K') }}" maxlength="20">
+                                                    <small
+                                                        class="form-text text-muted">{{ __tr('Max 20 characters') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Sort Order') }}</label>
+                                                    <input type="number" name="sort_order" id="fc_sort_order"
+                                                        class="form-control" value="0" min="0">
+                                                    <small
+                                                        class="form-text text-muted">{{ __tr('Lower = first') }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Event Date') }}</label>
-                                                <input type="date" name="event_date" id="fc_event_date"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Badge Text') }}</label>
-                                                <input type="text" name="badge_text" id="fc_badge_text"
-                                                    class="form-control" placeholder="{{ __tr('e.g. NEW, LIVE, 4K') }}"
-                                                    maxlength="20">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Sort Order') }}</label>
-                                                <input type="number" name="sort_order" id="fc_sort_order"
-                                                    class="form-control" value="0" min="0">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
+                                    {{-- Section: Visibility --}}
+                                    <div class="px-4 py-3 border-top bg-light">
+                                        <h6 class="mb-2 font-weight-bold text-dark">
+                                            <i class="fas fa-toggle-on mr-1 text-success"></i>
+                                            {{ __tr('Visibility') }}
+                                        </h6>
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" name="is_active" value="1"
                                                 class="custom-control-input" id="fc_is_active" checked>
                                             <label class="custom-control-label" for="fc_is_active">
-                                                {{ __tr('Active (visible on site)') }}
+                                                {{ __tr('Active — show this content on the site') }}
                                             </label>
                                         </div>
                                     </div>
+
                                 </div>
 
-                                {{-- Right: thumbnail --}}
+                                {{-- Right panel ── Thumbnail --}}
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>{{ __tr('Thumbnail Image') }}</label>
+                                    <div class="px-3 py-2 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-image mr-1 text-secondary"></i>
+                                            {{ __tr('Thumbnail Image') }}
+                                        </h6>
+                                    </div>
+                                    <div class="px-3 py-3">
                                         <x-media name="thumbnail" :value="null" width="100"></x-media>
-                                        <small class="form-text text-muted mt-1">
+                                        <small class="form-text text-muted mt-2">
                                             {{ __tr('Recommended: 16:9 ratio. JPG or PNG.') }}
                                         </small>
                                     </div>
@@ -232,11 +297,14 @@
 
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary"
-                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
-                            <button type="submit" class="btn btn-primary"
-                                id="fcSubmitBtn">{{ __tr('Add Content') }}</button>
+
+                        <div class="modal-footer bg-light border-top">
+                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                                <i class="fas fa-times mr-1"></i>{{ __tr('Cancel') }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="fcSubmitBtn">
+                                <i class="fas fa-save mr-1"></i>{{ __tr('Add Content') }}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -291,7 +359,7 @@
                     document.getElementById('single-placeholder-thumbnail').classList.add('media-hidden');
                     document.getElementById('media-input-preview-thumbnail').src = thumb.startsWith('http') ?
                         thumb :
-                        '{{ asset('') }}' + thumb;
+                        '/public/' + thumb;
                 } else {
                     document.getElementById('single-img-wrap-thumbnail').classList.add('media-hidden');
                     document.getElementById('single-placeholder-thumbnail').classList.remove('media-hidden');

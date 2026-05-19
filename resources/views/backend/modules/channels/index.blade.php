@@ -23,13 +23,13 @@
                             <table class="table table-hover table-bordered text-nowrap">
                                 <thead>
                                     <tr>
-                                        <th style="width:50px;">#</th>
-                                        <th style="width:80px;">{{ __tr('Logo') }}</th>
+                                        <th>#</th>
+                                        <th>{{ __tr('Logo') }}</th>
                                         <th>{{ __tr('Name') }}</th>
-                                        <th style="width:130px;">{{ __tr('BG Color') }}</th>
-                                        <th style="width:90px;">{{ __tr('Status') }}</th>
-                                        <th style="width:90px;">{{ __tr('Order') }}</th>
-                                        <th class="text-right" style="width:130px;">{{ __tr('Action') }}</th>
+                                        <th>{{ __tr('BG Color') }}</th>
+                                        <th>{{ __tr('Status') }}</th>
+                                        <th>{{ __tr('Order') }}</th>
+                                        <th class="text-right">{{ __tr('Action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -101,90 +101,131 @@
         <div class="modal fade" id="channelModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="channelModalTitle">{{ __tr('Add Channel') }}</h5>
-                        <button type="button" class="close" data-dismiss="modal">
+
+                    <div class="modal-header bg-primary">
+                        <h5 class="modal-title text-white">
+                            <i class="fas fa-tv mr-2"></i>
+                            <span id="channelModalTitle">{{ __tr('Add Channel') }}</span>
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">
                             <span>&times;</span>
                         </button>
                     </div>
+
                     <form id="channelForm" method="POST">
                         @csrf
                         <input type="hidden" name="_method" id="channelFormMethod" value="POST">
-                        <div class="modal-body">
-                            <div class="row">
-                                <div class="col-md-8">
 
-                                    <div class="form-group">
-                                        <label>{{ __tr('Channel Name') }} <span class="text-danger">*</span></label>
-                                        <input type="text" name="name" id="ch_name" class="form-control"
-                                            placeholder="{{ __tr('e.g. ESPN, BBC One') }}" required>
+                        <div class="modal-body p-0">
+                            <div class="row no-gutters">
+
+                                {{-- Left panel ── Channel Details --}}
+                                <div class="col-md-8 border-right">
+                                    <div class="px-4 py-3 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-info-circle mr-1 text-primary"></i>
+                                            {{ __tr('Channel Details') }}
+                                        </h6>
                                     </div>
+                                    <div class="px-4 py-3">
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Background Color') }}</label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text p-1">
-                                                            <input type="color" id="ch_color_picker" value="#1e293b"
-                                                                class="border-0"
-                                                                style="width:32px;height:32px;cursor:pointer;">
-                                                        </span>
+                                        <div class="form-group">
+                                            <label class="font-weight-600">
+                                                {{ __tr('Channel Name') }}
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="text" name="name" id="ch_name"
+                                                class="form-control form-control-lg"
+                                                placeholder="{{ __tr('e.g. ESPN, BBC One') }}" required>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-7">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Background Color') }}</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text p-1">
+                                                                <input type="color" id="ch_color_picker" value="#1e293b"
+                                                                    class="border-0"
+                                                                    style="width:34px;height:34px;cursor:pointer;border-radius:4px;">
+                                                            </span>
+                                                        </div>
+                                                        <input type="text" name="bg_color" id="ch_bg_color"
+                                                            class="form-control" value="#1e293b" placeholder="#1e293b"
+                                                            maxlength="20">
                                                     </div>
-                                                    <input type="text" name="bg_color" id="ch_bg_color"
-                                                        class="form-control" value="#1e293b" placeholder="#1e293b"
-                                                        maxlength="20">
+                                                    <small
+                                                        class="form-text text-muted">{{ __tr('Tile background color') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Sort Order') }}</label>
+                                                    <input type="number" name="sort_order" id="ch_sort_order"
+                                                        class="form-control" value="0" min="0">
+                                                    <small
+                                                        class="form-text text-muted">{{ __tr('Lower = first') }}</small>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>{{ __tr('Sort Order') }}</label>
-                                                <input type="number" name="sort_order" id="ch_sort_order"
-                                                    class="form-control" value="0" min="0">
-                                            </div>
-                                        </div>
+
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="px-4 py-3 border-top bg-light">
+                                        <h6 class="mb-2 font-weight-bold text-dark">
+                                            <i class="fas fa-toggle-on mr-1 text-success"></i>
+                                            {{ __tr('Visibility') }}
+                                        </h6>
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" name="status" value="1"
                                                 class="custom-control-input" id="ch_status" checked>
                                             <label class="custom-control-label" for="ch_status">
-                                                {{ __tr('Active (visible on site)') }}
+                                                {{ __tr('Active — show this channel on the site') }}
                                             </label>
                                         </div>
                                     </div>
-
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>{{ __tr('Channel Logo') }}</label>
-                                        <x-media name="logo" :value="null" width="100"></x-media>
-                                        <small
-                                            class="form-text text-muted">{{ __tr('PNG with transparent background recommended.') }}</small>
-                                    </div>
 
-                                    <div class="text-center mt-2">
+                                {{-- Right panel ── Logo & Preview --}}
+                                <div class="col-md-4">
+                                    <div class="px-3 py-3 border-bottom bg-light">
+                                        <h6 class="mb-0 font-weight-bold text-dark">
+                                            <i class="fas fa-image mr-1 text-secondary"></i>
+                                            {{ __tr('Logo & Preview') }}
+                                        </h6>
+                                    </div>
+                                    <div class="px-3 py-3">
+                                        <x-media name="logo" :value="null" width="100"></x-media>
+                                        <small class="form-text text-muted mt-1">
+                                            {{ __tr('PNG transparent background recommended.') }}
+                                        </small>
+                                    </div>
+                                    <div class="px-3 pb-4 text-center">
+                                        <p class="text-muted mb-2"
+                                            style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;">
+                                            {{ __tr('Tile Preview') }}
+                                        </p>
                                         <div id="ch_preview_tile"
-                                            style="width:88px;height:88px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;background:#1e293b;border:1px solid rgba(0,0,0,.08);">
+                                            style="width:96px;height:96px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;background:#1e293b;border:1px solid rgba(0,0,0,.1);box-shadow:0 4px 12px rgba(0,0,0,.15);">
                                             <span id="ch_preview_label"
-                                                style="font-size:.78rem;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.05em;">
+                                                style="font-size:.82rem;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:.05em;">
                                                 CH
                                             </span>
                                         </div>
-                                        <p class="mt-1 mb-0 text-muted" style="font-size:.73rem;">{{ __tr('Preview') }}
-                                        </p>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary"
-                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
-                            <button type="submit" class="btn btn-primary"
-                                id="channelSubmitBtn">{{ __tr('Add Channel') }}</button>
+
+                        <div class="modal-footer bg-light border-top">
+                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                                <i class="fas fa-times mr-1"></i>{{ __tr('Cancel') }}
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="channelSubmitBtn">
+                                <i class="fas fa-save mr-1"></i>{{ __tr('Add Channel') }}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -259,7 +300,7 @@
                     document.getElementById('single-placeholder-logo').classList.add('media-hidden');
                     document.getElementById('media-input-preview-logo').src = logoPath.startsWith('http') ?
                         logoPath :
-                        '{{ asset('') }}' + logoPath;
+                        '/public/' + logoPath;
                 } else {
                     document.getElementById('single-img-wrap-logo').classList.add('media-hidden');
                     document.getElementById('single-placeholder-logo').classList.remove('media-hidden');
