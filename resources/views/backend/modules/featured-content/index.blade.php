@@ -89,7 +89,9 @@
                                                         '{{ $item->event_date?->format('Y-m-d') }}',
                                                         '{{ addslashes($item->badge_text ?? '') }}',
                                                         {{ $item->sort_order }},
-                                                        {{ $item->is_active ? 1 : 0 }}
+                                                        {{ $item->is_active ? 1 : 0 }},
+                                                        {{ $item->release_year ?? 'null' }},
+                                                        {{ $item->rating ?? 'null' }}
                                                     )">
                                                     <i class="fas fa-pen"></i>
                                                 </button>
@@ -192,10 +194,10 @@
                                         <div class="row">
                                             <div class="col-md-8">
                                                 <div class="form-group">
-                                                    <label class="font-weight-600">{{ __tr('Subtitle / Tagline') }}</label>
+                                                    <label class="font-weight-600">{{ __tr('Cast / Actors') }}</label>
                                                     <input type="text" name="subtitle" id="fc_subtitle"
                                                         class="form-control"
-                                                        placeholder="{{ __tr('Short description or tagline') }}">
+                                                        placeholder="{{ __tr('e.g. Tom Hanks, Meg Ryan, ...') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -231,16 +233,33 @@
                                     </div>
                                     <div class="px-4 py-3">
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Release Year') }}</label>
+                                                    <input type="number" name="release_year" id="fc_release_year"
+                                                        class="form-control" placeholder="e.g. 2024" min="1900"
+                                                        max="2099">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="font-weight-600">{{ __tr('Rating') }}</label>
+                                                    <input type="number" name="rating" id="fc_rating"
+                                                        class="form-control" placeholder="e.g. 8.5" min="0"
+                                                        max="10" step="0.1">
+                                                    <small class="form-text text-muted">{{ __tr('0.0 – 10.0') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="font-weight-600">{{ __tr('Event Date') }}</label>
                                                     <input type="date" name="event_date" id="fc_event_date"
                                                         class="form-control">
                                                     <small
-                                                        class="form-text text-muted">{{ __tr('For sports events / premieres') }}</small>
+                                                        class="form-text text-muted">{{ __tr('For sports events') }}</small>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <div class="form-group">
                                                     <label class="font-weight-600">{{ __tr('Badge Text') }}</label>
                                                     <input type="text" name="badge_text" id="fc_badge_text"
@@ -250,8 +269,10 @@
                                                         class="form-text text-muted">{{ __tr('Max 20 characters') }}</small>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="row">
                                             <div class="col-md-4">
-                                                <div class="form-group">
+                                                <div class="form-group mb-0">
                                                     <label class="font-weight-600">{{ __tr('Sort Order') }}</label>
                                                     <input type="number" name="sort_order" id="fc_sort_order"
                                                         class="form-control" value="0" min="0">
@@ -321,7 +342,7 @@
             var editBase = '{{ url('admin/featured-content') }}';
 
             window.openFcModal = function(id, title, subtitle, thumbnail, trailerUrl, type, genre, eventDate, badgeText,
-                sortOrder, isActive) {
+                sortOrder, isActive, releaseYear, rating) {
                 var isEdit = !!id;
 
                 document.getElementById('fcModalTitle').textContent = isEdit ?
@@ -346,6 +367,8 @@
                 document.getElementById('fc_event_date').value = eventDate || '';
                 document.getElementById('fc_badge_text').value = badgeText || '';
                 document.getElementById('fc_sort_order').value = sortOrder || 0;
+                document.getElementById('fc_release_year').value = releaseYear || '';
+                document.getElementById('fc_rating').value = rating || '';
                 document.getElementById('fc_is_active').checked = isEdit ? !!isActive : true;
 
                 var sel = document.getElementById('fc_type');
@@ -371,6 +394,8 @@
             // Reset on close
             $('#fcModal').on('hidden.bs.modal', function() {
                 document.getElementById('fcForm').reset();
+                document.getElementById('fc_release_year').value = '';
+                document.getElementById('fc_rating').value = '';
                 document.getElementById('input-thumbnail').value = '';
                 document.getElementById('single-img-wrap-thumbnail').classList.add('media-hidden');
                 document.getElementById('single-placeholder-thumbnail').classList.remove('media-hidden');

@@ -78,31 +78,31 @@
                         <p>{{ p_trans('home_movies_desc', null, 'Browse top films instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
                         </p>
                     </div>
-                </div>
-                <div class="wrap">
-                    <div class="home-featured-scroll">
+                    <div class="fc-grid">
                         @foreach ($movies as $fc)
-                            <div class="home-content-item">
-                                @if ($fc->badge_text)
-                                    <span class="home-content-badge">{{ $fc->badge_text }}</span>
-                                @endif
-                                @if ($fc->thumbnail)
-                                    <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}" alt="{{ $fc->title }}"
-                                        class="home-content-thumb">
-                                @else
-                                    <div class="home-content-thumb-placeholder">
-                                        <i class="fas {{ $fc->type_icon }} home-content-thumb-icon"></i>
-                                    </div>
-                                @endif
-                                <div class="home-content-body">
-                                    <div class="home-content-meta">
-                                        {{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
-                                    <div class="home-content-title">{{ $fc->title }}</div>
-                                    @if ($fc->youtube_embed_id)
-                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}"
-                                            target="_blank" rel="noopener" class="home-content-preview">
-                                            <i class="fas fa-play"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
-                                        </a>
+                            <div class="fc-card">
+                                <div class="fc-card-poster">
+                                    @if ($fc->thumbnail)
+                                        <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
+                                            alt="{{ $fc->title }}">
+                                    @else
+                                        <div class="fc-card-poster-placeholder">
+                                            <i class="fas fa-film"></i>
+                                        </div>
+                                    @endif
+                                    <div class="fc-card-overlay"></div>
+                                    @if ($fc->release_year)
+                                        <span class="fc-card-year">{{ $fc->release_year }}</span>
+                                    @endif
+                                    @if ($fc->rating)
+                                        <span class="fc-card-rating"><i class="fas fa-star"></i>
+                                            {{ number_format($fc->rating, 1) }}</span>
+                                    @endif
+                                </div>
+                                <div class="fc-card-body">
+                                    <div class="fc-card-title">{{ $fc->title }}</div>
+                                    @if ($fc->subtitle)
+                                        <div class="fc-card-cast">{{ $fc->subtitle }}</div>
                                     @endif
                                 </div>
                             </div>
@@ -219,29 +219,31 @@
                     <p class="home-sec-desc-center">
                         {{ p_trans('home_series_desc', null, 'Full seasons on demand — start watching any series instantly with your subscription.') }}
                     </p>
-                    <div class="home-featured-scroll">
+                    <div class="fc-grid">
                         @foreach ($series as $fc)
-                            <div class="home-content-item">
-                                @if ($fc->badge_text)
-                                    <span class="home-content-badge">{{ $fc->badge_text }}</span>
-                                @endif
-                                @if ($fc->thumbnail)
-                                    <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}" alt="{{ $fc->title }}"
-                                        class="home-content-thumb">
-                                @else
-                                    <div class="home-content-thumb-placeholder">
-                                        <i class="fas {{ $fc->type_icon }} home-content-thumb-icon"></i>
-                                    </div>
-                                @endif
-                                <div class="home-content-body">
-                                    <div class="home-content-meta">
-                                        {{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
-                                    <div class="home-content-title">{{ $fc->title }}</div>
-                                    @if ($fc->youtube_embed_id)
-                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}"
-                                            target="_blank" rel="noopener" class="home-content-preview">
-                                            <i class="fas fa-play"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
-                                        </a>
+                            <div class="fc-card">
+                                <div class="fc-card-poster">
+                                    @if ($fc->thumbnail)
+                                        <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
+                                            alt="{{ $fc->title }}">
+                                    @else
+                                        <div class="fc-card-poster-placeholder">
+                                            <i class="fas fa-tv"></i>
+                                        </div>
+                                    @endif
+                                    <div class="fc-card-overlay"></div>
+                                    @if ($fc->release_year)
+                                        <span class="fc-card-year">{{ $fc->release_year }}</span>
+                                    @endif
+                                    @if ($fc->rating)
+                                        <span class="fc-card-rating"><i class="fas fa-star"></i>
+                                            {{ number_format($fc->rating, 1) }}</span>
+                                    @endif
+                                </div>
+                                <div class="fc-card-body">
+                                    <div class="fc-card-title">{{ $fc->title }}</div>
+                                    @if ($fc->subtitle)
+                                        <div class="fc-card-cast">{{ $fc->subtitle }}</div>
                                     @endif
                                 </div>
                             </div>

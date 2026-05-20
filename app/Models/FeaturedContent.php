@@ -15,6 +15,8 @@ class FeaturedContent extends Model
         'trailer_url',
         'type',
         'genre',
+        'release_year',
+        'rating',
         'event_date',
         'badge_text',
         'is_active',
@@ -22,8 +24,10 @@ class FeaturedContent extends Model
     ];
 
     protected $casts = [
-        'is_active'  => 'boolean',
-        'event_date' => 'date',
+        'is_active'    => 'boolean',
+        'event_date'   => 'date',
+        'release_year' => 'integer',
+        'rating'       => 'float',
     ];
 
     public function getYoutubeEmbedIdAttribute(): ?string
