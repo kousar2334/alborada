@@ -6603,6 +6603,7 @@ input[type="range"]::-moz-range-thumb {
     font-size: clamp(1.8rem, 2.8vw, 2.4rem);
     text-align: center;
     margin-bottom: 12px;
+    color: #ffffff;
 }
 
 .home-sec-desc-center {
@@ -6805,8 +6806,8 @@ input[type="range"]::-moz-range-thumb {
 /* ── FC Card Grid (Movies / Series) ── */
 .fc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
 }
 
 .fc-card {
@@ -6923,8 +6924,8 @@ input[type="range"]::-moz-range-thumb {
 
 @media (max-width: 640px) {
     .fc-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
     }
 }
 
