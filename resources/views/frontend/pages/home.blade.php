@@ -67,86 +67,50 @@
             </section>
         @endif
 
-        <div class="section-divider"></div>
         {{-- ── MOVIES ── --}}
-        <section id="movies">
-            <div class="wrap">
-                <div class="sec-label">{{ p_trans('home_movies_label', null, 'Content Library') }}</div>
-                <div class="sec-head">
-                    <h2>{{ p_trans('home_movies_heading', null, 'Featured titles & live events') }}</h2>
-                    <p>{{ p_trans('home_movies_desc', null, 'Browse top films, series and sports in a cinematic preview — all instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
-                    </p>
-                </div>
-            </div>
-            <div class="wrap">
-                <div class="slider-outer">
-                    <button class="movie-arrow-btn movie-arrow-prev" id="moviePrev" aria-label="Previous">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="slider-track" id="movieSlider">
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf01/320/460" alt="Action" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Action</span>
-                                <h4>Blockbuster Hits</h4>
-                                <p>Live-action thrillers & exclusive premieres.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf02/320/460" alt="Drama" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Drama</span>
-                                <h4>Award Dramas</h4>
-                                <p>High-quality series instantly on demand.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf03/320/460" alt="Sports" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sports</span>
-                                <h4>Live Sports</h4>
-                                <p>Top leagues & tournaments worldwide.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf04/320/460" alt="Kids" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Family</span>
-                                <h4>Kids & Family</h4>
-                                <p>Cartoons and family-friendly content.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
-                                <h4>Sci-Fi & Fantasy</h4>
-                                <p>Mind-bending worlds and epic adventures.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf05/320/460" alt="Documentary" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Documentary</span>
-                                <h4>Top Documentaries</h4>
-                                <p>Premium true stories curated for you.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
-                                <h4>Sci-Fi & Fantasy</h4>
-                                <p>Mind-bending worlds and epic adventures.</p>
-                            </div>
-                        </div>
-                        <div class="movie-card">
-                            <img src="https://picsum.photos/seed/sf06/320/460" alt="Sci-Fi" class="movie-poster">
-                            <div class="movie-meta"><span class="genre-tag">Sci-Fi</span>
-                                <h4>Sci-Fi & Fantasy</h4>
-                                <p>Mind-bending worlds and epic adventures.</p>
-                            </div>
-                        </div>
+        @if ((!isset($sections['movies']) || $sections['movies']->is_active) && isset($movies) && $movies->count())
+            <div class="section-divider"></div>
+            <section id="movies">
+                <div class="wrap">
+                    <div class="sec-label">{{ p_trans('home_movies_label', null, 'Movies') }}</div>
+                    <div class="sec-head">
+                        <h2>{{ p_trans('home_movies_heading', null, 'Featured Movies') }}</h2>
+                        <p>{{ p_trans('home_movies_desc', null, 'Browse top films instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
+                        </p>
                     </div>
-                    <button class="movie-arrow-btn movie-arrow-next" id="movieNext" aria-label="Next">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
                 </div>
-            </div>
-        </section>
+                <div class="wrap">
+                    <div class="home-featured-scroll">
+                        @foreach ($movies as $fc)
+                            <div class="home-content-item">
+                                @if ($fc->badge_text)
+                                    <span class="home-content-badge">{{ $fc->badge_text }}</span>
+                                @endif
+                                @if ($fc->thumbnail)
+                                    <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}" alt="{{ $fc->title }}"
+                                        class="home-content-thumb">
+                                @else
+                                    <div class="home-content-thumb-placeholder">
+                                        <i class="fas {{ $fc->type_icon }} home-content-thumb-icon"></i>
+                                    </div>
+                                @endif
+                                <div class="home-content-body">
+                                    <div class="home-content-meta">
+                                        {{ $fc->type_label }}{{ $fc->genre ? ' · ' . $fc->genre : '' }}</div>
+                                    <div class="home-content-title">{{ $fc->title }}</div>
+                                    @if ($fc->youtube_embed_id)
+                                        <a href="https://www.youtube.com/watch?v={{ $fc->youtube_embed_id }}"
+                                            target="_blank" rel="noopener" class="home-content-preview">
+                                            <i class="fas fa-play"></i> {{ p_trans('home_preview_btn', null, 'Preview') }}
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
 
         <div class="section-divider"></div>
 
@@ -168,8 +132,8 @@
                                 <div class="ch-ticker-item">
                                     <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
                                         @if ($ch->logo)
-                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}"
-                                                alt="{{ $ch->name }}" class="ch-tl-logo-img">
+                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}" alt="{{ $ch->name }}"
+                                                class="ch-tl-logo-img">
                                         @else
                                             <span class="ch-tl-logo-abbr">{{ strtoupper(substr($ch->name, 0, 3)) }}</span>
                                         @endif
@@ -182,8 +146,8 @@
                                 <div class="ch-ticker-item" aria-hidden="true">
                                     <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
                                         @if ($ch->logo)
-                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}"
-                                                alt="{{ $ch->name }}" class="ch-tl-logo-img">
+                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}" alt="{{ $ch->name }}"
+                                                class="ch-tl-logo-img">
                                         @else
                                             <span class="ch-tl-logo-abbr">{{ strtoupper(substr($ch->name, 0, 3)) }}</span>
                                         @endif
@@ -243,23 +207,20 @@
             </section>
         @endif
 
-        <div class="section-divider"></div>
-
-
-        {{-- ── FEATURED CONTENT ── --}}
-        @if ((!isset($sections['featured_content']) || $sections['featured_content']->is_active) && $featuredContent->count())
-            <section id="featured-content">
+        {{-- ── SERIES ── --}}
+        @if ((!isset($sections['series']) || $sections['series']->is_active) && isset($series) && $series->count())
+            <div class="section-divider"></div>
+            <section id="series">
                 <div class="wrap">
-                    <div class="sec-label sec-label-center">{{ p_trans('home_featured_label', null, "What's Streaming") }}
-                    </div>
+                    <div class="sec-label sec-label-center">{{ p_trans('home_series_label', null, 'Series') }}</div>
                     <h2 class="home-sec-heading-center">
-                        {{ p_trans('home_featured_heading', null, 'Movies, Series & Live Events') }}
+                        {{ p_trans('home_series_heading', null, 'Binge-Worthy Series') }}
                     </h2>
                     <p class="home-sec-desc-center">
-                        {{ p_trans('home_featured_desc', null, 'Get access to thousands of titles. Preview what is available on your Alborada Box subscription.') }}
+                        {{ p_trans('home_series_desc', null, 'Full seasons on demand — start watching any series instantly with your subscription.') }}
                     </p>
                     <div class="home-featured-scroll">
-                        @foreach ($featuredContent as $fc)
+                        @foreach ($series as $fc)
                             <div class="home-content-item">
                                 @if ($fc->badge_text)
                                     <span class="home-content-badge">{{ $fc->badge_text }}</span>
@@ -480,23 +441,26 @@
 
         <div class="section-divider"></div>
 
-        {{-- ── UPCOMING EVENTS ── --}}
-        @if ((!isset($sections['upcoming_events']) || $sections['upcoming_events']->is_active) && $upcomingEvents->count())
-            <section id="upcoming-events" class="upcoming-events-section">
+        {{-- ── SPORT EVENTS ── --}}
+        @if (
+            (!isset($sections['sport_events']) || $sections['sport_events']->is_active) &&
+                isset($sportEvents) &&
+                $sportEvents->count())
+            <section id="sport-events" class="upcoming-events-section">
                 <div class="wrap">
                     <div class="sec-label sec-label-center">
                         <i class="fas fa-trophy card-title-icon"></i>
-                        {{ p_trans('home_events_label', null, 'Live Sports') }}
+                        {{ p_trans('home_sport_events_label', null, 'Live Sports') }}
                     </div>
                     <h2 class="events-heading">
-                        {{ p_trans('home_events_heading', null, 'Upcoming Live Events') }}
+                        {{ p_trans('home_sport_events_heading', null, 'Upcoming Live Events') }}
                     </h2>
                     <div class="events-grid">
-                        @foreach ($upcomingEvents as $ev)
+                        @foreach ($sportEvents as $ev)
                             <div class="event-item">
                                 @if ($ev->thumbnail)
-                                    <img src="{{ asset($ev->thumbnail) }}" alt="{{ $ev->title }}"
-                                        class="event-thumb">
+                                    <img src="{{ asset(getFilePath($ev->thumbnail, true)) }}"
+                                        alt="{{ $ev->title }}" class="event-thumb">
                                 @else
                                     <div class="event-thumb-placeholder">
                                         <i class="fas fa-trophy event-thumb-icon"></i>

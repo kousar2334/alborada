@@ -139,6 +139,14 @@
             min-height: 40px;
         }
 
+        .hb-sort-placeholder {
+            height: 58px;
+            background: #e9f5ff;
+            border: 2px dashed #90caf9;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
         .order-saving-indicator {
             display: none;
             font-size: 13px;
@@ -618,6 +626,68 @@
                                                         <label class="font-weight-bold">{{ __tr('Description') }}</label>
                                                         <input type="text" class="form-control" name="home_newsletter_desc"
                                                             value="{{ p_trans('home_newsletter_desc', $lang, '') }}">
+                                                    </div>
+                                                </div>
+                                            @break
+
+                                            @case('movies')
+                                                <div class="alert alert-info mb-2">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    {{ __tr('Movies are pulled from Featured Content (type = Movie). Go to') }}
+                                                    <a
+                                                        href="{{ route('admin.featured-content.index') }}">{{ __tr('Featured Content') }}</a>
+                                                    {{ __tr('to add or edit movies.') }}
+                                                </div>
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-6">
+                                                        <label class="font-weight-bold">{{ __tr('Section Heading') }}</label>
+                                                        <input type="text" class="form-control" name="home_movies_heading"
+                                                            value="{{ p_trans('home_movies_heading', $lang, 'Featured titles & live events') }}">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label class="font-weight-bold">{{ __tr('Subtitle') }}</label>
+                                                        <input type="text" class="form-control" name="home_movies_desc"
+                                                            value="{{ p_trans('home_movies_desc', $lang, '') }}">
+                                                    </div>
+                                                </div>
+                                            @break
+
+                                            @case('series')
+                                                <div class="alert alert-info mb-2">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    {{ __tr('Series are pulled from Featured Content (type = Series). Go to') }}
+                                                    <a
+                                                        href="{{ route('admin.featured-content.index') }}">{{ __tr('Featured Content') }}</a>
+                                                    {{ __tr('to add or edit series.') }}
+                                                </div>
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-6">
+                                                        <label class="font-weight-bold">{{ __tr('Section Heading') }}</label>
+                                                        <input type="text" class="form-control" name="home_series_heading"
+                                                            value="{{ p_trans('home_series_heading', $lang, 'Binge-Worthy Series') }}">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label class="font-weight-bold">{{ __tr('Subtitle') }}</label>
+                                                        <input type="text" class="form-control" name="home_series_desc"
+                                                            value="{{ p_trans('home_series_desc', $lang, '') }}">
+                                                    </div>
+                                                </div>
+                                            @break
+
+                                            @case('sport_events')
+                                                <div class="alert alert-info mb-2">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    {{ __tr('Sport events are pulled from Featured Content (type = Sports Event). Go to') }}
+                                                    <a
+                                                        href="{{ route('admin.featured-content.index') }}">{{ __tr('Featured Content') }}</a>
+                                                    {{ __tr('to add or edit sport events.') }}
+                                                </div>
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-6">
+                                                        <label class="font-weight-bold">{{ __tr('Section Heading') }}</label>
+                                                        <input type="text" class="form-control"
+                                                            name="home_sport_events_heading"
+                                                            value="{{ p_trans('home_sport_events_heading', $lang, 'Upcoming Live Events') }}">
                                                     </div>
                                                 </div>
                                             @break

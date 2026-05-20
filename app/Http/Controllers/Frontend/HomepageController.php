@@ -22,13 +22,19 @@ class HomepageController extends Controller
             ->orderBy('price')
             ->get();
 
-        $featuredContent = FeaturedContent::where('is_active', true)
-            ->whereNotIn('type', ['sports_event'])
+        $movies = FeaturedContent::where('is_active', true)
+            ->where('type', 'movie')
             ->orderBy('sort_order')
             ->take(8)
             ->get();
 
-        $upcomingEvents = FeaturedContent::where('is_active', true)
+        $series = FeaturedContent::where('is_active', true)
+            ->where('type', 'series')
+            ->orderBy('sort_order')
+            ->take(8)
+            ->get();
+
+        $sportEvents = FeaturedContent::where('is_active', true)
             ->where('type', 'sports_event')
             ->where(function ($q) {
                 $q->whereNull('event_date')->orWhere('event_date', '>=', now()->toDateString());
@@ -49,30 +55,31 @@ class HomepageController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('frontend.pages.home', compact('sections', 'plans', 'featuredContent', 'upcomingEvents', 'tvShows', 'channels'));
+        return view('frontend.pages.home', compact('sections', 'plans', 'movies', 'series', 'sportEvents', 'tvShows', 'channels'));
     }
 
     private function activeSections(): array
     {
         $defaults = [
-            'hero'             => ['title' => 'Hero', 'sort_order' => 10],
-            'about'            => ['title' => 'About', 'sort_order' => 20],
-            'featured_content' => ['title' => 'Featured Content', 'sort_order' => 25],
-            'categories'       => ['title' => 'Content Categories', 'sort_order' => 30],
-            'features'         => ['title' => 'Features', 'sort_order' => 40],
-            'pricing'          => ['title' => 'Pricing Plans', 'sort_order' => 50],
-            'upcoming_events'  => ['title' => 'Upcoming Events', 'sort_order' => 55],
-            'reviews'          => ['title' => 'Reviews', 'sort_order' => 60],
-            'portal'           => ['title' => 'Client Portal Preview', 'sort_order' => 70],
-            'devices'          => ['title' => 'Compatible Devices', 'sort_order' => 80],
-            'setup'            => ['title' => 'How to Order', 'sort_order' => 90],
-            'why'              => ['title' => 'Why Choose Us', 'sort_order' => 100],
-            'tv_shows'         => ['title' => 'Movies & TV Shows', 'sort_order' => 105],
-            'channels'         => ['title' => 'Channel Lineup', 'sort_order' => 110],
-            'faq'              => ['title' => 'FAQ', 'sort_order' => 120],
-            'reseller'         => ['title' => 'Reseller Program', 'sort_order' => 130],
-            'cta'              => ['title' => 'CTA Banner', 'sort_order' => 140],
-            'newsletter'       => ['title' => 'Newsletter', 'sort_order' => 150],
+            'hero'         => ['title' => 'Hero', 'sort_order' => 10],
+            'about'        => ['title' => 'About', 'sort_order' => 20],
+            'movies'       => ['title' => 'Movies', 'sort_order' => 25],
+            'series'       => ['title' => 'Series', 'sort_order' => 26],
+            'categories'   => ['title' => 'Content Categories', 'sort_order' => 30],
+            'features'     => ['title' => 'Features', 'sort_order' => 40],
+            'pricing'      => ['title' => 'Pricing Plans', 'sort_order' => 50],
+            'sport_events' => ['title' => 'Sport Events', 'sort_order' => 55],
+            'reviews'      => ['title' => 'Reviews', 'sort_order' => 60],
+            'portal'       => ['title' => 'Client Portal Preview', 'sort_order' => 70],
+            'devices'      => ['title' => 'Compatible Devices', 'sort_order' => 80],
+            'setup'        => ['title' => 'How to Order', 'sort_order' => 90],
+            'why'          => ['title' => 'Why Choose Us', 'sort_order' => 100],
+            'tv_shows'     => ['title' => 'Movies & TV Shows', 'sort_order' => 105],
+            'channels'     => ['title' => 'Channel Lineup', 'sort_order' => 110],
+            'faq'          => ['title' => 'FAQ', 'sort_order' => 120],
+            'reseller'     => ['title' => 'Reseller Program', 'sort_order' => 130],
+            'cta'          => ['title' => 'CTA Banner', 'sort_order' => 140],
+            'newsletter'   => ['title' => 'Newsletter', 'sort_order' => 150],
         ];
 
         if (!Schema::hasTable('home_page_sections')) {
