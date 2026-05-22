@@ -67,6 +67,16 @@ class MediaContentSeeder extends Seeder
         // Step 2 — download posters and update thumbnails (failures are non-fatal)
         $allItems = array_merge($this->movies(), $this->tvShows());
         foreach ($allItems as $data) {
+            // Skip if a valid poster is already stored for this title
+            $existing = MediaContent::where('title', $data['title'])->value('thumbnail');
+            if ($existing && $existing !== 'uploads/no-image.png') {
+                $existingPath = public_path($existing);
+                if (file_exists($existingPath) && filesize($existingPath) > 5000) {
+                    continue;
+                }
+            }
+
+            usleep(300000); // 0.3s pause to avoid CDN rate-limiting
             $poster = $this->downloadPoster($data['_poster_url'], $uploadDir, $data['title']);
 
             if ($poster['path'] !== 'uploads/no-image.png') {
@@ -82,21 +92,20 @@ class MediaContentSeeder extends Seeder
         $localPath = $dir . '/' . $filename;
         $relativePath = 'uploads/2026/May/' . $filename;
 
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout'       => 15,
-                'user_agent'    => 'Mozilla/5.0 (compatible; AlboradaSeeder/1.0)',
-                'ignore_errors' => true,
-            ],
-            'ssl' => [
-                'verify_peer'      => false,
-                'verify_peer_name' => false,
-            ],
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 20,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+            CURLOPT_FRESH_CONNECT  => true,
+            CURLOPT_FORBID_REUSE   => true,
         ]);
+        $image = curl_exec($ch);
+        curl_close($ch);
 
-        $image = @file_get_contents($url, false, $ctx);
-
-        if ($image && strlen($image) > 1000) {
+        if ($image && strlen($image) > 5000) {
             file_put_contents($localPath, $image);
             $size = filesize($localPath);
 
@@ -207,7 +216,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 4,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/pjnD08FlMAIXsfOLKQbvjc8iu4M.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
                 'title'          => 'Gladiator II',
                 'subtitle'       => 'If you don\'t fight, you die.',
                 'description'    => 'Years after witnessing the death of the revered hero Maximus, Lucius is forced to enter the Colosseum after his home is conquered by the tyrannical Emperors.',
@@ -223,7 +232,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 5,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/qhb1qOilapbapxWQn9jtRCMwLJV.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/xDGbZ0JJ3mYaGKy4Nzd9Kph6M9L.jpg',
                 'title'          => 'Wicked',
                 'subtitle'       => 'The untold story of the witches of Oz.',
                 'description'    => 'The story of Elphaba and Glinda, friends whose lives are changed forever after their initial encounter in the land of Oz.',
@@ -239,7 +248,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 6,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/j3Z3XktmWB1VhsS8iXNCwkmzIN3.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/iADOJ8Zymht2JPMoy3R7xceZprc.jpg',
                 'title'          => 'Furiosa: A Mad Max Saga',
                 'subtitle'       => 'The origin of the most iconic warrior.',
                 'description'    => 'The origin story of the renegade warrior Furiosa before her encounter and clash with the Immortan Joe.',
@@ -271,7 +280,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 8,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/scdBSEEm3jwxnOxMR4rFmKDyiRt.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/aLVkiINlIeCkcZIzb7XHzPYgO6L.jpg',
                 'title'          => 'Moana 2',
                 'subtitle'       => 'A new voyage.',
                 'description'    => 'Moana and her crew embark on a far-flung voyage into the unknown seas of Oceania, journeying to the forgotten island kingdom of Motufetu.',
@@ -345,7 +354,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 12,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/t5vTYfa3JQEKSAeDSjRLVnFHJdH.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/lZwxqNWnT1dRl76ry6BM0FPqCUg.jpg',
                 'title'          => 'House of the Dragon Season 2',
                 'subtitle'       => 'Fire and blood.',
                 'description'    => 'The Targaryen civil war — the Dance of the Dragons — reaches its most violent phase as each side suffers heavy losses.',
@@ -381,7 +390,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 14,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/dKPtGhA2l2DZPVS9KeXpUMgTqMk.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/jKonm6Q3vw51Ytd4y7bJ70xJT7l.jpg',
                 'title'          => 'The Penguin',
                 'subtitle'       => 'Gotham\'s new crime boss.',
                 'description'    => 'The story of Oz Cobb, also known as the Penguin, and his rise to power in Gotham\'s criminal underworld.',
@@ -399,7 +408,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 15,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/ypkCPKLaS0hOeFBMVeBrpiL5FpI.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/ugOtb03Y710JkDaq2ojT0z2nvXq.jpg',
                 'title'          => 'Agatha All Along',
                 'subtitle'       => 'The Witches\' Road begins.',
                 'description'    => 'Agatha Harkness sets down the Witches Road, a magical gauntlet of trials that she and her coven members must overcome.',
@@ -417,7 +426,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 16,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/rl0B7PoSKiA2vYYb3MnTHf4LFKK.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/sXZhtWLo3fecavpDuOyJiayjt32.jpg',
                 'title'          => 'Squid Game Season 2',
                 'subtitle'       => 'The game is back.',
                 'description'    => 'Player 456 returns to the deadly game, this time with a new purpose — to find the man behind the curtain.',
@@ -453,7 +462,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 18,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/iFlC5gHMFjKBdoZDcDRzlEHPF4x.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/m93DIqlwcHWiepTl6WXPiOlw4E9.jpg',
                 'title'          => 'The Lord of the Rings: The Rings of Power Season 2',
                 'subtitle'       => 'The dark lord rises.',
                 'description'    => 'The second age of Middle-earth continues as Sauron rises to power and forges his rings of power.',
@@ -471,7 +480,7 @@ class MediaContentSeeder extends Seeder
                 'sort_order'     => 19,
             ],
             [
-                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/aE3yAGBrEOjqiZ4pRhLHdMnJkJe.jpg',
+                '_poster_url'    => 'https://image.tmdb.org/t/p/w500/cOKXV0FalCYixNmZYCfHXgyQ0VX.jpg',
                 'title'          => 'The Diplomat',
                 'subtitle'       => 'No one said diplomacy was easy.',
                 'description'    => 'A career diplomat lands in a high-profile job she is unsuited for in temperament but perfect for in expertise: US Ambassador to the UK.',
