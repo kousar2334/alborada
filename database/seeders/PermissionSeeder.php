@@ -37,44 +37,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Member',                       'module' => 'Members'],
             ['name' => 'Delete Member',                     'module' => 'Members'],
 
-            // ── Ads / Listings ────────────────────────────────────────────
-            ['name' => 'Manage Ads',                        'module' => 'Ads'],
-            ['name' => 'Edit Ad',                           'module' => 'Ads'],
-            ['name' => 'Delete Ad',                         'module' => 'Ads'],
 
-            // ── Ad Categories ─────────────────────────────────────────────
-            ['name' => 'Manage Ad Categories',              'module' => 'Ads'],
-            ['name' => 'Create Ad Category',                'module' => 'Ads'],
-            ['name' => 'Edit Ad Category',                  'module' => 'Ads'],
-            ['name' => 'Delete Ad Category',                'module' => 'Ads'],
-
-            // ── Conditions ────────────────────────────────────────────────
-            ['name' => 'Manage Conditions',                 'module' => 'Ads'],
-            ['name' => 'Create Condition',                  'module' => 'Ads'],
-            ['name' => 'Edit Condition',                    'module' => 'Ads'],
-            ['name' => 'Delete Condition',                  'module' => 'Ads'],
-
-            // ── Tags ──────────────────────────────────────────────────────
-            ['name' => 'Manage Tags',                       'module' => 'Ads'],
-            ['name' => 'Create Tag',                        'module' => 'Ads'],
-            ['name' => 'Edit Tag',                          'module' => 'Ads'],
-            ['name' => 'Delete Tag',                        'module' => 'Ads'],
-
-            // ── Custom Fields ─────────────────────────────────────────────
-            ['name' => 'Manage Custom Fields',              'module' => 'Ads'],
-            ['name' => 'Create Custom Field',               'module' => 'Ads'],
-            ['name' => 'Edit Custom Field',                 'module' => 'Ads'],
-            ['name' => 'Delete Custom Field',               'module' => 'Ads'],
-
-            // ── Ad Reports ────────────────────────────────────────────────
-            ['name' => 'Manage Ad Reports',                 'module' => 'Ads'],
-            ['name' => 'Delete Ad Report',                  'module' => 'Ads'],
-
-            // ── Report Reasons ────────────────────────────────────────────
-            ['name' => 'Manage Report Reasons',             'module' => 'Ads'],
-            ['name' => 'Create Report Reason',              'module' => 'Ads'],
-            ['name' => 'Edit Report Reason',                'module' => 'Ads'],
-            ['name' => 'Delete Report Reason',              'module' => 'Ads'],
 
             // ── Pricing Plans ─────────────────────────────────────────────
             ['name' => 'Manage Pricing Plans',              'module' => 'Pricing'],
