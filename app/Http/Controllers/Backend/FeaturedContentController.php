@@ -23,7 +23,7 @@ class FeaturedContentController extends Controller
     {
         $data = $this->validate($request);
         FeaturedContent::create($data);
-        toastNotification('success', __tr('Featured content added successfully.'));
+        toastNotification('success', __tr('Content added successfully.'));
         return redirect()->route('admin.featured-content.index');
     }
 

@@ -1,5 +1,5 @@
 @php
-    $links = [['title' => __tr('Featured Content'), 'route' => '', 'active' => true]];
+    $links = [['title' => __tr('Contents'), 'route' => '', 'active' => true]];
     $typeColors = ['movie' => 'danger', 'series' => 'info', 'sports_event' => 'warning', 'new_release' => 'primary'];
     $typeLabels = [
         'movie' => 'Movie',
@@ -10,10 +10,10 @@
 @endphp
 @extends('backend.layouts.dashboard_layout')
 @section('page-title')
-    {{ __tr('Featured Content') }}
+    {{ __tr('Contents') }}
 @endsection
 @section('page-content')
-    <x-admin-page-header title="{{ __tr('Featured Content') }}" :links="$links" />
+    <x-admin-page-header title="{{ __tr('Contents') }}" :links="$links" />
 
     <section class="content">
         <div class="container-fluid">
@@ -21,7 +21,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">{{ __tr('All Featured Content') }}</h3>
+                            <h3 class="card-title">{{ __tr('All Contents') }}</h3>
                             <button class="btn btn-primary btn-sm float-right" onclick="openFcModal()">
                                 <i class="fas fa-plus mr-1"></i> {{ __tr('Add Content') }}
                             </button>

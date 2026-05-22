@@ -57,7 +57,7 @@ return [
     ],
 
     [
-        'label'        => 'Featured Content',
+        'label'        => 'Contents',
         'route'        => 'admin.featured-content.index',
         'icon'         => 'fas fa-film',
         'active_routes' => ['admin.featured-content.*'],
