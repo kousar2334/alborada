@@ -11135,9 +11135,10 @@ section {
 /* ─────────────────── PRICING ─────────────────── */
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 340px));
     gap: 18px;
     align-items: start;
+    justify-content: center;
 }
 
 .price-card {
