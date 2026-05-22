@@ -78,35 +78,39 @@
                         <p>{{ p_trans('home_movies_desc', null, 'Browse top films instantly available on demand through your ' . get_setting('site_name', 'Alborada') . ' subscription.') }}
                         </p>
                     </div>
-                    <div class="fc-grid">
-                        @foreach ($movies as $fc)
-                            <div class="fc-card">
-                                <div class="fc-card-poster">
-                                    @if ($fc->thumbnail)
-                                        <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
-                                            alt="{{ $fc->title }}">
-                                    @else
-                                        <div class="fc-card-poster-placeholder">
-                                            <i class="fas fa-film"></i>
-                                        </div>
-                                    @endif
-                                    <div class="fc-card-overlay"></div>
-                                    @if ($fc->release_year)
-                                        <span class="fc-card-year">{{ $fc->release_year }}</span>
-                                    @endif
-                                    @if ($fc->rating)
-                                        <span class="fc-card-rating"><i class="fas fa-star"></i>
-                                            {{ number_format($fc->rating, 1) }}</span>
-                                    @endif
+                    <div class="fc-slider-wrapper">
+                        <button class="fc-slider-btn fc-slider-prev" id="moviesPrev" aria-label="Previous">&#8249;</button>
+                        <div class="fc-slider" id="moviesSlider">
+                            @foreach ($movies as $fc)
+                                <div class="fc-card">
+                                    <div class="fc-card-poster">
+                                        @if ($fc->thumbnail)
+                                            <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
+                                                alt="{{ $fc->title }}">
+                                        @else
+                                            <div class="fc-card-poster-placeholder">
+                                                <i class="fas fa-film"></i>
+                                            </div>
+                                        @endif
+                                        <div class="fc-card-overlay"></div>
+                                        @if ($fc->release_year)
+                                            <span class="fc-card-year">{{ $fc->release_year }}</span>
+                                        @endif
+                                        @if ($fc->rating)
+                                            <span class="fc-card-rating"><i class="fas fa-star"></i>
+                                                {{ number_format($fc->rating, 1) }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="fc-card-body">
+                                        <div class="fc-card-title">{{ $fc->title }}</div>
+                                        @if ($fc->subtitle)
+                                            <div class="fc-card-cast">{{ $fc->subtitle }}</div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="fc-card-body">
-                                    <div class="fc-card-title">{{ $fc->title }}</div>
-                                    @if ($fc->subtitle)
-                                        <div class="fc-card-cast">{{ $fc->subtitle }}</div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
+                        <button class="fc-slider-btn fc-slider-next" id="moviesNext" aria-label="Next">&#8250;</button>
                     </div>
                 </div>
             </section>
@@ -124,10 +128,10 @@
                         <p>{{ p_trans('home_channels_desc', null, 'Scroll through our top channel categories — 40,000+ live feeds available instantly.') }}
                         </p>
                     </div>
-                    {{-- Infinite auto-scroll ticker – pauses on hover --}}
-                    <div class="ch-ticker-outer">
-                        <div class="ch-ticker-track">
-                            {{-- First set --}}
+                    <div class="fc-slider-wrapper">
+                        <button class="fc-slider-btn fc-slider-prev" id="channelsPrev"
+                            aria-label="Previous">&#8249;</button>
+                        <div class="ch-slider" id="channelsSlider">
                             @foreach ($channels as $ch)
                                 <div class="ch-ticker-item">
                                     <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
@@ -141,21 +145,8 @@
                                     <span class="ch-ticker-name">{{ $ch->name }}</span>
                                 </div>
                             @endforeach
-                            {{-- Duplicate set for seamless loop --}}
-                            @foreach ($channels as $ch)
-                                <div class="ch-ticker-item" aria-hidden="true">
-                                    <div class="ch-tl-logo-dynamic" style="background:{{ $ch->bg_color }};">
-                                        @if ($ch->logo)
-                                            <img src="{{ asset(getFilePath($ch->logo, true)) }}" alt="{{ $ch->name }}"
-                                                class="ch-tl-logo-img">
-                                        @else
-                                            <span class="ch-tl-logo-abbr">{{ strtoupper(substr($ch->name, 0, 3)) }}</span>
-                                        @endif
-                                    </div>
-                                    <span class="ch-ticker-name">{{ $ch->name }}</span>
-                                </div>
-                            @endforeach
                         </div>
+                        <button class="fc-slider-btn fc-slider-next" id="channelsNext" aria-label="Next">&#8250;</button>
                     </div>
                 </div>
             </section>
@@ -219,35 +210,40 @@
                     <p class="home-sec-desc-center">
                         {{ p_trans('home_series_desc', null, 'Full seasons on demand — start watching any series instantly with your subscription.') }}
                     </p>
-                    <div class="fc-grid">
-                        @foreach ($series as $fc)
-                            <div class="fc-card">
-                                <div class="fc-card-poster">
-                                    @if ($fc->thumbnail)
-                                        <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
-                                            alt="{{ $fc->title }}">
-                                    @else
-                                        <div class="fc-card-poster-placeholder">
-                                            <i class="fas fa-tv"></i>
-                                        </div>
-                                    @endif
-                                    <div class="fc-card-overlay"></div>
-                                    @if ($fc->release_year)
-                                        <span class="fc-card-year">{{ $fc->release_year }}</span>
-                                    @endif
-                                    @if ($fc->rating)
-                                        <span class="fc-card-rating"><i class="fas fa-star"></i>
-                                            {{ number_format($fc->rating, 1) }}</span>
-                                    @endif
+                    <div class="fc-slider-wrapper">
+                        <button class="fc-slider-btn fc-slider-prev" id="seriesPrev"
+                            aria-label="Previous">&#8249;</button>
+                        <div class="fc-slider" id="seriesSlider">
+                            @foreach ($series as $fc)
+                                <div class="fc-card">
+                                    <div class="fc-card-poster">
+                                        @if ($fc->thumbnail)
+                                            <img src="{{ asset(getFilePath($fc->thumbnail, true)) }}"
+                                                alt="{{ $fc->title }}">
+                                        @else
+                                            <div class="fc-card-poster-placeholder">
+                                                <i class="fas fa-tv"></i>
+                                            </div>
+                                        @endif
+                                        <div class="fc-card-overlay"></div>
+                                        @if ($fc->release_year)
+                                            <span class="fc-card-year">{{ $fc->release_year }}</span>
+                                        @endif
+                                        @if ($fc->rating)
+                                            <span class="fc-card-rating"><i class="fas fa-star"></i>
+                                                {{ number_format($fc->rating, 1) }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="fc-card-body">
+                                        <div class="fc-card-title">{{ $fc->title }}</div>
+                                        @if ($fc->subtitle)
+                                            <div class="fc-card-cast">{{ $fc->subtitle }}</div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="fc-card-body">
-                                    <div class="fc-card-title">{{ $fc->title }}</div>
-                                    @if ($fc->subtitle)
-                                        <div class="fc-card-cast">{{ $fc->subtitle }}</div>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
+                        <button class="fc-slider-btn fc-slider-next" id="seriesNext" aria-label="Next">&#8250;</button>
                     </div>
                 </div>
             </section>

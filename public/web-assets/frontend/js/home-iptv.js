@@ -2,47 +2,125 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // ── AUTO-SCROLL MOVIE SLIDER ──
-    const slider = document.getElementById('movieSlider');
-    if (slider) {
-        const cardStep = () => {
-            const card = slider.querySelector('.movie-card');
-            return card ? card.offsetWidth + 18 : 238;
+    // ── INFINITE SLIDER HELPER ──
+    // Clones items for seamless wrap-around. step = how many items to scroll per click.
+    function initInfiniteSlider(sliderId, prevId, nextId, itemSelector, gap, scrollItems) {
+        const slider = document.getElementById(sliderId);
+        if (!slider) return;
+
+        const originals = Array.from(slider.querySelectorAll(itemSelector));
+        if (!originals.length) return;
+
+        // Append one full copy of all items so the track is 2× wide
+        originals.forEach(function (item) {
+            var clone = item.cloneNode(true);
+            clone.setAttribute('aria-hidden', 'true');
+            slider.appendChild(clone);
+        });
+
+        var getHalf = function () { return slider.scrollWidth / 2; };
+
+        var getStep = function () {
+            var item = slider.querySelector(itemSelector);
+            return item ? (item.offsetWidth + gap) * scrollItems : 400;
         };
 
-        let paused = false;
-        let interval = setInterval(() => {
-            if (paused) return;
-            const cardW = cardStep();
-            if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - cardW) {
-                slider.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                slider.scrollBy({ left: cardW, behavior: 'smooth' });
-            }
-        }, 3000);
-        slider.addEventListener('mouseenter', () => paused = true);
-        slider.addEventListener('mouseleave', () => paused = false);
-        slider.addEventListener('touchstart', () => paused = true, { passive: true });
-        slider.addEventListener('touchend', () => setTimeout(() => paused = false, 2000), { passive: true });
+        // After scroll settles, silently reset if we've drifted into clone territory
+        var resetTimer;
+        slider.addEventListener('scroll', function () {
+            clearTimeout(resetTimer);
+            resetTimer = setTimeout(function () {
+                if (slider.scrollLeft >= getHalf()) {
+                    slider.scrollLeft -= getHalf();
+                }
+            }, 80);
+        }, { passive: true });
 
-        // ── PREV / NEXT ARROWS ──
-        const prevBtn = document.getElementById('moviePrev');
-        const nextBtn = document.getElementById('movieNext');
+        var prevBtn = document.getElementById(prevId);
+        var nextBtn = document.getElementById(nextId);
+
         if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                paused = true;
-                slider.scrollBy({ left: -cardStep(), behavior: 'smooth' });
-                setTimeout(() => paused = false, 1500);
+            prevBtn.addEventListener('click', function () {
+                var step = getStep();
+                // Near the start: jump to equivalent position in clone set then scroll back
+                if (slider.scrollLeft < step) {
+                    slider.scrollLeft = getHalf() + slider.scrollLeft;
+                }
+                slider.scrollBy({ left: -step, behavior: 'smooth' });
             });
         }
+
         if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                paused = true;
-                slider.scrollBy({ left: cardStep(), behavior: 'smooth' });
-                setTimeout(() => paused = false, 1500);
+            nextBtn.addEventListener('click', function () {
+                slider.scrollBy({ left: getStep(), behavior: 'smooth' });
             });
         }
     }
+
+    // ── FC SLIDERS (Movies / Series) — 3 cards per click, 14px gap ──
+    initInfiniteSlider('moviesSlider', 'moviesPrev', 'moviesNext', '.fc-card', 14, 3);
+    initInfiniteSlider('seriesSlider', 'seriesPrev', 'seriesNext', '.fc-card', 14, 3);
+
+    // ── CHANNEL SLIDER — auto-scroll + prev/next, 3 items per click, 20px gap ──
+    (function () {
+        var slider = document.getElementById('channelsSlider');
+        if (!slider) return;
+
+        var originals = Array.from(slider.querySelectorAll('.ch-ticker-item'));
+        if (!originals.length) return;
+
+        originals.forEach(function (item) {
+            var clone = item.cloneNode(true);
+            clone.setAttribute('aria-hidden', 'true');
+            slider.appendChild(clone);
+        });
+
+        var getHalf = function () { return slider.scrollWidth / 2; };
+        var getItemW = function () {
+            var item = slider.querySelector('.ch-ticker-item');
+            return item ? item.offsetWidth + 20 : 128;
+        };
+
+        var resetTimer;
+        slider.addEventListener('scroll', function () {
+            clearTimeout(resetTimer);
+            resetTimer = setTimeout(function () {
+                if (slider.scrollLeft >= getHalf()) {
+                    slider.scrollLeft -= getHalf();
+                }
+            }, 80);
+        }, { passive: true });
+
+        // Auto-scroll one item every 2.5 s
+        var autoTimer = setInterval(function () {
+            slider.scrollBy({ left: getItemW(), behavior: 'smooth' });
+        }, 2500);
+
+        slider.addEventListener('mouseenter', function () { clearInterval(autoTimer); });
+        slider.addEventListener('mouseleave', function () {
+            autoTimer = setInterval(function () {
+                slider.scrollBy({ left: getItemW(), behavior: 'smooth' });
+            }, 2500);
+        });
+
+        var prevBtn = document.getElementById('channelsPrev');
+        var nextBtn = document.getElementById('channelsNext');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function () {
+                var step = getItemW() * 3;
+                if (slider.scrollLeft < step) {
+                    slider.scrollLeft = getHalf() + slider.scrollLeft;
+                }
+                slider.scrollBy({ left: -step, behavior: 'smooth' });
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function () {
+                slider.scrollBy({ left: getItemW() * 3, behavior: 'smooth' });
+            });
+        }
+    }());
 
     // ── TV SHOWS FILTER TABS ──
     const filterBtns = document.querySelectorAll('.tvs-filter-btn');
