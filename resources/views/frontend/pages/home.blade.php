@@ -781,8 +781,8 @@
                             <div class="tvs-card" data-type="{{ $show->type }}">
                                 <div class="tvs-poster">
                                     @if ($show->thumbnail)
-                                        <img src="{{ asset($show->thumbnail) }}" alt="{{ $show->title }}"
-                                            class="tvs-poster-img">
+                                        <img src="{{ asset(getFilePath($show->thumbnail, true)) }}"
+                                            alt="{{ $show->title }}" class="tvs-poster-img">
                                     @else
                                         <div class="tvs-poster-placeholder">
                                             <i class="fas {{ $show->type_icon }}"></i>
