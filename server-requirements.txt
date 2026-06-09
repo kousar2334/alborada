@@ -1,0 +1,348 @@
+# IPTV Platform — Server & Infrastructure Requirements
+# Project: Alborada Box / Moissanite Radiance
+# Slogan: Where every Stream sparkles
+# Last updated: 2026-06-06
+
+================================================================================
+=== SINGLE VPS SETUP (Recommended for Start-Up — Up to ~150 Subscribers) ===
+================================================================================
+One server runs BOTH the Laravel web application AND the XUI One streaming panel.
+
+OS:       Ubuntu 22.04 LTS
+CPU:      4 vCPU minimum
+RAM:      8 GB minimum
+Storage:  100 GB SSD minimum (increase if storing VOD/movie files locally)
+Ports:
+  - 22    SSH (restrict to your admin IP only)
+  - 80    HTTP (redirects to HTTPS)
+  - 443   HTTPS (Laravel web app via Nginx + Let's Encrypt)
+  - 8080  XUI One streaming panel + Xtream Codes API + IPTV stream delivery
+  - 3306  MySQL (localhost only — do NOT expose to internet)
+
+Software stack:
+  - Docker CE + Docker Compose Plugin
+  - Nginx (host-level, handles TLS termination, proxies to Docker on :8080)
+  - Certbot (Let's Encrypt SSL — auto-renews)
+  - XUI One streaming panel (runs directly on host, listens on :8080)
+
+Estimated cost: $40–$48/mo (DigitalOcean, Hetzner, or Vultr)
+
+IPTV Settings (admin panel → Settings → IPTV):
+  xtream_base_url = http://localhost:8080  <-- use localhost since both run on same VPS
+
+================================================================================
+=== SCALE-UP: SPLIT TO TWO SERVERS (When Needed — 150+ Subscribers) ===
+================================================================================
+When to split:
+  - 150+ active subscribers
+  - 50+ concurrent streams at peak
+  - CPU consistently above 70%
+  - Buffering complaints during live sports events
+
+SERVER 1 — Web Application (same single-VPS spec, just web software)
+  CPU: 2 vCPU / RAM: 4 GB / Storage: 40 GB SSD
+  Cost: $20–$24/mo
+  Change xtream_base_url to: http://SERVER2_IP:8080
+
+SERVER 2 — IPTV Streaming Panel (dedicated, high-bandwidth)
+  CPU: 4–8 vCPU / RAM: 8–16 GB / Storage: 100 GB+ SSD
+  Cost: $40–$60/mo
+  Location: choose data center closest to your customers
+  NOTE: Keep stream.yourdomain.com as DNS-only (grey cloud) if using Cloudflare
+        — Cloudflare cannot proxy IPTV video traffic on the free plan.
+
+================================================================================
+=== SOFTWARE: XUI ONE STREAMING PANEL ===
+================================================================================
+XUI One is the open-source Xtream Codes-compatible streaming panel.
+It is what delivers live TV, movies, and series to IPTV apps (XCIPTV, Smarters, IBO).
+
+Install command (run on the VPS as root):
+  bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-One/master/install.sh)
+
+Installer will ask for:
+  - Panel port: 8080 (keep default)
+  - Admin username and password (SAVE THESE — they go into the Laravel admin panel)
+
+After install, verify at: http://YOUR_VPS_IP:8080
+API test:
+  curl -X POST "http://localhost:8080/api.php" \
+    -d "username=ADMIN&password=ADMIN_PASS&action=get_user_info&target_username=ADMIN"
+
+The Laravel app auto-provisions IPTV accounts by calling /api.php when a customer pays.
+All provisioning calls are logged in the admin panel under API Logs.
+
+================================================================================
+=== WHMCS INTEGRATION ===
+================================================================================
+WHMCS is an optional billing and client management system that can be synced
+with this platform. When enabled, every new customer is mirrored into WHMCS
+so you have a second billing dashboard.
+
+What the integration does:
+  - Creates a matching client record in WHMCS when a user subscribes
+  - Updates the WHMCS client status to Active/Inactive on subscription changes
+  - Can generate WHMCS invoices (optional)
+  - All WHMCS API calls are logged in the admin panel under API Logs
+
+WHMCS Requirements:
+  License:    WHMCS requires a paid license (~$15.95/mo or $190/yr)
+              Get one at: https://www.whmcs.com/pricing/
+  Hosting:    WHMCS can be installed on the same VPS or a separate server
+              PHP 7.4+ / MySQL 5.7+ / ionCube Loader (required by WHMCS)
+  API Access: Must enable API in WHMCS: Setup → General Settings → API
+
+WHMCS API Credentials needed:
+  whmcs_api_url         Full URL to your WHMCS API endpoint
+                        Example: https://billing.yourdomain.com/includes/api.php
+  whmcs_api_identifier  API identifier key (generated in WHMCS under API Credentials)
+  whmcs_api_secret      API secret key (generated alongside the identifier)
+
+Where to configure in this platform:
+  Admin panel → Settings → WHMCS Settings
+  Toggle: whmcs_sync_enabled = 1 (to activate sync)
+
+WHMCS Install (on same VPS, optional):
+  1. Download WHMCS from whmcs.com (requires license)
+  2. Upload to /var/www/whmcs or a subdomain like billing.yourdomain.com
+  3. Run the installer wizard
+  4. Go to: Setup → Staff Management → API Credentials → Generate
+  5. Copy the identifier + secret into this platform's admin panel
+
+NOTE: WHMCS integration is OPTIONAL. This platform works fully without it.
+      It is useful if you want a second client portal or are migrating from WHMCS.
+
+================================================================================
+=== STRIPE (Payments — Required) ===
+================================================================================
+Sign up:  https://dashboard.stripe.com
+Cost:     2.9% + $0.30 per transaction (no monthly fee)
+
+Keys needed (set in admin panel → Settings → Payment or in .env):
+  STRIPE_PUBLIC_KEY       pk_live_XXXXX
+  STRIPE_SECRET_KEY       sk_live_XXXXX
+  STRIPE_WEBHOOK_SECRET   whsec_XXXXX
+
+Webhook setup (do this in Stripe Dashboard → Developers → Webhooks):
+  URL:    POST https://yourdomain.com/stripe/webhook
+  Events: payment_intent.succeeded
+          payment_intent.payment_failed
+
+How it works:
+  Customer pays → Stripe sends webhook → Laravel activates subscription →
+  XUI One line created → Welcome email with credentials sent automatically
+
+Auto-renewal: Stripe charges saved cards automatically for subscribers with
+  auto_renew enabled. No manual action needed by the owner.
+
+================================================================================
+=== SMTP / EMAIL (Required) ===
+================================================================================
+Recommended providers:
+  Mailgun   https://mailgun.com  — free up to 1,000 emails/mo
+  Brevo     https://brevo.com   — free up to 300 emails/day
+
+Configure in admin panel → Settings → SMTP Settings:
+  MAIL_HOST             smtp.mailgun.org
+  MAIL_PORT             587
+  MAIL_USERNAME         postmaster@mg.yourdomain.com
+  MAIL_PASSWORD         <mailgun smtp password>
+  MAIL_FROM_ADDRESS     noreply@yourdomain.com
+  MAIL_FROM_NAME        Alborada Box
+
+Emails sent automatically by the platform:
+  - Welcome email with IPTV username, password, M3U URL, EPG URL
+  - Payment receipt / invoice (PDF attached)
+  - Subscription expiry reminder (7 days before expiry)
+  - Payment link email (admin-sent)
+  - Subscription approved / rejected notification
+
+================================================================================
+=== DNS RECORDS ===
+================================================================================
+A     @              → VPS IP address       (your main domain)
+A     www            → VPS IP address
+A     stream         → VPS IP address       (DNS-only if using Cloudflare)
+MX    @              → your email provider's mail servers
+TXT   @              → SPF record from SMTP provider
+TXT   _dmarc         → v=DMARC1; p=quarantine; rua=mailto:admin@yourdomain.com
+
+TIP: Enable Cloudflare proxy (orange cloud) for @ and www only.
+     Keep stream subdomain as DNS-only (grey cloud) so IPTV apps can stream.
+
+================================================================================
+=== LARAVEL APP ENVIRONMENT (.env) ===
+================================================================================
+Required variables (see .env.example for full list):
+
+  APP_NAME                  "Alborada Box"
+  APP_ENV                   production
+  APP_DEBUG                 false
+  APP_URL                   https://yourdomain.com
+
+  DB_CONNECTION             mysql
+  DB_HOST                   db        <-- Docker service name
+  DB_PORT                   3306
+  DB_DATABASE               alborada
+  DB_USERNAME               alborada
+  DB_PASSWORD               <strong password — must match docker-compose.yml>
+
+  STRIPE_PUBLIC_KEY         pk_live_XXXXX
+  STRIPE_SECRET_KEY         sk_live_XXXXX
+  STRIPE_WEBHOOK_SECRET     whsec_XXXXX
+
+  MAIL_MAILER               smtp
+  MAIL_SCHEME               tls
+  MAIL_HOST                 smtp.mailgun.org
+  MAIL_PORT                 587
+  MAIL_USERNAME             <mailgun smtp user>
+  MAIL_PASSWORD             <mailgun smtp password>
+  MAIL_FROM_ADDRESS         noreply@yourdomain.com
+  MAIL_FROM_NAME            "Alborada Box"
+
+  SESSION_DRIVER            database
+  QUEUE_CONNECTION          database
+  CACHE_STORE               database
+
+SETTINGS STORED IN DATABASE (configured via admin panel — NOT in .env):
+  xtream_base_url           http://localhost:8080
+  xtream_admin_username     <XUI One admin user>
+  xtream_admin_password     <XUI One admin password>
+  iptv_provisioning_enabled 1
+  whmcs_api_url             https://billing.yourdomain.com/includes/api.php  (optional)
+  whmcs_api_identifier      <WHMCS API identifier>                            (optional)
+  whmcs_api_secret          <WHMCS API secret>                                (optional)
+  whmcs_sync_enabled        0 or 1                                            (optional)
+
+================================================================================
+=== DOCKER COMPOSE SERVICES ===
+================================================================================
+Service    Image              Purpose
+-------    -----              -------
+app        alborada_app       Laravel 12 PHP 8.4-FPM application
+web        nginx:1.25-alpine  Internal web server (binds to 127.0.0.1:8080)
+db         mysql:8.0          Database with persistent volume (dbdata)
+worker     alborada_app       Queue worker: php artisan queue:work
+
+Host-level Nginx (outside Docker) handles:
+  - TLS termination on port 443 (Let's Encrypt)
+  - HTTP → HTTPS redirect on port 80
+  - Reverse proxy to Docker Nginx on 127.0.0.1:8080
+  - X-Forwarded-Proto header (so Laravel generates correct https:// URLs)
+
+XUI One runs directly on the host (not in Docker) on port 8080.
+Nginx on the host proxies the web app to :8080 (internal Docker port).
+Separate ports are used — no conflict.
+
+================================================================================
+=== SCHEDULED JOBS (Cron) ===
+================================================================================
+Add to crontab on the VPS (as deploy user):
+  * * * * * docker compose -f /var/www/alborada/docker-compose.yml exec -T app php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1
+
+Jobs defined in routes/console.php:
+  ProcessSubscriptionRenewalsJob   daily
+    Charges Stripe for auto-renewing subscriptions expiring today/tomorrow
+
+  SendRenewalRemindersJob          daily at 08:00
+    Emails subscribers 7 days before expiry with renewal link
+
+  SendExpiryAlertsJob              daily at 09:00
+    Suspends expired IPTV lines on XUI One, marks subscriptions as expired
+
+  SyncXtreamStatusJob              every 4 hours
+    Syncs account status between XUI One and local database
+
+================================================================================
+=== SUPPORTED IPTV CLIENT APPS ===
+================================================================================
+Primary (recommended to all customers — Xtream Codes API login):
+  XCIPTV          Full-featured, adaptive bitrate, VPN-friendly
+  IPTV Smarters   Basic / Standard / Premium layouts, EPG support
+  IBO Player      TV-device optimized
+
+Also compatible:
+  TiviMate (Android TV), EasyPlayer, Purple Player, Sparkle, NexTV,
+  LTQ2, 9Xtream, XC-IP-TV, 1-Stream Player, Legazy Systems
+
+How customers log into any of these apps:
+  1. Download app (or use Downloader code from welcome email on FireStick)
+  2. Select "Xtream Codes API" login
+  3. Enter:
+       Server URL:  http://stream.yourdomain.com:8080
+       Username:    (from welcome email)
+       Password:    (from welcome email)
+  4. App downloads all channels, movies, and series automatically
+
+Movies/TV Series referral: CredibleTV
+
+================================================================================
+=== SUBSCRIPTION PACKAGES (Default) ===
+================================================================================
+  1 Month   $20   × 2 connections
+  3 Months  $60   × 2 connections
+  6 Months  $120  × 2 connections
+  12 Months $240  × 2 connections
+
+Reseller option: Other streamers can purchase credits to resell subscriptions
+under their own brand via the Reseller Portal (/reseller).
+
+================================================================================
+=== CONTENT SOURCES ===
+================================================================================
+Free/legal test content (development only):
+  Live TV:      https://iptv-org.github.io/iptv/index.m3u
+  Movies:       https://iptv-org.github.io/iptv/categories/movies.m3u
+  Documentary:  https://iptv-org.github.io/iptv/categories/documentary.m3u
+
+For premium production content:
+  Purchase a reseller/credits package from a content provider.
+  Load their Xtream Codes API or M3U into XUI One as a Bouquet Source.
+  XUI One re-delivers the streams to your customers via their accounts.
+
+================================================================================
+=== ESTIMATED MONTHLY COSTS ===
+================================================================================
+Single VPS (combined):    $40–$48/mo
+Domain name:              ~$1/mo ($12/yr)
+Mailgun SMTP:             $0  (free up to 1,000 emails/mo)
+Stripe fees:              2.9% + $0.30 per transaction
+WHMCS license (optional): $15.95/mo or $190/yr
+---------------------------------------------
+Infrastructure total:     ~$41–$50/mo (before content costs)
+Content/streams:          $150–$400 (one-time or monthly reseller credits)
+
+================================================================================
+=== DEPLOYMENT QUICK REFERENCE ===
+================================================================================
+1.  Provision 1 VPS — Ubuntu 22.04 LTS, 4 vCPU / 8 GB RAM / 100 GB SSD
+2.  Harden server: ufw, fail2ban, disable root SSH, create deploy user
+3.  Install: Docker CE, Nginx, Certbot
+4.  Clone repo to /var/www/alborada
+5.  Copy .env.example → .env, fill in DB, Stripe, and SMTP credentials
+6.  Update docker-compose.yml: set MYSQL_PASSWORD to match .env DB_PASSWORD
+7.  Run: docker compose build app && docker compose up -d
+8.  Run: docker compose exec app php artisan migrate --seed
+9.  Install XUI One: bash <(curl -s ...XUI-One/master/install.sh)
+10. Point DNS: yourdomain.com → VPS IP
+11. Get TLS cert: certbot --nginx -d yourdomain.com
+12. Admin panel → Settings → IPTV: set localhost:8080 + XUI One credentials
+13. Admin panel → Settings → SMTP: enter Mailgun credentials + send test email
+14. Admin panel → Settings → WHMCS (optional): enter WHMCS API credentials
+15. Add cron entry for Laravel scheduler
+16. Test: Stripe test mode → register customer → pay → check welcome email → open in XCIPTV
+17. Switch Stripe to live mode when test passes
+
+================================================================================
+=== SYSTEM STATUS CHECK COMMANDS ===
+================================================================================
+Check running containers:    docker compose ps
+View app logs:               docker compose logs -f app
+View worker (job) logs:      docker compose logs -f worker
+View Nginx logs:             docker compose logs -f web
+Run a migration check:       docker compose exec app php artisan migrate:status
+Clear all caches:            docker compose exec app php artisan optimize:clear
+Restart all containers:      docker compose restart app web worker
+Check scheduler output:      tail -f /var/log/laravel-scheduler.log
+Test XUI One API:            curl -X POST "http://localhost:8080/api.php" \
+                               -d "username=ADMIN&password=PASS&action=get_user_info&target_username=ADMIN"
