@@ -778,16 +778,75 @@ setup_laravel() {
     cd "$APP_DIR" || return 1
 
     # ── 9a. Composer install ──────────────────────────────────────────────
-    # vendor/ is gitignored. Run inside the app container to use the exact
-    # PHP 8.4 version and all installed extensions.
-    log_wait "Running composer install --no-dev --optimize-autoloader"
-    if ! docker compose exec -T app composer install \
-            --no-dev --optimize-autoloader --no-interaction \
-            >> "$INSTALL_LOG" 2>&1; then
-        log_error "composer install failed — check $INSTALL_LOG"
-        return 1
+    # vendor/ is gitignored and must be installed here.
+    # If the VPS blocks outbound connections to packagist.org or
+    # api.github.com, pre-upload vendor/ from your local machine:
+    #   Local: composer install --no-dev && tar -czf vendor.tar.gz vendor/
+    #   Upload: scp vendor.tar.gz root@VPS_IP:/var/www/alborada/
+    #   VPS:    cd /var/www/alborada && tar -xzf vendor.tar.gz
+    # Then re-run autosetup.sh — this step will be skipped automatically.
+    if [[ -f "$APP_DIR/vendor/autoload.php" ]]; then
+        log_info "vendor/autoload.php already present — regenerating autoloader only"
+        docker compose exec -T app composer dump-autoload \
+            --no-dev --optimize --no-interaction >> "$INSTALL_LOG" 2>&1 || true
+        log_success "Composer: autoloader regenerated from existing vendor/"
+    else
+        log_wait "Running composer install --no-dev --optimize-autoloader"
+
+        # Attempt 1: standard install
+        if ! docker compose exec -T app \
+                sh -c 'COMPOSER_PROCESS_TIMEOUT=300 composer install \
+                    --no-dev --optimize-autoloader --no-interaction \
+                    --no-scripts' >> "$INSTALL_LOG" 2>&1; then
+
+            log_warning "First attempt failed — retrying with packagist mirror"
+
+            # Attempt 2: configure the Tencent mirror (avoids GitHub API CDN)
+            # and retry once more
+            docker compose exec -T app \
+                composer config --global repos.packagist composer \
+                https://mirrors.cloud.tencent.com/composer/ \
+                >> "$INSTALL_LOG" 2>&1 || true
+
+            if ! docker compose exec -T app \
+                    sh -c 'COMPOSER_PROCESS_TIMEOUT=300 composer install \
+                        --no-dev --optimize-autoloader --no-interaction \
+                        --no-scripts' >> "$INSTALL_LOG" 2>&1; then
+
+                log_error "composer install failed on both attempts."
+                log_error ""
+                log_error "This VPS cannot reach packagist.org or api.github.com."
+                log_error "Pre-build vendor/ on your local machine and upload it:"
+                log_error ""
+                log_error "  ON YOUR LOCAL MACHINE:"
+                log_error "    cd /path/to/alborada"
+                log_error "    composer install --no-dev"
+                log_error "    tar -czf vendor.tar.gz vendor/"
+                log_error "    scp vendor.tar.gz root@YOUR_VPS_IP:/var/www/alborada/"
+                log_error ""
+                log_error "  ON THE VPS:"
+                log_error "    cd /var/www/alborada && tar -xzf vendor.tar.gz"
+                log_error ""
+                log_error "Then re-run: sudo /var/www/alborada/autosetup.sh"
+                log_error "The script will resume from this step automatically."
+                return 1
+            fi
+        fi
+
+        # Restore global packagist config to default after mirror usage
+        docker compose exec -T app \
+            composer config --global repos.packagist composer \
+            https://packagist.org >> "$INSTALL_LOG" 2>&1 || true
+
+        # Run post-install scripts now that vendor/ is present
+        log_progress "Running composer post-install scripts (package:discover)"
+        docker compose exec -T app \
+            composer run-script post-autoload-dump --no-interaction \
+            >> "$INSTALL_LOG" 2>&1 || \
+            log_warning "post-autoload-dump scripts had warnings (non-fatal)"
+
+        log_success "Composer: vendor/ installed"
     fi
-    log_success "Composer: vendor/ installed"
 
     # ── 9b. Generate application key ────────────────────────────────────
     log_progress "Generating APP_KEY"
