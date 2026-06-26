@@ -381,31 +381,57 @@ install_system_packages() {
 install_docker() {
     log_header "INSTALLING DOCKER CE"
 
-    if command -v docker &>/dev/null; then
+    if ! command -v docker &>/dev/null; then
+        log_wait "Adding Docker GPG key and apt repository"
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+            gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
+        chmod a+r /etc/apt/keyrings/docker.gpg
+
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+            | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        apt-get update >> "$INSTALL_LOG" 2>&1
+        log_wait "Installing Docker CE packages"
+        apt-get install -y \
+            docker-ce docker-ce-cli containerd.io \
+            docker-buildx-plugin docker-compose-plugin >> "$INSTALL_LOG" 2>&1
+        log_success "Docker  : $(docker --version)"
+        log_success "Compose : $(docker compose version)"
+    else
         log_info "Docker already present: $(docker --version)"
-        return 0
     fi
 
-    log_wait "Adding Docker GPG key and apt repository"
-    install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-        gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
-    chmod a+r /etc/apt/keyrings/docker.gpg
+    # ── iptables-legacy (Ubuntu 22.04 / 24.04 compatibility) ─────────────────
+    # Ubuntu 22.04+ defaults to iptables-nft (nftables backend).
+    # Docker requires iptables-legacy for its bridge networking driver.
+    # Without this, docker compose up fails with "driver failed to set up
+    # container networking".
+    log_wait "Configuring iptables-legacy for Docker bridge networking"
+    apt-get install -y iptables >> "$INSTALL_LOG" 2>&1
+    update-alternatives --set iptables  /usr/sbin/iptables-legacy  >> "$INSTALL_LOG" 2>&1 || true
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy >> "$INSTALL_LOG" 2>&1 || true
+    log_success "iptables-legacy configured"
 
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-        | tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    apt-get update >> "$INSTALL_LOG" 2>&1
-    log_wait "Installing Docker CE packages"
-    apt-get install -y \
-        docker-ce docker-ce-cli containerd.io \
-        docker-buildx-plugin docker-compose-plugin >> "$INSTALL_LOG" 2>&1
+    # ── Docker daemon configuration ───────────────────────────────────────────
+    # Enable iptables explicitly and add log rotation.
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json <<'DAEMON'
+{
+    "iptables": true,
+    "log-driver": "json-file",
+    "log-opts": {
+        "max-size": "10m",
+        "max-file": "3"
+    }
+}
+DAEMON
+    log_success "Docker daemon.json written"
 
     systemctl enable docker >> "$INSTALL_LOG" 2>&1
-    systemctl start docker
-    log_success "Docker  : $(docker --version)"
-    log_success "Compose : $(docker compose version)"
+    systemctl restart docker
+    log_success "Docker daemon restarted with iptables-legacy backend"
 }
 
 # ==========================================================================
@@ -693,6 +719,17 @@ start_containers() {
     log_header "BUILDING AND STARTING DOCKER CONTAINERS"
     cd "$APP_DIR" || return 1
 
+    # ── Clean up any leftover state from a previous run ───────────────────────
+    # If a prior install attempt failed mid-way, old containers and/or the
+    # 'alborada' Docker network may be in a broken state.  A fresh 'up' on top
+    # of stale state produces "driver failed to set up container networking".
+    # 'down --remove-orphans' removes containers + networks but preserves the
+    # named 'dbdata' volume so MySQL data is not lost on resume.
+    log_progress "Removing any leftover containers and networks from previous runs"
+    docker compose down --remove-orphans >> "$INSTALL_LOG" 2>&1 || true
+    docker network rm alborada 2>/dev/null || true   # belt-and-suspenders cleanup
+    log_success "Previous container state cleared"
+
     log_wait "Building PHP 8.4-FPM application image (may take a few minutes)"
     if ! docker compose build app >> "$INSTALL_LOG" 2>&1; then
         log_error "Docker image build failed — check $INSTALL_LOG"
@@ -703,6 +740,7 @@ start_containers() {
     log_wait "Starting all containers: app, web (nginx), db (mysql), worker"
     if ! docker compose up -d >> "$INSTALL_LOG" 2>&1; then
         log_error "docker compose up failed — check $INSTALL_LOG"
+        log_error "Run 'docker compose logs' in $APP_DIR for details"
         return 1
     fi
 

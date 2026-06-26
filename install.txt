@@ -100,7 +100,7 @@ Run as root:
   sudo /var/www/alborada/autosetup.sh
 
 Or pass your domain directly to skip the interactive prompt:
-  sudo /var/www/alborada/autosetup.sh --domain yourdomain.com
+  sudo /var/www/alborada/autosetup.sh --domain moissanitevisions.com
 
 What the script does (in order):
   1.  Update system packages
