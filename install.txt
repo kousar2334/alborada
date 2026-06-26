@@ -92,6 +92,24 @@ Step 3: Upload the project to the VPS
 Step 4: Make the script executable
   chmod +x /var/www/alborada/autosetup.sh
 
+Step 5: Upload pre-built PHP vendor/ (required if VPS blocks packagist.org)
+  Some VPS providers (especially those behind strict outbound firewalls) block
+  connections to packagist.org and api.github.com. If the script fails at Step 10
+  with "composer install failed on both attempts", follow this workaround.
+
+  A pre-built vendor.tar.gz is included in the project root for convenience.
+  If it is stale or missing, rebuild it on your local machine:
+    cd /path/to/local/alborada
+    composer install --no-dev --optimize-autoloader
+    tar -czf vendor.tar.gz vendor/
+
+  Upload and extract on the VPS:
+    scp vendor.tar.gz root@YOUR_VPS_IP:/var/www/alborada/
+    ssh root@YOUR_VPS_IP "cd /var/www/alborada && tar -xzf vendor.tar.gz && rm vendor.tar.gz"
+
+  Then re-run autosetup.sh — it detects vendor/autoload.php and resumes from
+  where it left off without re-downloading packages.
+
 ================================================================================
 SECTION 4 — RUNNING THE SETUP SCRIPT
 ================================================================================
