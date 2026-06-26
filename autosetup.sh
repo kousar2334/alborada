@@ -759,19 +759,25 @@ start_containers() {
     # by a prior `docker compose up` (before the override was written with the
     # generated password), MySQL ignores MYSQL_PASSWORD and the app credentials
     # will be wrong.  Detect this and automatically wipe + reinitialise the volume.
-    log_progress "Verifying MySQL credentials"
-    local mysql_ok=false
-    for _t in 1 2 3; do
-        if docker compose exec -T db \
-               mysql -u alborada -p"${DB_PASSWORD}" -e "SELECT 1;" alborada \
-               >> "$INSTALL_LOG" 2>&1; then
-            mysql_ok=true
-            break
-        fi
-        sleep 2
-    done
+    #
+    # _mysql_auth_ok: retry for up to 60 s.  mysqladmin ping returns alive as
+    # soon as the socket opens, but MySQL's init scripts (which create the user)
+    # finish several seconds later.  We must keep retrying, not check once.
+    _mysql_auth_ok() {
+        local t
+        for t in $(seq 1 20); do
+            if docker compose exec -T db \
+                   mysql -u alborada -p"${DB_PASSWORD}" \
+                   -e "SELECT 1;" alborada >> "$INSTALL_LOG" 2>&1; then
+                return 0
+            fi
+            sleep 3
+        done
+        return 1
+    }
 
-    if [[ "$mysql_ok" == false ]]; then
+    log_progress "Verifying MySQL credentials (up to 60 s for init scripts to complete)"
+    if ! _mysql_auth_ok; then
         log_warning "MySQL credential mismatch — the dbdata volume was initialised with a"
         log_warning "different password (e.g. from a manual 'docker compose up' before setup)."
         log_warning "Wiping the dbdata volume and reinitialising MySQL with the correct password."
@@ -785,7 +791,7 @@ start_containers() {
             return 1
         fi
 
-        log_wait "Waiting for MySQL to reinitialise (up to 90 s)"
+        log_wait "Waiting for MySQL to reinitialise and create user (up to 90 s)"
         tries=30
         while [[ $tries -gt 0 ]]; do
             docker compose exec -T db mysqladmin ping -h localhost --silent 2>/dev/null && break
@@ -794,12 +800,12 @@ start_containers() {
         done
         [[ $tries -eq 0 ]] && { log_error "MySQL did not restart in time"; return 1; }
 
-        # Final credential check
-        if ! docker compose exec -T db \
-               mysql -u alborada -p"${DB_PASSWORD}" -e "SELECT 1;" alborada \
-               >> "$INSTALL_LOG" 2>&1; then
+        # mysqladmin ping is alive — now wait for the user creation scripts to finish
+        log_progress "Waiting for MySQL user initialisation to complete"
+        if ! _mysql_auth_ok; then
             log_error "MySQL credential check still failing after volume reset."
-            log_error "Check that docker-compose.override.yml has MYSQL_PASSWORD=${DB_PASSWORD}"
+            log_error "Expected: MYSQL_PASSWORD=${DB_PASSWORD}"
+            log_error "Verify /var/www/alborada/docker-compose.override.yml contains that value."
             return 1
         fi
         log_success "MySQL reinitialised with correct credentials"
@@ -834,19 +840,24 @@ setup_laravel() {
     # still fail with "Access denied", the dbdata volume was created before
     # the override file was written (e.g. from a manual 'docker compose up').
     # Detect this here so the script auto-recovers even on a clean resume.
-    log_progress "Verifying MySQL credentials before migrations"
-    local mysql_ok=false
-    for _t in 1 2 3; do
-        if docker compose exec -T db \
-               mysql -u alborada -p"${DB_PASSWORD}" -e "SELECT 1;" alborada \
-               >> "$INSTALL_LOG" 2>&1; then
-            mysql_ok=true
-            break
-        fi
-        sleep 2
-    done
+    #
+    # _sl_mysql_auth_ok: retry for up to 60 s — mysqladmin ping returns alive
+    # before MySQL's init scripts finish creating the user account.
+    _sl_mysql_auth_ok() {
+        local t
+        for t in $(seq 1 20); do
+            if docker compose exec -T db \
+                   mysql -u alborada -p"${DB_PASSWORD}" \
+                   -e "SELECT 1;" alborada >> "$INSTALL_LOG" 2>&1; then
+                return 0
+            fi
+            sleep 3
+        done
+        return 1
+    }
 
-    if [[ "$mysql_ok" == false ]]; then
+    log_progress "Verifying MySQL credentials before migrations (up to 60 s)"
+    if ! _sl_mysql_auth_ok; then
         log_warning "MySQL credential mismatch detected — wiping dbdata volume and reinitialising"
         docker compose down >> "$INSTALL_LOG" 2>&1 || true
         docker volume rm alborada_dbdata >> "$INSTALL_LOG" 2>&1 || true
@@ -854,7 +865,7 @@ setup_laravel() {
         log_wait "Restarting containers with fresh MySQL volume"
         docker compose up -d >> "$INSTALL_LOG" 2>&1 || { log_error "docker compose up failed"; return 1; }
 
-        log_wait "Waiting for MySQL to reinitialise (up to 90 s)"
+        log_wait "Waiting for MySQL to reinitialise and create user (up to 90 s)"
         local tries=30
         while [[ $tries -gt 0 ]]; do
             docker compose exec -T db mysqladmin ping -h localhost --silent 2>/dev/null && break
@@ -863,11 +874,11 @@ setup_laravel() {
         done
         [[ $tries -eq 0 ]] && { log_error "MySQL did not restart in time"; return 1; }
 
-        if ! docker compose exec -T db \
-               mysql -u alborada -p"${DB_PASSWORD}" -e "SELECT 1;" alborada \
-               >> "$INSTALL_LOG" 2>&1; then
+        log_progress "Waiting for MySQL user initialisation to complete"
+        if ! _sl_mysql_auth_ok; then
             log_error "MySQL credential check still failing after volume reset."
-            log_error "Check /var/www/alborada/docker-compose.override.yml — MYSQL_PASSWORD must equal DB_PASSWORD in .env"
+            log_error "Expected: MYSQL_PASSWORD=${DB_PASSWORD}"
+            log_error "Verify /var/www/alborada/docker-compose.override.yml contains that value."
             return 1
         fi
         log_success "MySQL reinitialised with correct credentials"
