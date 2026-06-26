@@ -15,12 +15,14 @@ services:
       - db
     networks:
       - alborada
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   web:
     image: nginx:1.25-alpine
     container_name: alborada_nginx
     ports:
-      - "127.0.0.1:8080:80"
+      - "127.0.0.1:8081:80"
     volumes:
       - ./:/var/www/html
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
@@ -41,7 +43,7 @@ services:
     volumes:
       - dbdata:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     networks:
       - alborada
 
@@ -57,6 +59,8 @@ services:
     networks:
       - alborada
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   composer:
     image: composer:2

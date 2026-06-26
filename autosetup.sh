@@ -1,21 +1,23 @@
 #!/bin/bash
-
-# =======================================================
-# Alborada Box — Automated Ubuntu 22.04/24.04 VPS Setup
-# =======================================================
-# IPTV streaming platform deployment
+# ==========================================================================
+# Alborada Box — Automated VPS Setup
+# Laravel 12 IPTV Platform + XUI One Streaming Server
+# ==========================================================================
+# Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
+# Run as     : sudo ./autosetup.sh [--domain yourdomain.com]
 #
-# This script automates:
-# - Docker CE + Docker Compose plugin
-# - Host-level Nginx (TLS termination + reverse proxy to Docker)
-# - Let's Encrypt SSL certificate
-# - Laravel app, MySQL, queue worker (all via Docker Compose)
-# - XUI One IPTV streaming panel (port 8080)
-# - UFW firewall
-# - Laravel scheduler cron job
-# =======================================================
+# Port layout after installation:
+#   :443  → Host Nginx (HTTPS/TLS) → 127.0.0.1:8081 (Docker web container)
+#   :80   → HTTP → HTTPS redirect
+#   :8080 → XUI One IPTV panel  (host-level, public, not proxied)
+#   :3306 → MySQL               (127.0.0.1 only, never public)
+#
+# Docker → XUI One communication:
+#   The app container uses http://host.docker.internal:8080 to reach XUI One.
+#   (localhost inside Docker refers to the container, not the VPS host.)
+# ==========================================================================
 
-# Colors
+# ── Colours ────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -25,88 +27,96 @@ MAGENTA='\033[0;35m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Logging
+# ── Constants ──────────────────────────────────────────────────────────────
 INSTALL_LOG="/var/log/alborada-install.log"
-LOG_MAX_SIZE=10485760  # 10MB
-
-# State management for resumable installation
+LOG_MAX_BYTES=10485760          # 10 MB — rotate when exceeded
 STATE_FILE="/root/.alborada_install_state"
 CREDENTIALS_FILE="/root/.alborada_credentials"
 
-declare -A COMPLETED_STEPS
-
-# -------------------------------------------------------
-# Application configuration
-# -------------------------------------------------------
-APP_NAME="AlboradaBox"
 APP_DISPLAY_NAME="Alborada Box"
 APP_DIR="/var/www/alborada"
-DB_HOST="db"           # Docker service name
+
+DB_HOST="db"                    # Docker Compose service name
 DB_PORT="3306"
 DB_NAME="alborada"
 DB_USERNAME="alborada"
-IPTV_PANEL_PORT=8080
-DOCKER_WEB_PORT=8081   # Internal port; avoids conflict with XUI One on 8080
 
+IPTV_PANEL_PORT=8080            # XUI One — host-level
+DOCKER_WEB_PORT=8081            # Docker web container (proxied by host Nginx)
+NODE_VERSION=20                 # Node.js LTS major version
+
+# ── Runtime state ──────────────────────────────────────────────────────────
 DOMAIN=""
-SITE_URL=""
-ADMIN_EMAIL=""
 CANONICAL_DOMAIN=""
 WWW_DOMAIN=""
 DOMAIN_TYPE=""
 NEEDS_WWW_REDIRECT=false
+SITE_URL=""
+ADMIN_EMAIL=""
 
-# Auto-generated credentials
 MYSQL_ROOT_PASSWORD=""
 DB_PASSWORD=""
 ADMIN_PASSWORD=""
 
-# =======================================================
+declare -A COMPLETED_STEPS
+
+# ==========================================================================
 # Logging
-# =======================================================
+# ==========================================================================
 
 setup_logging() {
-    if [[ -f "$INSTALL_LOG" ]] && [[ $(stat -c%s "$INSTALL_LOG" 2>/dev/null || echo 0) -gt $LOG_MAX_SIZE ]]; then
+    if [[ -f "$INSTALL_LOG" ]] && \
+       [[ "$(stat -c%s "$INSTALL_LOG" 2>/dev/null || echo 0)" -gt "$LOG_MAX_BYTES" ]]; then
         mv "$INSTALL_LOG" "${INSTALL_LOG}.old"
     fi
     {
-        echo "========================================"
-        echo "ALBORADA BOX INSTALLATION LOG"
-        echo "Started: $(date)"
-        echo "Script: $0"
-        echo "========================================"
+        echo "========================================================"
+        echo "  ALBORADA BOX — VPS INSTALLATION LOG"
+        echo "  Started : $(date)"
+        echo "  Script  : $0"
+        echo "========================================================"
         echo ""
     } > "$INSTALL_LOG"
-    echo -e "${BLUE}[INFO]${NC} Logging to $INSTALL_LOG"
+    echo -e "${BLUE}[INFO]${NC} Log: $INSTALL_LOG"
 }
 
-log_info()     { echo -e "${BLUE}[INFO]${NC} $1";     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [INFO] $1"     >> "$INSTALL_LOG"; }
-log_success()  { echo -e "${GREEN}[SUCCESS]${NC} $1"; echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SUCCESS] $1"  >> "$INSTALL_LOG"; }
-log_warning()  { echo -e "${YELLOW}[WARNING]${NC} $1";echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WARNING] $1" >> "$INSTALL_LOG"; }
-log_error()    { echo -e "${RED}[ERROR]${NC} $1";     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ERROR] $1"    >> "$INSTALL_LOG"; }
-log_wait()     { echo -e "${YELLOW}[WAIT]${NC} $1 — ${CYAN}please wait...${NC}"; echo "[$(date '+%Y-%m-%d %H:%M:%S')] [WAIT] $1" >> "$INSTALL_LOG"; }
-log_progress() { echo -e "${BLUE}[PROGRESS]${NC} $1"; echo "[$(date '+%Y-%m-%d %H:%M:%S')] [PROGRESS] $1" >> "$INSTALL_LOG"; }
+_ts()          { date '+%Y-%m-%d %H:%M:%S'; }
+log_info()     { echo -e "${BLUE}[INFO]${NC}  $1";      echo "[$(_ts)] [INFO]     $1" >> "$INSTALL_LOG"; }
+log_success()  { echo -e "${GREEN}[OK]${NC}    $1";     echo "[$(_ts)] [OK]       $1" >> "$INSTALL_LOG"; }
+log_warning()  { echo -e "${YELLOW}[WARN]${NC}  $1";    echo "[$(_ts)] [WARN]     $1" >> "$INSTALL_LOG"; }
+log_error()    { echo -e "${RED}[ERR]${NC}   $1";       echo "[$(_ts)] [ERROR]    $1" >> "$INSTALL_LOG"; }
+log_wait()     { echo -e "${YELLOW}[WAIT]${NC}  $1…";   echo "[$(_ts)] [WAIT]     $1" >> "$INSTALL_LOG"; }
+log_progress() { echo -e "${BLUE}[....]${NC}  $1";      echo "[$(_ts)] [STEP]     $1" >> "$INSTALL_LOG"; }
 
 log_header() {
-    echo -e "\n${CYAN}=================================${NC}"
-    echo -e "${CYAN} $1 ${NC}"
-    echo -e "${CYAN}=================================${NC}\n"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [HEADER] $1" >> "$INSTALL_LOG"
+    echo -e "\n${CYAN}══════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}  $1${NC}"
+    echo -e "${CYAN}══════════════════════════════════════════════════${NC}\n"
+    echo "[$(_ts)] ── $1" >> "$INSTALL_LOG"
 }
 
 log_highlight() {
-    echo -e "\n${MAGENTA}══════════════════════════════════════════════════════════${NC}"
-    echo -e "${MAGENTA}  $1  ${NC}"
-    echo -e "${MAGENTA}══════════════════════════════════════════════════════════${NC}\n"
+    echo -e "\n${MAGENTA}╔════════════════════════════════════════════════════╗${NC}"
+    echo -e "${MAGENTA}  $1${NC}"
+    echo -e "${MAGENTA}╚════════════════════════════════════════════════════╝${NC}\n"
 }
 
-# =======================================================
+log_banner() {
+    local width=54
+    local pad=$(( (width - ${#1}) / 2 ))
+    local line
+    printf -v line '%*s' "$width" '' && line="${line// /─}"
+    echo -e "\n${CYAN}${line}${NC}"
+    printf "${CYAN}%*s%s%*s${NC}\n" "$pad" "" "$1" "$pad" ""
+    echo -e "${CYAN}${line}${NC}\n"
+}
+
+# ==========================================================================
 # Credential Generation
-# =======================================================
+# ==========================================================================
 
 generate_password() {
-    local length=${1:-32}
-    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c "$length"
+    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c "${1:-32}"
 }
 
 generate_credentials() {
@@ -114,13 +124,26 @@ generate_credentials() {
     MYSQL_ROOT_PASSWORD=$(generate_password 24)
     DB_PASSWORD=$(generate_password 24)
     ADMIN_PASSWORD=$(generate_password 16)
-    log_success "All credentials generated"
     save_credentials
+    log_success "Credentials written to $CREDENTIALS_FILE (chmod 600)"
 }
 
-# =======================================================
-# State Management
-# =======================================================
+save_credentials() {
+    printf '# Alborada Box Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
+        "$(date)" "$MYSQL_ROOT_PASSWORD" "$DB_PASSWORD" "$ADMIN_PASSWORD" \
+        > "$CREDENTIALS_FILE"
+    chmod 600 "$CREDENTIALS_FILE"
+}
+
+load_credentials() {
+    [[ -f "$CREDENTIALS_FILE" ]] || return 1
+    # shellcheck source=/dev/null
+    source "$CREDENTIALS_FILE"
+}
+
+# ==========================================================================
+# State Management — resumable installation
+# ==========================================================================
 
 save_state() {
     {
@@ -132,471 +155,434 @@ save_state() {
         echo "NEEDS_WWW_REDIRECT=$NEEDS_WWW_REDIRECT"
         echo "ADMIN_EMAIL=$ADMIN_EMAIL"
         echo "SITE_URL=$SITE_URL"
-        echo ""
-        echo "# Completed steps"
         for step in "${!COMPLETED_STEPS[@]}"; do
-            echo "STEP_${step}=completed"
+            echo "STEP_${step}=done"
         done
     } > "$STATE_FILE"
     chmod 600 "$STATE_FILE"
 }
 
 load_state() {
-    if [[ -f "$STATE_FILE" ]]; then
-        source <(grep -v '^STEP_' "$STATE_FILE" | grep -v '^#')
-        while IFS='=' read -r key value; do
-            if [[ "$key" == STEP_* ]]; then
-                COMPLETED_STEPS["${key#STEP_}"]="completed"
-            fi
-        done < "$STATE_FILE"
-        return 0
-    fi
-    return 1
+    [[ -f "$STATE_FILE" ]] || return 1
+    # shellcheck source=/dev/null
+    source <(grep -v '^STEP_' "$STATE_FILE" | grep -v '^#')
+    while IFS='=' read -r k _v; do
+        [[ "$k" == STEP_* ]] && COMPLETED_STEPS["${k#STEP_}"]="done"
+    done < "$STATE_FILE"
+    return 0
 }
 
-save_credentials() {
-    {
-        echo "# Alborada Credentials — $(date)"
-        echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD"
-        echo "DB_PASSWORD=$DB_PASSWORD"
-        echo "ADMIN_PASSWORD=$ADMIN_PASSWORD"
-    } > "$CREDENTIALS_FILE"
-    chmod 600 "$CREDENTIALS_FILE"
-}
-
-load_credentials() {
-    if [[ -f "$CREDENTIALS_FILE" ]]; then
-        source "$CREDENTIALS_FILE"
-        return 0
-    fi
-    return 1
-}
-
-mark_step_complete() {
-    COMPLETED_STEPS["$1"]="completed"
-    save_state
-}
-
-is_step_complete() {
-    [[ "${COMPLETED_STEPS[$1]}" == "completed" ]]
-}
+mark_done() { COMPLETED_STEPS["$1"]="done"; save_state; }
+is_done()   { [[ "${COMPLETED_STEPS[$1]:-}" == "done" ]]; }
 
 run_step() {
-    local name="$1"
-    local func="$2"
-    if is_step_complete "$name"; then
-        log_info "Skipping completed step: $name"
+    local name="$1" func="$2"
+    if is_done "$name"; then
+        log_info "Skipping already completed step: $name"
         return 0
     fi
     log_header "STEP: $name"
     if $func; then
-        mark_step_complete "$name"
+        mark_done "$name"
         log_success "Completed: $name"
         return 0
     else
-        log_error "Failed: $name"
-        return 1
+        log_error "Step FAILED: $name"
+        echo ""
+        echo -e "${RED}Fix the error above, then re-run this script — it will resume from here.${NC}"
+        exit 1
     fi
 }
 
 check_resume() {
     if load_state && load_credentials; then
         echo ""
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}PREVIOUS INSTALLATION DETECTED${NC}"
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}  PREVIOUS INSTALLATION DETECTED${NC}"
+        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
-        echo -e "  Domain      : ${CYAN}$CANONICAL_DOMAIN${NC}"
-        echo -e "  Admin Email : ${CYAN}$ADMIN_EMAIL${NC}"
+        echo -e "  Domain : ${CYAN}$CANONICAL_DOMAIN${NC}"
+        echo -e "  Email  : ${CYAN}$ADMIN_EMAIL${NC}"
+        echo ""
         echo -e "  Completed steps:"
-        for step in "${!COMPLETED_STEPS[@]}"; do
-            echo -e "    ${GREEN}✓${NC} $step"
-        done
+        for s in "${!COMPLETED_STEPS[@]}"; do echo -e "    ${GREEN}✓${NC} $s"; done
         echo ""
-        echo -e "${YELLOW}Options:${NC}"
-        echo -e "  1) Resume installation (Recommended)"
-        echo -e "  2) Start fresh"
+        echo -e "  [1] Resume from where it stopped  (recommended)"
+        echo -e "  [2] Start completely fresh"
         echo ""
-        echo -en "${CYAN}>>> Choose [1]: ${NC}"
-        read -r RESUME_OPTION
-        if [[ "$RESUME_OPTION" == "2" ]]; then
+        echo -en "${CYAN}>>> Choice [1]: ${NC}"
+        read -r _choice
+        if [[ "$_choice" == "2" ]]; then
             rm -f "$STATE_FILE" "$CREDENTIALS_FILE"
-            unset COMPLETED_STEPS
-            declare -gA COMPLETED_STEPS
+            unset COMPLETED_STEPS; declare -gA COMPLETED_STEPS
             log_info "Starting fresh"
             return 1
         fi
-        log_info "Resuming from previous state"
+        log_info "Resuming"
         return 0
     fi
     return 1
 }
 
-cleanup_state_files() {
-    rm -f "$STATE_FILE" "$CREDENTIALS_FILE"
-}
+# ==========================================================================
+# Domain Validation
+# ==========================================================================
 
-# =======================================================
-# Domain Handling
-# =======================================================
+validate_domain() {
+    local raw d
+    raw="$1"
+    d=$(echo "$raw" | sed 's|^https\?://||;s|/.*||' | tr '[:upper:]' '[:lower:]')
 
-validate_and_process_domain() {
-    local input_domain
-    input_domain=$(echo "$1" | sed 's|^https\?://||' | sed 's|/.*||' | tr '[:upper:]' '[:lower:]')
+    [[ -z "$d" ]] && { log_error "Domain cannot be empty"; return 1; }
+    [[ "$d" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]] && { log_error "IP addresses are not valid domains"; return 1; }
+    [[ ! "$d" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$ ]] && \
+        { log_error "Invalid domain format: $d"; return 1; }
 
-    if [[ -z "$input_domain" ]]; then
-        log_error "Domain cannot be empty"; return 1
-    fi
+    local dots is_ccsld=false
+    dots=$(echo "$d" | tr -cd '.' | wc -c)
+    [[ "$d" =~ \.(com|net|org|co|gov|edu|ac|mil)\.[a-z]{2}$ ]] && is_ccsld=true
 
-    if [[ "$input_domain" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        log_error "IP addresses are not valid domain names"; return 1
-    fi
-
-    if [[ ! "$input_domain" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$ ]]; then
-        log_error "Invalid domain format: $input_domain"; return 1
-    fi
-
-    local dot_count
-    dot_count=$(echo "$input_domain" | tr -cd '.' | wc -c)
-    local is_ccsld=false
-    [[ "$input_domain" =~ \.(com|net|org|co|gov|edu|ac|mil)\.[a-z]{2}$ ]] && is_ccsld=true
-
-    if [[ "$input_domain" =~ ^www\. ]]; then
-        DOMAIN_TYPE="www_input"
-        CANONICAL_DOMAIN="${input_domain#www.}"
-        WWW_DOMAIN="$input_domain"
-        NEEDS_WWW_REDIRECT=true
-    elif [[ $dot_count -eq 1 ]] || ( [[ $dot_count -eq 2 ]] && [[ "$is_ccsld" == "true" ]] ); then
-        DOMAIN_TYPE="root"
-        CANONICAL_DOMAIN="$input_domain"
-        WWW_DOMAIN="www.$input_domain"
-        NEEDS_WWW_REDIRECT=true
+    if [[ "$d" =~ ^www\. ]]; then
+        DOMAIN_TYPE="www_input"; CANONICAL_DOMAIN="${d#www.}"; WWW_DOMAIN="$d"; NEEDS_WWW_REDIRECT=true
+    elif [[ $dots -eq 1 ]] || ( [[ $dots -eq 2 ]] && [[ "$is_ccsld" == true ]] ); then
+        DOMAIN_TYPE="root";      CANONICAL_DOMAIN="$d";         WWW_DOMAIN="www.$d"; NEEDS_WWW_REDIRECT=true
     else
-        DOMAIN_TYPE="subdomain"
-        CANONICAL_DOMAIN="$input_domain"
-        WWW_DOMAIN=""
-        NEEDS_WWW_REDIRECT=false
+        DOMAIN_TYPE="subdomain"; CANONICAL_DOMAIN="$d";         WWW_DOMAIN="";       NEEDS_WWW_REDIRECT=false
     fi
-
     DOMAIN="$CANONICAL_DOMAIN"
     return 0
 }
 
 get_domain() {
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${MAGENTA}                     DOMAIN CONFIGURATION${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}  DOMAIN CONFIGURATION${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "${YELLOW}This domain will serve the Alborada Box web panel (HTTPS).${NC}"
-    echo -e "${YELLOW}IPTV customers will connect via: http://stream.YOURDOMAIN.com:${IPTV_PANEL_PORT}${NC}"
-    echo -e "${GREEN}Examples: ${CYAN}alboradabox.com${NC} or ${CYAN}app.example.com${NC}"
+    echo -e "${YELLOW}  This domain will serve the web panel over HTTPS.${NC}"
+    echo -e "${YELLOW}  Customers stream IPTV at: http://stream.YOURDOMAIN:8080${NC}"
+    echo -e "${GREEN}  Examples:${NC} ${CYAN}alboradabox.com${NC}  or  ${CYAN}app.example.com${NC}"
     echo ""
-
     while true; do
-        echo -en "${CYAN}${BOLD}>>> Enter your domain name: ${NC}"
-        read -r input_domain
-        if validate_and_process_domain "$input_domain"; then
-            break
-        fi
+        echo -en "${CYAN}${BOLD}>>> Domain name: ${NC}"
+        read -r _input
+        validate_domain "$_input" && break
         log_warning "Please try again with a valid domain name"
     done
-
     SITE_URL="https://${CANONICAL_DOMAIN}"
     ADMIN_EMAIL="admin@${CANONICAL_DOMAIN}"
-
     echo ""
-    log_success "Domain configured:"
-    log_info "  Web panel    : $SITE_URL"
-    log_info "  Admin panel  : $SITE_URL/admin"
-    log_info "  Admin email  : $ADMIN_EMAIL"
-    log_info "  IPTV streams : http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}"
-    [[ "$NEEDS_WWW_REDIRECT" == "true" ]] && \
-        log_info "  WWW redirect : https://$WWW_DOMAIN → https://$CANONICAL_DOMAIN"
+    log_success "Domain set: $CANONICAL_DOMAIN"
+    log_info    "  Web panel    : $SITE_URL"
+    log_info    "  Admin panel  : $SITE_URL/admin"
+    log_info    "  IPTV streams : http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}"
+    [[ "$NEEDS_WWW_REDIRECT" == true ]] && \
+        log_info "  WWW redirect : https://$WWW_DOMAIN → $SITE_URL"
     echo ""
 }
 
-# =======================================================
+# ==========================================================================
 # Preflight Checks
-# =======================================================
+# ==========================================================================
 
 check_root() {
-    [[ $EUID -ne 0 ]] && { log_error "Must run as root: sudo ./autosetup.sh"; exit 1; }
-    log_info "Running as root"
+    [[ $EUID -eq 0 ]] || { log_error "Must run as root.  Try: sudo ./autosetup.sh"; exit 1; }
+    log_info "Running as root: OK"
 }
 
-check_disk_space() {
-    local required_gb=${1:-20}
-    local available_gb
-    available_gb=$(( $(df / | awk 'NR==2 {print $4}') / 1024 / 1024 ))
-    if [[ $available_gb -lt $required_gb ]]; then
-        log_error "Insufficient disk: need ${required_gb}GB, have ${available_gb}GB"; exit 1
-    fi
-    log_success "Disk space OK: ${available_gb}GB available"
+check_ubuntu() {
+    local os ver
+    os=$(lsb_release -si 2>/dev/null || grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+    ver=$(lsb_release -sr 2>/dev/null || grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
+    log_info "OS: $os $ver"
+    [[ "$os" == "Ubuntu" ]] || log_warning "Tested on Ubuntu only (running: $os)"
+    [[ "$ver" == "22.04" || "$ver" == "24.04" ]] || \
+        log_warning "Recommended: Ubuntu 22.04 or 24.04 LTS (detected: $ver)"
 }
 
-check_ubuntu_version() {
-    local os_id os_version
-    os_id=$(lsb_release -si 2>/dev/null || grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
-    os_version=$(lsb_release -sr 2>/dev/null || grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
-
-    if [[ "$os_id" != "Ubuntu" ]]; then
-        log_warning "This script is tested on Ubuntu. Running on: $os_id $os_version"
-    else
-        log_info "OS: $os_id $os_version"
-        if [[ "$os_version" != "22.04" && "$os_version" != "24.04" ]]; then
-            log_warning "Recommended: Ubuntu 22.04 or 24.04 LTS (detected: $os_version)"
-        fi
-    fi
+check_disk() {
+    local need="${1:-25}" avail
+    avail=$(( $(df / --output=avail 2>/dev/null | tail -1) / 1024 / 1024 ))
+    [[ $avail -ge $need ]] || { log_error "Disk: need ${need} GB free, only ${avail} GB available"; exit 1; }
+    log_success "Disk: ${avail} GB available"
 }
 
 verify_project_files() {
-    log_header "VERIFYING PROJECT FILES"
-
-    if [[ ! -d "$APP_DIR" ]] || [[ ! -f "$APP_DIR/artisan" ]]; then
-        log_error "Laravel application not found at $APP_DIR"
+    log_header "VERIFYING PROJECT FILES AT $APP_DIR"
+    if [[ ! -f "$APP_DIR/artisan" ]]; then
+        log_error "Laravel project not found at $APP_DIR"
         echo ""
-        echo -e "${YELLOW}Clone or upload the project first:${NC}"
+        echo -e "${YELLOW}Upload the project first, then re-run this script:${NC}"
         echo -e "  ${CYAN}git clone <repo-url> $APP_DIR${NC}"
-        echo -e "  Or: ${CYAN}scp -r /local/alborada root@your-server:$APP_DIR${NC}"
+        echo -e "  or:  ${CYAN}scp -r /local/alborada root@YOUR_VPS:$APP_DIR${NC}"
         echo ""
-        echo -e "${YELLOW}Expected structure:${NC}"
+        echo -e "${YELLOW}Expected directory structure:${NC}"
         echo -e "  $APP_DIR/"
-        echo -e "    ├── app/"
-        echo -e "    ├── docker/"
-        echo -e "    ├── docker-compose.yml"
         echo -e "    ├── artisan"
         echo -e "    ├── composer.json"
-        echo -e "    └── autosetup.sh"
+        echo -e "    ├── package.json"
+        echo -e "    ├── docker-compose.yml"
+        echo -e "    ├── autosetup.sh"
+        echo -e "    └── docker/php/Dockerfile"
         exit 1
     fi
-
-    if [[ ! -f "$APP_DIR/docker-compose.yml" ]]; then
-        log_error "docker-compose.yml not found at $APP_DIR"; exit 1
-    fi
-
-    log_success "Project files verified at $APP_DIR"
+    for f in composer.json package.json docker-compose.yml docker/php/Dockerfile; do
+        [[ -f "$APP_DIR/$f" ]] || { log_error "Missing required file: $APP_DIR/$f"; exit 1; }
+    done
+    log_success "All required project files present"
 }
 
-# =======================================================
-# System Packages
-# =======================================================
+# ==========================================================================
+# STEP 01 — System Packages + Node.js 20 LTS
+# ==========================================================================
+# Node.js is required on the VPS host to run:
+#   npm ci        — install devDependencies (vite, tailwind, etc.)
+#   npm run build — compile CSS/JS to public/build/
+# Both public/build/ and node_modules/ are gitignored, so they must
+# be produced here before containers serve any pages.
+# ==========================================================================
 
-update_system() {
-    log_header "UPDATING SYSTEM PACKAGES"
+install_system_packages() {
+    log_header "INSTALLING SYSTEM PACKAGES"
     export DEBIAN_FRONTEND=noninteractive
-    log_wait "Updating package repositories"
-    apt update -y >/dev/null 2>&1
-    log_wait "Upgrading system packages"
-    apt upgrade -y >/dev/null 2>&1
+
+    log_wait "Updating package lists"
+    apt-get update -y >> "$INSTALL_LOG" 2>&1
+
+    log_wait "Upgrading installed packages"
+    apt-get upgrade -y >> "$INSTALL_LOG" 2>&1
+
     log_wait "Installing essential tools"
-    apt install -y curl wget gnupg2 software-properties-common apt-transport-https \
-        ca-certificates git openssl unzip zip lsb-release ufw fail2ban >/dev/null 2>&1
-    log_success "System packages updated"
+    apt-get install -y \
+        curl wget gnupg2 software-properties-common apt-transport-https \
+        ca-certificates git openssl unzip zip lsb-release \
+        ufw fail2ban >> "$INSTALL_LOG" 2>&1
+    log_success "Essential system packages installed"
+
+    # ── Node.js 20 LTS ─────────────────────────────────────────
+    local installed_major=0
+    command -v node &>/dev/null && \
+        installed_major=$(node --version 2>/dev/null | cut -d. -f1 | tr -d 'v' || echo 0)
+
+    if [[ $installed_major -ge $NODE_VERSION ]]; then
+        log_info "Node.js already installed: $(node --version)  npm: $(npm --version)"
+    else
+        log_wait "Installing Node.js ${NODE_VERSION} LTS via NodeSource"
+        curl -fsSL "https://deb.nodesource.com/setup_${NODE_VERSION}.x" | bash - >> "$INSTALL_LOG" 2>&1
+        apt-get install -y nodejs >> "$INSTALL_LOG" 2>&1
+        log_success "Node.js $(node --version) installed, npm $(npm --version)"
+    fi
 }
 
-# =======================================================
-# Docker CE + Docker Compose Plugin
-# =======================================================
+# ==========================================================================
+# STEP 02 — Docker CE + Docker Compose Plugin
+# ==========================================================================
 
 install_docker() {
     log_header "INSTALLING DOCKER CE"
 
     if command -v docker &>/dev/null; then
-        log_info "Docker already installed: $(docker --version)"
+        log_info "Docker already present: $(docker --version)"
         return 0
     fi
 
-    log_wait "Adding Docker GPG key and repository"
+    log_wait "Adding Docker GPG key and apt repository"
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-        gpg --dearmor -o /etc/apt/keyrings/docker.gpg >/dev/null 2>&1
+        gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
     chmod a+r /etc/apt/keyrings/docker.gpg
 
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
-        tee /etc/apt/sources.list.d/docker.list >/dev/null
+https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+        | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-    apt update >/dev/null 2>&1
-    log_wait "Installing Docker CE and Docker Compose plugin"
-    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin \
-        docker-compose-plugin >/dev/null 2>&1
+    apt-get update >> "$INSTALL_LOG" 2>&1
+    log_wait "Installing Docker CE packages"
+    apt-get install -y \
+        docker-ce docker-ce-cli containerd.io \
+        docker-buildx-plugin docker-compose-plugin >> "$INSTALL_LOG" 2>&1
 
-    systemctl enable docker
+    systemctl enable docker >> "$INSTALL_LOG" 2>&1
     systemctl start docker
-
-    log_success "Docker installed: $(docker --version)"
-    log_success "Docker Compose: $(docker compose version)"
+    log_success "Docker  : $(docker --version)"
+    log_success "Compose : $(docker compose version)"
 }
 
-# =======================================================
-# Host-level Nginx (reverse proxy + TLS termination)
-# =======================================================
+# ==========================================================================
+# STEP 03 — Host-level Nginx
+# Terminates TLS on port 443 and reverse-proxies to the Docker web
+# container on 127.0.0.1:8081.  XUI One owns port 8080 exclusively.
+# ==========================================================================
 
-install_host_nginx() {
+install_nginx() {
     log_header "INSTALLING HOST NGINX"
-
     if dpkg -l nginx &>/dev/null 2>&1; then
         log_info "Nginx already installed"
         return 0
     fi
-
-    apt install -y nginx >/dev/null 2>&1
+    apt-get install -y nginx >> "$INSTALL_LOG" 2>&1
     systemctl enable nginx
     systemctl start nginx
     log_success "Nginx installed"
 }
 
-configure_host_nginx() {
+configure_nginx() {
     log_header "CONFIGURING HOST NGINX"
+    local CONF="/etc/nginx/sites-available/$CANONICAL_DOMAIN"
 
-    local NGINX_CONF="/etc/nginx/sites-available/$CANONICAL_DOMAIN"
-
-    if [[ "$NEEDS_WWW_REDIRECT" == "true" ]]; then
-        cat > "$NGINX_CONF" <<NGINX_EOF
-# www → non-www redirect
+    # Build www-redirect block (only when NEEDS_WWW_REDIRECT=true)
+    local WWW_BLOCK=""
+    if [[ "$NEEDS_WWW_REDIRECT" == true ]]; then
+        WWW_BLOCK="
 server {
     listen 80;
-    server_name $WWW_DOMAIN;
-    return 301 http://$CANONICAL_DOMAIN\$request_uri;
+    server_name ${WWW_DOMAIN};
+    return 301 http://${CANONICAL_DOMAIN}\$request_uri;
 }
-
-# Alborada Box — main application
-server {
-    listen 80;
-    server_name $CANONICAL_DOMAIN;
-
-    client_max_body_size 100M;
-
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    location / {
-        proxy_pass         http://127.0.0.1:${DOCKER_WEB_PORT};
-        proxy_set_header   Host              \$host;
-        proxy_set_header   X-Real-IP         \$remote_addr;
-        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto \$scheme;
-        proxy_read_timeout 120s;
-        proxy_buffering    off;
-    }
-
-    location ~ /\.(?!well-known).* { deny all; }
-}
-NGINX_EOF
-    else
-        cat > "$NGINX_CONF" <<NGINX_EOF
-# Alborada Box — main application
-server {
-    listen 80;
-    server_name $CANONICAL_DOMAIN;
-
-    client_max_body_size 100M;
-
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-
-    location / {
-        proxy_pass         http://127.0.0.1:${DOCKER_WEB_PORT};
-        proxy_set_header   Host              \$host;
-        proxy_set_header   X-Real-IP         \$remote_addr;
-        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto \$scheme;
-        proxy_read_timeout 120s;
-        proxy_buffering    off;
-    }
-
-    location ~ /\.(?!well-known).* { deny all; }
-}
-NGINX_EOF
+"
     fi
 
-    ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
+    cat > "$CONF" <<NGINX
+${WWW_BLOCK}
+server {
+    listen 80;
+    server_name ${CANONICAL_DOMAIN};
+
+    client_max_body_size 100M;
+
+    # Security headers
+    add_header X-Frame-Options        "SAMEORIGIN"                   always;
+    add_header X-Content-Type-Options "nosniff"                      always;
+    add_header X-XSS-Protection       "1; mode=block"                always;
+    add_header Referrer-Policy        "strict-origin-when-cross-origin" always;
+
+    # Proxy to Docker web container (port ${DOCKER_WEB_PORT})
+    location / {
+        proxy_pass         http://127.0.0.1:${DOCKER_WEB_PORT};
+        proxy_set_header   Host              \$host;
+        proxy_set_header   X-Real-IP         \$remote_addr;
+        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 120s;
+        proxy_buffering    off;
+    }
+
+    # Block hidden files (except .well-known for certbot)
+    location ~ /\.(?!well-known) { deny all; }
+}
+NGINX
+
+    ln -sf "$CONF" /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
 
-    if ! nginx -t >/dev/null 2>&1; then
-        log_error "Nginx config test failed"; nginx -t; return 1
-    fi
+    nginx -t >> "$INSTALL_LOG" 2>&1 || { log_error "Nginx config test failed"; nginx -t; return 1; }
     systemctl reload nginx
     log_success "Nginx configured: $CANONICAL_DOMAIN → 127.0.0.1:${DOCKER_WEB_PORT}"
 }
 
-# =======================================================
-# SSL Certificate (Let's Encrypt)
-# =======================================================
+# ==========================================================================
+# STEP 04 — SSL Certificate (Let's Encrypt / Certbot)
+# ==========================================================================
 
 install_ssl() {
-    log_header "INSTALLING SSL CERTIFICATE"
+    log_header "SSL CERTIFICATE — LET'S ENCRYPT"
+    apt-get install -y certbot python3-certbot-nginx >> "$INSTALL_LOG" 2>&1
 
-    apt install -y certbot python3-certbot-nginx >/dev/null 2>&1
-
-    local SERVER_IP
-    SERVER_IP=$(curl -s -4 --max-time 5 ifconfig.me 2>/dev/null \
-        || curl -s -4 --max-time 5 icanhazip.com 2>/dev/null \
-        || echo "Unable to detect IP")
+    local IP
+    IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null \
+        || curl -s -4 --max-time 8 icanhazip.com 2>/dev/null \
+        || echo "YOUR_VPS_IP")
 
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}DNS CONFIGURATION REQUIRED${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}  DNS A RECORDS — add these before continuing${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "${YELLOW}Add these DNS A records pointing to: ${CYAN}$SERVER_IP${NC}"
+    echo -e "  Your VPS IP: ${CYAN}${IP}${NC}"
     echo ""
-    echo -e "  ${CYAN}Type   Host     Value${NC}"
+    echo -e "  Type  Name      Value"
     echo -e "  ──────────────────────────────────────────"
-    echo -e "  A      @        $SERVER_IP   (main domain)"
-    [[ "$NEEDS_WWW_REDIRECT" == "true" ]] && \
-    echo -e "  A      www      $SERVER_IP   (www redirect)"
-    echo -e "  A      stream   $SERVER_IP   (IPTV — keep DNS-only/grey-cloud in Cloudflare)"
+    echo -e "  A     @         ${IP}   ← main domain"
+    [[ "$NEEDS_WWW_REDIRECT" == true ]] && \
+    echo -e "  A     www       ${IP}   ← www redirect"
+    echo -e "  A     stream    ${IP}   ← IPTV (keep DNS-only / grey cloud in Cloudflare)"
     echo ""
-    echo -e "${YELLOW}TIP: Enable Cloudflare proxy (orange cloud) for @ and www only.${NC}"
-    echo -e "${YELLOW}     Keep ${CYAN}stream${YELLOW} as DNS-only (grey cloud) — Cloudflare cannot proxy IPTV video.${NC}"
+    echo -e "${YELLOW}  Cloudflare tip: enable proxy (orange) for @ and www only.${NC}"
+    echo -e "${YELLOW}  Keep 'stream' as grey cloud — Cloudflare cannot proxy IPTV video.${NC}"
     echo ""
-    echo -e "${YELLOW}Verify propagation: ${CYAN}https://dnschecker.org${NC}"
+    echo -e "  Verify: ${CYAN}https://dnschecker.org${NC}"
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -en "${CYAN}${BOLD}>>> Press Enter when DNS is propagated: ${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -en "${CYAN}${BOLD}>>> Press Enter once DNS has propagated: ${NC}"
     read -r
 
-    if [[ "$NEEDS_WWW_REDIRECT" == "true" ]]; then
-        if certbot --nginx -d "$CANONICAL_DOMAIN" -d "$WWW_DOMAIN" \
-                --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect; then
-            log_success "SSL certificate installed for $CANONICAL_DOMAIN + $WWW_DOMAIN"
-        else
-            log_warning "SSL failed — continuing without HTTPS. Run certbot manually:"
-            log_info "  certbot --nginx -d $CANONICAL_DOMAIN -d $WWW_DOMAIN --email $ADMIN_EMAIL"
-        fi
+    local domains=(-d "$CANONICAL_DOMAIN")
+    [[ "$NEEDS_WWW_REDIRECT" == true ]] && domains+=(-d "$WWW_DOMAIN")
+
+    if certbot --nginx "${domains[@]}" \
+            --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect \
+            >> "$INSTALL_LOG" 2>&1; then
+        log_success "SSL certificate installed for $CANONICAL_DOMAIN"
     else
-        if certbot --nginx -d "$CANONICAL_DOMAIN" \
-                --non-interactive --agree-tos --email "$ADMIN_EMAIL" --redirect; then
-            log_success "SSL certificate installed for $CANONICAL_DOMAIN"
-        else
-            log_warning "SSL failed — continuing without HTTPS. Run certbot manually:"
-            log_info "  certbot --nginx -d $CANONICAL_DOMAIN --email $ADMIN_EMAIL"
-        fi
+        log_warning "Certbot failed — continuing without HTTPS"
+        log_info "  Fix DNS then run manually:"
+        log_info "  certbot --nginx -d $CANONICAL_DOMAIN --email $ADMIN_EMAIL"
     fi
 
-    systemctl enable certbot.timer 2>/dev/null
-    systemctl start certbot.timer 2>/dev/null || true
-    log_success "SSL setup completed (auto-renewal enabled)"
+    systemctl enable certbot.timer  2>/dev/null || true
+    systemctl start  certbot.timer  2>/dev/null || true
+    log_success "SSL auto-renewal enabled"
 }
 
-# =======================================================
-# Docker Compose Override
-# Injects generated credentials + re-binds web to port 8081
-# (keeps port 8080 free for XUI One IPTV panel)
-# =======================================================
+# ==========================================================================
+# STEP 05 — Frontend Assets (Vite + Tailwind CSS)
+# public/build/ and node_modules/ are in .gitignore.
+# They must be produced on the VPS before containers serve any page.
+# ==========================================================================
 
-configure_docker_compose() {
-    log_header "CONFIGURING DOCKER COMPOSE"
+build_frontend() {
+    log_header "BUILDING FRONTEND ASSETS (VITE + TAILWIND)"
+    cd "$APP_DIR" || return 1
 
-    cat > "$APP_DIR/docker-compose.override.yml" <<OVERRIDE_EOF
-# Generated by autosetup.sh — $(date)
-# Do NOT edit manually.
+    log_wait "Installing npm dependencies"
+    if ! npm ci --prefer-offline >> "$INSTALL_LOG" 2>&1; then
+        log_warning "npm ci failed — retrying with npm install"
+        npm install >> "$INSTALL_LOG" 2>&1 || { log_error "npm install failed — see $INSTALL_LOG"; return 1; }
+    fi
+    log_success "npm dependencies installed"
+
+    log_wait "Building production assets (npm run build)"
+    if ! npm run build >> "$INSTALL_LOG" 2>&1; then
+        log_error "npm run build failed — see $INSTALL_LOG"
+        return 1
+    fi
+
+    [[ -d "$APP_DIR/public/build" ]] || \
+        { log_error "public/build/ not found after build"; return 1; }
+    log_success "Frontend built → $APP_DIR/public/build/"
+}
+
+# ==========================================================================
+# STEP 06 — Docker Compose Override (DB credentials only)
+#
+# IMPORTANT: Never put "web: ports:" in this override file.
+# Docker Compose MERGES (not replaces) port lists across files.
+# Ports are set correctly in docker-compose.yml:
+#   web → 127.0.0.1:8081:80   (keeps port 8080 free for XUI One)
+#   db  → 127.0.0.1:3306:3306 (localhost only, never public)
+# This file only injects the auto-generated DB credentials.
+# ==========================================================================
+
+write_compose_override() {
+    log_header "WRITING DOCKER COMPOSE OVERRIDE (DB CREDENTIALS)"
+
+    cat > "$APP_DIR/docker-compose.override.yml" <<OVERRIDE
+# Auto-generated by autosetup.sh on $(date)
+# DO NOT EDIT MANUALLY — re-run autosetup.sh to regenerate.
+#
+# NOTE: No "ports:" entries here.  Docker Compose concatenates port lists
+# from all files, so adding ports here would cause double-binding conflicts
+# with XUI One on port 8080.  Ports live only in docker-compose.yml.
 
 services:
   db:
@@ -605,28 +591,20 @@ services:
       MYSQL_DATABASE: "${DB_NAME}"
       MYSQL_USER: "${DB_USERNAME}"
       MYSQL_PASSWORD: "${DB_PASSWORD}"
-    ports:
-      - "127.0.0.1:3306:3306"
-
-  web:
-    ports:
-      - "127.0.0.1:${DOCKER_WEB_PORT}:80"
-OVERRIDE_EOF
+OVERRIDE
 
     chmod 600 "$APP_DIR/docker-compose.override.yml"
     log_success "docker-compose.override.yml written"
-    log_info "  DB password: (generated)"
-    log_info "  Web port   : 127.0.0.1:${DOCKER_WEB_PORT} (XUI One keeps port 8080)"
 }
 
-# =======================================================
-# Laravel .env
-# =======================================================
+# ==========================================================================
+# STEP 07 — Laravel .env (production)
+# ==========================================================================
 
-write_env_file() {
+write_env() {
     log_header "WRITING LARAVEL .ENV"
 
-    cat > "$APP_DIR/.env" <<ENV_EOF
+    cat > "$APP_DIR/.env" <<ENV
 APP_NAME="${APP_DISPLAY_NAME}"
 APP_ENV=production
 APP_KEY=
@@ -670,7 +648,9 @@ REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
 
-MAIL_MAILER=smtp
+# SMTP — configure in Admin → Settings → SMTP after installation
+# Emails currently log to storage/logs/laravel.log (safe default)
+MAIL_MAILER=log
 MAIL_SCHEME=tls
 MAIL_HOST=
 MAIL_PORT=587
@@ -679,10 +659,18 @@ MAIL_PASSWORD=
 MAIL_FROM_ADDRESS=noreply@${CANONICAL_DOMAIN}
 MAIL_FROM_NAME="${APP_DISPLAY_NAME}"
 
-# Stripe — fill in after obtaining keys from dashboard.stripe.com
+# Stripe — add keys after installation (Admin → Settings or edit .env directly)
 STRIPE_PUBLIC_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+
+# Social Login — configure in Admin → Settings → Social Login
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URL=${SITE_URL}/auth/google/callback
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+FACEBOOK_REDIRECT_URL=${SITE_URL}/auth/facebook/callback
 
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
@@ -691,125 +679,181 @@ AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
 VITE_APP_NAME="${APP_DISPLAY_NAME}"
-ENV_EOF
+ENV
 
     chmod 640 "$APP_DIR/.env"
     log_success ".env written at $APP_DIR/.env"
 }
 
-# =======================================================
-# Build and Start Docker Containers
-# =======================================================
+# ==========================================================================
+# STEP 08 — Build Docker Image + Start All Containers
+# ==========================================================================
 
-build_and_start_containers() {
+start_containers() {
     log_header "BUILDING AND STARTING DOCKER CONTAINERS"
+    cd "$APP_DIR" || return 1
 
-    cd "$APP_DIR" || { log_error "Cannot enter $APP_DIR"; return 1; }
-
-    log_wait "Building application Docker image (may take several minutes)"
+    log_wait "Building PHP 8.4-FPM application image (may take a few minutes)"
     if ! docker compose build app >> "$INSTALL_LOG" 2>&1; then
-        log_error "Docker image build failed — check $INSTALL_LOG for details"
+        log_error "Docker image build failed — check $INSTALL_LOG"
         return 1
     fi
     log_success "Application image built"
 
-    log_wait "Starting all containers"
+    log_wait "Starting all containers: app, web (nginx), db (mysql), worker"
     if ! docker compose up -d >> "$INSTALL_LOG" 2>&1; then
-        log_error "docker compose up failed — check $INSTALL_LOG for details"
+        log_error "docker compose up failed — check $INSTALL_LOG"
         return 1
     fi
 
-    log_wait "Waiting for MySQL to be ready (up to 90 seconds)"
-    local retries=30
-    while [[ $retries -gt 0 ]]; do
-        if docker compose exec -T db mysqladmin ping -h localhost --silent 2>/dev/null; then
-            break
-        fi
+    # Wait for MySQL
+    log_wait "Waiting for MySQL to be ready (up to 90 s)"
+    local tries=30
+    while [[ $tries -gt 0 ]]; do
+        docker compose exec -T db mysqladmin ping -h localhost --silent 2>/dev/null && break
         sleep 3
-        (( retries-- ))
+        (( tries-- ))
     done
-    if [[ $retries -eq 0 ]]; then
-        log_error "MySQL did not start in time"
-        return 1
-    fi
+    [[ $tries -eq 0 ]] && { log_error "MySQL did not start in time — check: docker compose logs db"; return 1; }
+    log_success "MySQL ready"
 
+    # Wait for PHP-FPM
+    log_wait "Waiting for PHP-FPM container to respond"
+    tries=15
+    while [[ $tries -gt 0 ]]; do
+        docker compose exec -T app php --version >/dev/null 2>&1 && break
+        sleep 2
+        (( tries-- ))
+    done
+    [[ $tries -eq 0 ]] && { log_error "App container did not respond — check: docker compose logs app"; return 1; }
     log_success "All containers started"
+
     docker compose ps >> "$INSTALL_LOG" 2>&1
 }
 
-# =======================================================
-# Laravel Application Initialization
-# =======================================================
+# ==========================================================================
+# STEP 09 — Laravel Application Initialization
+# ==========================================================================
 
-setup_laravel_app() {
+setup_laravel() {
     log_header "INITIALIZING LARAVEL APPLICATION"
+    cd "$APP_DIR" || return 1
 
-    cd "$APP_DIR" || { log_error "Cannot enter $APP_DIR"; return 1; }
-
-    log_progress "Generating application key"
-    if ! docker compose exec -T app php artisan key:generate --force >> "$INSTALL_LOG" 2>&1; then
-        log_error "key:generate failed"; return 1
+    # ── 9a. Composer install ──────────────────────────────────────────────
+    # vendor/ is gitignored. Run inside the app container to use the exact
+    # PHP 8.4 version and all installed extensions.
+    log_wait "Running composer install --no-dev --optimize-autoloader"
+    if ! docker compose exec -T app composer install \
+            --no-dev --optimize-autoloader --no-interaction \
+            >> "$INSTALL_LOG" 2>&1; then
+        log_error "composer install failed — check $INSTALL_LOG"
+        return 1
     fi
+    log_success "Composer: vendor/ installed"
 
-    log_progress "Clearing config cache"
-    docker compose exec -T app php artisan config:clear >> "$INSTALL_LOG" 2>&1
+    # ── 9b. Generate application key ────────────────────────────────────
+    log_progress "Generating APP_KEY"
+    docker compose exec -T app php artisan key:generate --force >> "$INSTALL_LOG" 2>&1 \
+        || { log_error "key:generate failed"; return 1; }
+    log_success "APP_KEY generated"
 
+    # ── 9c. Clear any stale config cache ────────────────────────────────
+    log_progress "Clearing stale config cache"
+    docker compose exec -T app php artisan config:clear >> "$INSTALL_LOG" 2>&1 || true
+
+    # ── 9d. Run all migrations ───────────────────────────────────────────
     log_wait "Running database migrations"
     if ! docker compose exec -T app php artisan migrate --force >> "$INSTALL_LOG" 2>&1; then
-        log_error "Migrations failed — check $INSTALL_LOG for details"; return 1
+        log_error "Migrations failed — check $INSTALL_LOG"
+        return 1
     fi
     log_success "Migrations complete"
 
-    log_wait "Seeding database"
-    docker compose exec -T app php artisan db:seed --force >> "$INSTALL_LOG" 2>&1 || \
-        log_warning "Seeding skipped — run manually: docker compose exec app php artisan db:seed"
+    # ── 9e. Seed: permissions + languages + media content ───────────────
+    # DatabaseSeeder calls: PermissionSeeder, LanguageSeeder, MediaContentSeeder
+    # It does NOT call UserSeeder (which has hardcoded credentials).
+    # We create the admin user manually below with generated credentials.
+    log_wait "Seeding database (permissions, languages, media content)"
+    if ! docker compose exec -T app php artisan db:seed --force >> "$INSTALL_LOG" 2>&1; then
+        log_warning "DatabaseSeeder failed — some defaults may be missing (non-fatal)"
+    else
+        log_success "Database seeded"
+    fi
 
-    log_progress "Creating admin user ($ADMIN_EMAIL)"
+    # ── 9f. Create admin user with generated credentials ────────────────
+    # UserSeeder creates a 'Super Admin' role and admin@example.com/111111.
+    # We bypass UserSeeder and instead create the admin with our secure,
+    # generated credentials.  type=1 matches the project's integer enum.
+    log_progress "Creating admin user: $ADMIN_EMAIL"
     docker compose exec -T app php artisan tinker --execute="
-        \$user = \App\Models\User::firstOrCreate(
-            ['email' => '$ADMIN_EMAIL'],
-            [
-                'name'              => 'Administrator',
-                'password'          => bcrypt('$ADMIN_PASSWORD'),
-                'email_verified_at' => now(),
-            ]
-        );
-        echo \$user->wasRecentlyCreated ? 'Admin user created.' : 'Admin user already exists.';
-    " >> "$INSTALL_LOG" 2>&1 || \
-        log_warning "Auto admin creation failed — register at $SITE_URL/register after setup"
+\$role = \Spatie\Permission\Models\Role::firstOrCreate(
+    ['name' => 'Super Admin', 'guard_name' => 'web']
+);
+\$role->syncPermissions(\Spatie\Permission\Models\Permission::all());
 
-    log_progress "Creating storage symlink"
+\$user = \App\Models\User::updateOrCreate(
+    ['email' => '$ADMIN_EMAIL'],
+    [
+        'name'              => 'Administrator',
+        'password'          => bcrypt('$ADMIN_PASSWORD'),
+        'type'              => 1,
+        'status'            => 1,
+        'email_verified_at' => now(),
+    ]
+);
+\$user->syncRoles('Super Admin');
+echo \$user->wasRecentlyCreated ? 'Admin user created.' : 'Admin user updated.';
+echo PHP_EOL . 'Role: Super Admin assigned.';
+    " >> "$INSTALL_LOG" 2>&1 \
+        || log_warning "Admin user creation via tinker failed — register manually at $SITE_URL/register"
+
+    # ── 9g. Storage symlink ──────────────────────────────────────────────
+    # Links public/storage → storage/app/public so uploaded files are accessible.
+    log_progress "Creating storage symlink (public/storage → storage/app/public)"
     docker compose exec -T app php artisan storage:link >> "$INSTALL_LOG" 2>&1 || true
+    log_success "Storage symlink created"
 
-    log_progress "Setting storage permissions"
+    # ── 9h. File permissions ─────────────────────────────────────────────
+    log_progress "Setting write permissions on storage/ and bootstrap/cache/"
+    docker compose exec -T app chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
     chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
+    log_success "File permissions set"
 
     log_success "Laravel application initialized"
 }
 
-# =======================================================
-# XUI One IPTV Streaming Panel
-# =======================================================
+# ==========================================================================
+# STEP 10 — XUI One IPTV Streaming Panel
+#
+# Installed directly on the host — uses port 8080 exclusively.
+# The Docker web container uses port 8081, so there is NO conflict.
+#
+# Docker → XUI One communication:
+#   The app/worker containers reach XUI One via http://host.docker.internal:8080
+#   (extra_hosts is already set in docker-compose.yml for both services).
+# ==========================================================================
 
-install_iptv_panel() {
+install_xui_one() {
     log_header "INSTALLING XUI ONE IPTV STREAMING PANEL"
 
+    local IP
+    IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
+
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}XUI One IPTV Panel${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}  XUI One IPTV Panel — Interactive Installer${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "XUI One will be installed on port ${CYAN}${IPTV_PANEL_PORT}${NC}."
-    echo -e "IPTV customers connect to your service via:"
-    echo -e "  ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  XUI One will be installed on port ${CYAN}${IPTV_PANEL_PORT}${NC} (host-level)."
+    echo -e "  The web panel Docker container is on ${CYAN}${DOCKER_WEB_PORT}${NC} — no conflict."
     echo ""
-    echo -e "${YELLOW}During the XUI One installer, when prompted:${NC}"
-    echo -e "  • Panel port     → enter ${CYAN}${IPTV_PANEL_PORT}${NC}"
-    echo -e "  • Admin username → choose a username (save it)"
-    echo -e "  • Admin password → choose a strong password (save it)"
+    echo -e "${YELLOW}  When the installer prompts you:${NC}"
+    echo -e "    Panel port     → enter ${CYAN}${IPTV_PANEL_PORT}${NC}"
+    echo -e "    Admin username → choose one and ${RED}WRITE IT DOWN${NC}"
+    echo -e "    Admin password → choose strong and ${RED}WRITE IT DOWN${NC}"
     echo ""
-    echo -e "${RED}${BOLD}IMPORTANT: Save your XUI One admin credentials — you will need them${NC}"
-    echo -e "${RED}${BOLD}to connect the web panel to the IPTV server after installation.${NC}"
+    echo -e "${YELLOW}  You will need these credentials later to connect the web${NC}"
+    echo -e "${YELLOW}  panel to the IPTV server (Admin → Settings → IPTV).${NC}"
     echo ""
     echo -en "${CYAN}>>> Press Enter to launch the XUI One installer: ${NC}"
     read -r
@@ -817,37 +861,38 @@ install_iptv_panel() {
     if bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-One/master/install.sh); then
         log_success "XUI One installed successfully"
         echo ""
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${YELLOW}XUI One Installation Complete${NC}"
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${GREEN}  XUI One is now running${NC}"
+        echo -e ""
+        echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
+        echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
         echo ""
-        echo -e "  Panel URL     : ${CYAN}http://$(curl -s ifconfig.me 2>/dev/null):${IPTV_PANEL_PORT}${NC}"
-        echo -e "  Stream URL    : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
-        echo ""
-        echo -e "${YELLOW}After the full setup completes, connect the website to the IPTV panel:${NC}"
-        echo -e "  1. Go to ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
-        echo -e "  2. Set ${CYAN}xtream_base_url = http://localhost:${IPTV_PANEL_PORT}${NC}"
-        echo -e "  3. Enter your XUI One admin username and password"
-        echo -e "  4. Enable ${CYAN}iptv_provisioning_enabled = 1${NC}"
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${YELLOW}  To connect the web panel to XUI One (after full install):${NC}"
+        echo -e "  1. Open  : ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
+        echo -e "  2. Set   : ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
+        echo -e "     ${YELLOW}(Use host.docker.internal — NOT localhost — the app runs inside Docker)${NC}"
+        echo -e "  3. Enter : your XUI One admin username and password"
+        echo -e "  4. Enable: iptv_provisioning_enabled = 1"
+        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
         echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
         read -r
     else
-        log_warning "XUI One installer returned a non-zero exit code or was skipped."
-        log_info "Install manually later with:"
+        log_warning "XUI One installer returned a non-zero exit code or was skipped"
+        log_info "Install manually later:"
         log_info "  bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-One/master/install.sh)"
-        log_info "Continuing with remaining setup steps..."
+        log_info "Continuing with remaining steps…"
     fi
 }
 
-# =======================================================
-# Firewall (UFW)
-# =======================================================
+# ==========================================================================
+# STEP 11 — Firewall (UFW)
+# ==========================================================================
 
 configure_firewall() {
-    log_header "CONFIGURING FIREWALL (UFW)"
+    log_header "CONFIGURING UFW FIREWALL"
 
+    ufw --force reset >> "$INSTALL_LOG" 2>&1
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow ssh
@@ -855,242 +900,287 @@ configure_firewall() {
     ufw allow "${IPTV_PANEL_PORT}/tcp" comment 'XUI One IPTV panel'
     ufw --force enable
 
-    log_success "Firewall configured"
-    log_info "  Open ports: 22 (SSH)  80 (HTTP)  443 (HTTPS)  ${IPTV_PANEL_PORT} (XUI One)"
+    log_success "Firewall enabled"
+    log_info   "  Open ports:"
+    log_info   "    22   (SSH)"
+    log_info   "    80   (HTTP  → HTTPS redirect via Nginx)"
+    log_info   "    443  (HTTPS → Docker web container via Nginx)"
+    log_info   "    ${IPTV_PANEL_PORT}  (XUI One IPTV panel)"
+    log_info   "  Blocked: 8081 (Docker internal only), 3306 (DB localhost only)"
+    ufw status >> "$INSTALL_LOG" 2>&1
 }
 
-# =======================================================
-# Laravel Scheduler Cron Job
-# =======================================================
+# ==========================================================================
+# STEP 12 — Laravel Scheduler Cron Job
+# ==========================================================================
+# Scheduled jobs (defined in routes/console.php):
+#   ProcessSubscriptionRenewalsJob — daily at midnight
+#   SendRenewalRemindersJob        — daily at 08:00
+#   SendExpiryAlertsJob            — daily at 09:00
+#   SyncXtreamStatusJob            — every 4 hours
+# ==========================================================================
 
 configure_cron() {
-    log_header "CONFIGURING LARAVEL SCHEDULER"
+    log_header "CONFIGURING LARAVEL SCHEDULER CRON"
 
-    local CRON_JOB="* * * * * docker compose -f $APP_DIR/docker-compose.yml exec -T app php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1"
+    # Use --project-directory so cron picks up both docker-compose.yml
+    # and docker-compose.override.yml regardless of working directory.
+    local JOB="* * * * * /usr/bin/docker compose --project-directory ${APP_DIR} exec -T app php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1"
 
     if crontab -l 2>/dev/null | grep -q "artisan schedule:run"; then
-        log_info "Scheduler cron already exists"
+        log_info "Scheduler cron already exists — skipping"
     else
-        (crontab -l 2>/dev/null || true; echo "$CRON_JOB") | crontab -
-        log_success "Scheduler cron added for root"
+        (crontab -l 2>/dev/null || true; echo "$JOB") | crontab -
+        log_success "Scheduler cron installed for root"
     fi
 
-    log_info "Scheduled jobs:"
-    log_info "  • ProcessSubscriptionRenewalsJob  — daily"
-    log_info "  • SendRenewalRemindersJob          — daily at 08:00"
-    log_info "  • SendExpiryAlertsJob              — daily at 09:00"
-    log_info "  • SyncXtreamStatusJob              — every 4 hours"
+    log_info "Active scheduled jobs:"
+    log_info "  • ProcessSubscriptionRenewalsJob — daily at midnight"
+    log_info "  • SendRenewalRemindersJob         — daily at 08:00"
+    log_info "  • SendExpiryAlertsJob             — daily at 09:00"
+    log_info "  • SyncXtreamStatusJob             — every 4 hours"
+    log_info "Scheduler log: /var/log/laravel-scheduler.log"
 }
 
-# =======================================================
-# Finalize Laravel Production Cache
-# =======================================================
+# ==========================================================================
+# STEP 13 — Production Cache & Optimization
+# ==========================================================================
 
-finalize_cache() {
-    log_header "FINALIZING PRODUCTION CACHE"
-
+optimize_production() {
+    log_header "BUILDING PRODUCTION CACHE"
     cd "$APP_DIR" || return 1
 
+    log_wait "Caching config, routes, views, and events"
     docker compose exec -T app php artisan config:cache >> "$INSTALL_LOG" 2>&1
     docker compose exec -T app php artisan route:cache  >> "$INSTALL_LOG" 2>&1
     docker compose exec -T app php artisan view:cache   >> "$INSTALL_LOG" 2>&1
+    docker compose exec -T app php artisan event:cache  >> "$INSTALL_LOG" 2>&1 || true
+    docker compose exec -T app php artisan optimize     >> "$INSTALL_LOG" 2>&1
 
-    log_success "Laravel production cache built"
+    log_success "Production cache built"
 }
 
-# =======================================================
-# Installation Verification
-# =======================================================
+# ==========================================================================
+# STEP 14 — Verify Installation
+# ==========================================================================
 
-verify_installation() {
+verify_install() {
     log_header "VERIFYING INSTALLATION"
-
     cd "$APP_DIR" || return 0
 
-    systemctl is-active --quiet nginx && \
-        log_success "Host Nginx: running" || log_warning "Host Nginx: NOT running"
+    _chk() {
+        local label="$1"
+        shift
+        if "$@" >/dev/null 2>&1; then
+            log_success "$label"
+        else
+            log_warning "$label — NOT OK"
+        fi
+    }
 
-    docker compose ps --status running 2>/dev/null | grep -q "alborada_app" && \
-        log_success "App container: running"    || log_warning "App container: NOT running"
-    docker compose ps --status running 2>/dev/null | grep -q "alborada_nginx" && \
-        log_success "Web container: running"    || log_warning "Web container: NOT running"
-    docker compose ps --status running 2>/dev/null | grep -q "alborada_mysql" && \
-        log_success "MySQL container: running"  || log_warning "MySQL container: NOT running"
-    docker compose ps --status running 2>/dev/null | grep -q "alborada_worker" && \
-        log_success "Worker container: running" || log_warning "Worker container: NOT running"
+    _chk "Host Nginx running"        systemctl is-active --quiet nginx
+    _chk "App container running"     docker compose ps --status running | grep -q alborada_app
+    _chk "Web (Nginx) container"     docker compose ps --status running | grep -q alborada_nginx
+    _chk "MySQL container running"   docker compose ps --status running | grep -q alborada_mysql
+    _chk "Worker container running"  docker compose ps --status running | grep -q alborada_worker
+    _chk "SSL certificate present"   test -f "/etc/letsencrypt/live/$CANONICAL_DOMAIN/fullchain.pem"
+    _chk "Scheduler cron active"     crontab -l 2>/dev/null | grep -q "schedule:run"
+    _chk "Frontend assets built"     test -d "$APP_DIR/public/build"
+    _chk "vendor/ present"           test -d "$APP_DIR/vendor"
+    _chk "Storage symlink present"   test -L "$APP_DIR/public/storage"
 
-    [[ -f "/etc/letsencrypt/live/$CANONICAL_DOMAIN/fullchain.pem" ]] && \
-        log_success "SSL certificate: installed" || log_warning "SSL certificate: not found"
-
-    local http_code
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://127.0.0.1:${DOCKER_WEB_PORT}" 2>/dev/null)
-    if [[ "$http_code" =~ ^(200|301|302)$ ]]; then
-        log_success "Web app responding on port ${DOCKER_WEB_PORT} (HTTP $http_code)"
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+        "http://127.0.0.1:${DOCKER_WEB_PORT}" 2>/dev/null || echo 0)
+    if [[ "$code" =~ ^(200|301|302)$ ]]; then
+        log_success "Web app responding on :${DOCKER_WEB_PORT} (HTTP $code)"
     else
-        log_warning "Web app not responding on port ${DOCKER_WEB_PORT}"
+        log_warning "Web app not responding on :${DOCKER_WEB_PORT} (HTTP $code)"
     fi
 
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "http://localhost:${IPTV_PANEL_PORT}" 2>/dev/null)
-    if [[ "$http_code" =~ ^(200|301|302|403)$ ]]; then
-        log_success "XUI One panel: responding on port ${IPTV_PANEL_PORT}"
+    code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
+        "http://localhost:${IPTV_PANEL_PORT}" 2>/dev/null || echo 0)
+    if [[ "$code" =~ ^(200|301|302|403)$ ]]; then
+        log_success "XUI One responding on :${IPTV_PANEL_PORT} (HTTP $code)"
     else
-        log_warning "XUI One panel: not responding on port ${IPTV_PANEL_PORT} (may need manual install)"
+        log_warning "XUI One not responding on :${IPTV_PANEL_PORT} (install manually if skipped)"
     fi
-
-    crontab -l 2>/dev/null | grep -q "schedule:run" && \
-        log_success "Scheduler cron: active" || log_warning "Scheduler cron: not found"
 }
 
-# =======================================================
+# ==========================================================================
 # Final Summary
-# =======================================================
+# ==========================================================================
 
-show_final_info() {
-    local SERVER_IP
-    SERVER_IP=$(curl -s -4 --max-time 5 ifconfig.me 2>/dev/null || echo "YOUR_SERVER_IP")
+show_summary() {
+    local IP
+    IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
 
-    log_highlight "$APP_DISPLAY_NAME INSTALLATION COMPLETED!"
+    log_highlight "${APP_DISPLAY_NAME} — INSTALLATION COMPLETE"
 
-    echo -e "${GREEN}Your Alborada Box IPTV platform is live!${NC}"
+    echo -e "${YELLOW}WEB PANEL${NC}"
+    echo -e "  URL         : ${CYAN}${SITE_URL}${NC}"
+    echo -e "  Admin panel : ${CYAN}${SITE_URL}/admin${NC}"
+    echo -e "  Admin email : ${CYAN}${ADMIN_EMAIL}${NC}"
+    echo -e "  Admin pass  : ${CYAN}${ADMIN_PASSWORD}${NC}"
     echo ""
 
-    echo -e "${YELLOW}WEB PANEL ACCESS:${NC}"
-    echo -e "  URL         : ${CYAN}$SITE_URL${NC}"
-    echo -e "  Admin panel : ${CYAN}$SITE_URL/admin${NC}"
-    echo -e "  Admin email : ${CYAN}$ADMIN_EMAIL${NC}"
-    echo -e "  Admin pass  : ${CYAN}$ADMIN_PASSWORD${NC}"
-    echo ""
-
-    echo -e "${YELLOW}IPTV STREAMING PANEL (XUI One):${NC}"
-    echo -e "  Direct URL  : ${CYAN}http://${SERVER_IP}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI One)${NC}"
+    echo -e "  Admin URL   : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
     echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  (Use this stream URL when customers configure their IPTV apps)"
     echo ""
 
-    echo -e "${YELLOW}DATABASE CREDENTIALS:${NC}"
-    echo -e "  DB Name     : $DB_NAME"
-    echo -e "  DB User     : $DB_USERNAME"
-    echo -e "  DB Password : $DB_PASSWORD"
-    echo -e "  Root PW     : $MYSQL_ROOT_PASSWORD"
+    echo -e "${YELLOW}DATABASE${NC}"
+    echo -e "  DB name  : $DB_NAME"
+    echo -e "  DB user  : $DB_USERNAME"
+    echo -e "  DB pass  : $DB_PASSWORD"
+    echo -e "  Root PW  : $MYSQL_ROOT_PASSWORD"
     echo ""
 
-    echo -e "${YELLOW}CONNECTING THE WEBSITE TO THE IPTV PANEL:${NC}"
-    echo -e "  1. Open  : ${CYAN}$SITE_URL/admin${NC} → Settings → IPTV"
-    echo -e "  2. Set   : ${CYAN}xtream_base_url = http://localhost:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  3. Enter : your XUI One admin username and password"
-    echo -e "  4. Enable: ${CYAN}iptv_provisioning_enabled = 1${NC}"
-    echo -e "  5. Save and test: create a test subscription → XUI One line should auto-create"
+    echo -e "${YELLOW}STEP A — CONNECT WEB PANEL TO IPTV SERVER${NC}"
+    echo -e "  1. Open Admin Panel → Settings → IPTV"
+    echo -e "  2. Set ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
+    echo -e "     ${YELLOW}Important: use 'host.docker.internal', NOT 'localhost'${NC}"
+    echo -e "     ${YELLOW}(The web app runs inside Docker; localhost = container, not VPS)${NC}"
+    echo -e "  3. Enter your XUI One admin username and password"
+    echo -e "  4. Set  ${CYAN}iptv_provisioning_enabled = 1${NC}"
+    echo -e "  5. Click Test Connection → should return 'Connection successful'"
     echo ""
 
-    echo -e "${YELLOW}NEXT STEPS:${NC}"
-    echo -e "  1. Configure SMTP: Admin panel → Settings → SMTP Settings"
-    echo -e "     (Recommended: Mailgun free tier — up to 1,000 emails/month)"
-    echo -e "  2. Add Stripe keys: edit ${CYAN}$APP_DIR/.env${NC}"
-    echo -e "     STRIPE_PUBLIC_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET"
-    echo -e "     Then: ${CYAN}docker compose -f $APP_DIR/docker-compose.yml exec app php artisan config:cache${NC}"
-    echo -e "  3. Register Stripe webhook in Stripe Dashboard → Developers → Webhooks:"
-    echo -e "     URL: ${CYAN}$SITE_URL/stripe/webhook${NC}"
-    echo -e "     Events: payment_intent.succeeded, payment_intent.payment_failed"
-    echo -e "  4. Load IPTV content: XUI One → Bouquets → add an M3U source"
-    echo -e "     Test content: ${CYAN}https://iptv-org.github.io/iptv/index.m3u${NC}"
-    echo -e "  5. Test end-to-end: Stripe test mode → register customer → pay → check XCIPTV"
+    echo -e "${YELLOW}STEP B — CONFIGURE SMTP (EMAIL)${NC}"
+    echo -e "  Admin Panel → Settings → SMTP Settings"
+    echo -e "  Recommended: Mailgun (free up to 1,000 emails/month)"
+    echo -e "  Until configured, all emails are logged to storage/logs/laravel.log"
     echo ""
 
-    echo -e "${YELLOW}CUSTOMER IPTV APP INSTRUCTIONS:${NC}"
-    echo -e "  App    : XCIPTV, IPTV Smarters, or IBO Player"
-    echo -e "  Method : Xtream Codes API login"
-    echo -e "  Server : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  Login  : username + password from welcome email (auto-sent on payment)"
+    echo -e "${YELLOW}STEP C — CONFIGURE STRIPE (PAYMENTS)${NC}"
+    echo -e "  Edit: ${CYAN}${APP_DIR}/.env${NC}"
+    echo -e "    STRIPE_PUBLIC_KEY=pk_live_..."
+    echo -e "    STRIPE_SECRET_KEY=sk_live_..."
+    echo -e "    STRIPE_WEBHOOK_SECRET=whsec_..."
+    echo -e "  Then: ${CYAN}cd ${APP_DIR} && docker compose exec app php artisan config:cache${NC}"
+    echo -e "  Webhook endpoint: ${CYAN}${SITE_URL}/stripe/webhook${NC}"
+    echo -e "  Events: payment_intent.succeeded, payment_intent.payment_failed"
     echo ""
 
-    echo -e "${YELLOW}DOCKER MANAGEMENT:${NC}"
-    echo -e "  Status      : ${CYAN}cd $APP_DIR && docker compose ps${NC}"
-    echo -e "  App logs    : ${CYAN}docker compose logs -f app${NC}"
-    echo -e "  Worker logs : ${CYAN}docker compose logs -f worker${NC}"
-    echo -e "  Restart all : ${CYAN}docker compose restart app web worker${NC}"
-    echo -e "  Rebuild     : ${CYAN}docker compose build app && docker compose up -d${NC}"
+    echo -e "${YELLOW}STEP D — LOAD IPTV CONTENT${NC}"
+    echo -e "  XUI One Admin → Bouquets → Add Source"
+    echo -e "  Test content (dev only): https://iptv-org.github.io/iptv/index.m3u"
     echo ""
 
-    echo -e "${YELLOW}FILES:${NC}"
-    echo -e "  Application : ${CYAN}$APP_DIR${NC}"
-    echo -e "  Install log : ${CYAN}$INSTALL_LOG${NC}"
-    echo -e "  Scheduler   : ${CYAN}/var/log/laravel-scheduler.log${NC}"
+    echo -e "${YELLOW}STEP E — TEST END-TO-END${NC}"
+    echo -e "  1. Use Stripe test card: ${CYAN}4242 4242 4242 4242${NC} (any date, any CVC)"
+    echo -e "  2. Register a customer and complete a subscription purchase"
+    echo -e "  3. Verify: XUI One → Lines → new line created"
+    echo -e "  4. Verify: customer welcome email with Xtream Codes login"
+    echo -e "  5. Test IPTV app: XCIPTV / IPTV Smarters → Xtream Codes API login"
+    echo -e "     Server: ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
     echo ""
 
-    echo -e "${RED}${BOLD}SAVE THESE CREDENTIALS NOW — this is the only time they are shown!${NC}"
+    echo -e "${YELLOW}DOCKER MANAGEMENT${NC}"
+    echo -e "  Status  : ${CYAN}cd ${APP_DIR} && docker compose ps${NC}"
+    echo -e "  App logs: ${CYAN}docker compose logs -f app${NC}"
+    echo -e "  Worker  : ${CYAN}docker compose logs -f worker${NC}"
+    echo -e "  Restart : ${CYAN}docker compose restart app web worker${NC}"
+    echo -e "  Rebuild : ${CYAN}docker compose build app && docker compose up -d${NC}"
+    echo ""
+
+    echo -e "${YELLOW}UPDATING THE APPLICATION${NC}"
+    echo -e "  cd ${APP_DIR}"
+    echo -e "  git pull"
+    echo -e "  npm ci && npm run build"
+    echo -e "  docker compose build app && docker compose up -d"
+    echo -e "  docker compose exec app php artisan migrate --force"
+    echo -e "  docker compose exec app php artisan optimize"
+    echo ""
+
+    echo -e "${YELLOW}FILES${NC}"
+    echo -e "  Application  : ${CYAN}${APP_DIR}${NC}"
+    echo -e "  .env         : ${CYAN}${APP_DIR}/.env${NC}"
+    echo -e "  Install log  : ${CYAN}${INSTALL_LOG}${NC}"
+    echo -e "  Credentials  : ${CYAN}${CREDENTIALS_FILE}${NC}  (chmod 600)"
+    echo -e "  Scheduler log: ${CYAN}/var/log/laravel-scheduler.log${NC}"
+    echo ""
+
+    echo -e "${RED}${BOLD}SAVE THESE CREDENTIALS — shown above and stored in ${CREDENTIALS_FILE}${NC}"
 }
 
-# =======================================================
+# ==========================================================================
 # Help
-# =======================================================
+# ==========================================================================
 
 show_help() {
     echo ""
-    echo -e "${CYAN}$APP_DISPLAY_NAME — Automated VPS Deployment${NC}"
+    echo -e "${CYAN}${APP_DISPLAY_NAME} — Automated VPS Deployment${NC}"
     echo ""
     echo -e "${YELLOW}Usage:${NC}"
     echo "  sudo ./autosetup.sh [--domain yourdomain.com]"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
-    echo "  • Ubuntu 22.04 or 24.04 LTS VPS (min 4 vCPU / 8 GB RAM / 100 GB SSD)"
-    echo "  • Project files in $APP_DIR (git clone or scp)"
+    echo "  • Ubuntu 22.04 or 24.04 LTS VPS (fresh install)"
+    echo "  • Minimum: 4 vCPU / 8 GB RAM / 100 GB SSD"
+    echo "  • Project files at $APP_DIR (git clone or scp)"
     echo "  • Domain name with DNS control"
     echo ""
     echo -e "${YELLOW}What this script installs:${NC}"
-    echo "  • Docker CE + Docker Compose plugin"
-    echo "  • Host-level Nginx (TLS termination + reverse proxy)"
-    echo "  • Let's Encrypt SSL certificate (auto-renewing)"
-    echo "  • Laravel app + MySQL + queue worker (via Docker Compose)"
-    echo "  • XUI One IPTV streaming panel (port ${IPTV_PANEL_PORT})"
-    echo "  • UFW firewall"
-    echo "  • Laravel scheduler cron job"
+    echo "  1. System packages + Node.js ${NODE_VERSION} LTS"
+    echo "  2. Docker CE + Docker Compose plugin"
+    echo "  3. Host Nginx (TLS termination + reverse proxy)"
+    echo "  4. Let's Encrypt SSL certificate (auto-renewing)"
+    echo "  5. Vite/Tailwind frontend build (npm run build)"
+    echo "  6. Laravel 12 in Docker (PHP 8.4-FPM + MySQL 8 + queue worker)"
+    echo "     ↳ composer install, migrate, seed, admin user"
+    echo "  7. XUI One IPTV streaming panel (port $IPTV_PANEL_PORT)"
+    echo "  8. UFW firewall"
+    echo "  9. Laravel scheduler cron"
     echo ""
-    echo -e "${YELLOW}Ports:${NC}"
-    echo "  22    SSH"
-    echo "  80    HTTP → HTTPS redirect"
-    echo "  443   HTTPS (Laravel web app)"
-    echo "  ${IPTV_PANEL_PORT}   XUI One IPTV panel + Xtream Codes API + stream delivery"
+    echo -e "${YELLOW}Port layout:${NC}"
+    echo "  443  HTTPS (web panel, proxied by Nginx)"
+    echo "  80   HTTP → HTTPS redirect"
+    echo "  8080 XUI One IPTV panel (host-level, public)"
+    echo "  8081 Docker web container (localhost only, Nginx proxy target)"
+    echo "  3306 MySQL (localhost only, never public)"
     echo ""
 }
 
-# =======================================================
+# ==========================================================================
 # Argument Parsing
-# =======================================================
+# ==========================================================================
 
-parse_arguments() {
+parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --domain)
-                if validate_and_process_domain "$2"; then
-                    SITE_URL="https://${CANONICAL_DOMAIN}"
-                    ADMIN_EMAIL="admin@${CANONICAL_DOMAIN}"
-                    shift 2
-                else
-                    log_error "Invalid domain: $2"; exit 1
-                fi ;;
+                validate_domain "$2" || { log_error "Invalid domain: $2"; exit 1; }
+                SITE_URL="https://${CANONICAL_DOMAIN}"
+                ADMIN_EMAIL="admin@${CANONICAL_DOMAIN}"
+                shift 2
+                ;;
             --help|-h)
-                show_help; exit 0 ;;
+                show_help; exit 0
+                ;;
             *)
-                log_error "Unknown option: $1"; show_help; exit 1 ;;
+                log_error "Unknown option: $1"; show_help; exit 1
+                ;;
         esac
     done
 }
 
-# =======================================================
-# Main Entry Point
-# =======================================================
+# ==========================================================================
+# Main
+# ==========================================================================
 
 main() {
-    setup_logging "$@"
+    setup_logging
 
-    log_highlight "$APP_DISPLAY_NAME — AUTOMATED VPS SETUP"
+    log_highlight "${APP_DISPLAY_NAME} — AUTOMATED VPS SETUP"
 
-    parse_arguments "$@"
+    parse_args "$@"
     check_root
-    check_ubuntu_version
-    check_disk_space 20
+    check_ubuntu
+    check_disk 25
 
     if check_resume; then
-        log_info "Resuming from previous state"
         verify_project_files
     else
         verify_project_files
@@ -1099,48 +1189,58 @@ main() {
     fi
 
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${MAGENTA}                    READY TO BEGIN INSTALLATION${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}  INSTALLATION PLAN${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  Domain       : ${CYAN}$CANONICAL_DOMAIN${NC}"
-    echo -e "  Web panel    : ${CYAN}$SITE_URL${NC}"
-    echo -e "  Admin email  : ${CYAN}$ADMIN_EMAIL${NC}"
-    echo -e "  IPTV panel   : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  Domain    : ${CYAN}${CANONICAL_DOMAIN}${NC}"
+    echo -e "  Web panel : ${CYAN}${SITE_URL}${NC}"
+    echo -e "  Admin     : ${CYAN}${ADMIN_EMAIL}${NC}"
+    echo -e "  IPTV      : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
     echo ""
-    echo -e "  Will install : Docker · Nginx · SSL · Laravel (Docker) · XUI One · UFW"
+    echo -e "  Steps:"
+    echo -e "    01. System packages + Node.js ${NODE_VERSION} LTS"
+    echo -e "    02. Docker CE + Compose plugin"
+    echo -e "    03. Host Nginx install + configure"
+    echo -e "    04. Let's Encrypt SSL"
+    echo -e "    05. Frontend build  (npm ci + npm run build)"
+    echo -e "    06. Docker Compose override  (DB credentials)"
+    echo -e "    07. Laravel .env  (production)"
+    echo -e "    08. Build + start containers  (PHP 8.4, MySQL 8, worker)"
+    echo -e "    09. Laravel init  (composer, migrate, seed, admin user)"
+    echo -e "    10. XUI One IPTV panel  (port ${IPTV_PANEL_PORT}, interactive)"
+    echo -e "    11. UFW firewall"
+    echo -e "    12. Scheduler cron"
+    echo -e "    13. Production cache  (config, routes, views)"
+    echo -e "    14. Verification"
     echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -en "${CYAN}${BOLD}>>> Continue? (y/N): ${NC}"
-    read -n 1 -r REPLY
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -en "${CYAN}${BOLD}>>> Proceed with installation? (y/N): ${NC}"
+    read -n 1 -r REPLY; echo ""
+    [[ $REPLY =~ ^[Yy]$ ]] || { log_warning "Installation cancelled"; exit 0; }
     echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        log_warning "Setup cancelled"; exit 0
-    fi
 
-    echo ""
-    log_success "Starting automated installation..."
-    echo ""
+    run_step "01_system_packages"    install_system_packages
+    run_step "02_docker"             install_docker
+    run_step "03_nginx_install"      install_nginx
+    run_step "04_nginx_configure"    configure_nginx
+    run_step "05_ssl"                install_ssl
+    run_step "06_frontend_build"     build_frontend
+    run_step "07_compose_override"   write_compose_override
+    run_step "08_env_file"           write_env
+    run_step "09_containers"         start_containers
+    run_step "10_laravel_setup"      setup_laravel
+    run_step "11_xui_one"            install_xui_one
+    run_step "12_firewall"           configure_firewall
+    run_step "13_cron"               configure_cron
+    run_step "14_optimize"           optimize_production
+    run_step "15_verify"             verify_install
 
-    run_step "system_update"          update_system            || exit 1
-    run_step "docker_install"         install_docker           || exit 1
-    run_step "nginx_install"          install_host_nginx       || exit 1
-    run_step "nginx_configure"        configure_host_nginx     || exit 1
-    run_step "ssl_install"            install_ssl              || exit 1
-    run_step "docker_compose_config"  configure_docker_compose || exit 1
-    run_step "env_write"              write_env_file           || exit 1
-    run_step "containers_start"       build_and_start_containers || exit 1
-    run_step "laravel_setup"          setup_laravel_app        || exit 1
-    run_step "iptv_panel_install"     install_iptv_panel       || exit 1
-    run_step "firewall_configure"     configure_firewall       || exit 1
-    run_step "cron_configure"         configure_cron           || exit 1
-    run_step "finalize_cache"         finalize_cache           || exit 1
-    run_step "verify_install"         verify_installation      || exit 1
+    # Remove state file only on full success
+    rm -f "$STATE_FILE"
 
-    cleanup_state_files
-    show_final_info
-
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [SUCCESS] Installation completed" >> "$INSTALL_LOG"
+    show_summary
+    echo "[$(_ts)] Installation completed successfully" >> "$INSTALL_LOG"
     exit 0
 }
 
