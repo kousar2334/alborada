@@ -13,9 +13,9 @@
 @endsection
 @section('page-style')
     <link rel="stylesheet"
-        href="{{ asset('public/web-assets/backend/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+        href="{{ asset('web-assets/backend/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet"
-        href="{{ asset('public/web-assets/backend/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
+        href="{{ asset('web-assets/backend/plugins/datatables-responsive/css/responsive.bootstrap4.min.css') }}">
 @endsection
 @section('page-content')
     <x-admin-page-header title="Users" :links="$links" />
@@ -194,9 +194,9 @@
     </section>
 @endsection
 @section('page-script')
-    <script src="{{ asset('public/web-assets/backend/plugins/datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('public/web-assets/backend/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('public/web-assets/backend/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}">
+    <script src="{{ asset('web-assets/backend/plugins/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('web-assets/backend/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('web-assets/backend/plugins/datatables-responsive/js/dataTables.responsive.min.js') }}">
     </script>
     <script>
         (function($) {

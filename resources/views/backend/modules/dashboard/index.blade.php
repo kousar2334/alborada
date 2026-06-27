@@ -258,7 +258,7 @@
 @endsection
 
 @section('page-script')
-    <script src="{{ asset('public/web-assets/backend/plugins/chart.js/chart.umd.min.js') }}"></script>
+    <script src="{{ asset('web-assets/backend/plugins/chart.js/chart.umd.min.js') }}"></script>
     <script>
         $(function() {
             new Chart(document.getElementById('monthlyMembersChart').getContext('2d'), {

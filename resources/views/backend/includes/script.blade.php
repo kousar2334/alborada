@@ -1,11 +1,11 @@
-<script src="{{ asset('public/web-assets/backend/plugins/jquery/jquery.min.js') }}"></script>
-<script src="{{ asset('public/web-assets/backend/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('public/web-assets/backend/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}">
+<script src="{{ asset('web-assets/backend/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('web-assets/backend/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('web-assets/backend/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}">
 </script>
-<script src="{{ asset('public/web-assets/backend/plugins/toastr/toastr.min.js') }}"></script>
+<script src="{{ asset('web-assets/backend/plugins/toastr/toastr.min.js') }}"></script>
 {!! Toastr::message() !!}
-<script src="{{ asset('public/web-assets/backend/dist/js/adminlte.js') }}"></script>
-<script src="{{ asset('public/web-assets/backend/plugins/dropzone/min/dropzone.min.js') }}"></script>
+<script src="{{ asset('web-assets/backend/dist/js/adminlte.js') }}"></script>
+<script src="{{ asset('web-assets/backend/plugins/dropzone/min/dropzone.min.js') }}"></script>
 <script>
     //Gobal variable for media
     let perPage = 30;

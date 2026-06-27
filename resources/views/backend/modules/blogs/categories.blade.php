@@ -17,9 +17,9 @@
     {{ __tr('Blog Categories') }}
 @endsection
 @section('page-style')
-    <link rel="stylesheet" href="{{ asset('public/web-assets/backend/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('web-assets/backend/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet"
-        href="{{ asset('public/web-assets/backend/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+        href="{{ asset('web-assets/backend/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
 @endsection
 @section('page-content')
     <x-admin-page-header title="Categories" :links="$links" />
@@ -194,7 +194,7 @@
     </section>
 @endsection
 @section('page-script')
-    <script src="{{ asset('public/web-assets/backend/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ asset('web-assets/backend/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         (function($) {
             "use strict";

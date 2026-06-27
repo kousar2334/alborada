@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-       gd pdo pdo_mysql zip mbstring bcmath intl xml \
+       gd pdo pdo_mysql zip mbstring bcmath intl xml dom \
        pcntl opcache curl exif \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 

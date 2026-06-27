@@ -1041,5 +1041,5 @@
 @endsection
 
 @section('js')
-    <script src="{{ asset('public/web-assets/frontend/js/home-iptv.js') }}"></script>
+    <script src="{{ asset('web-assets/frontend/js/home-iptv.js') }}"></script>
 @endsection

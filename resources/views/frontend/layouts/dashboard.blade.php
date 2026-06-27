@@ -3,7 +3,7 @@
     @yield('dash-meta')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet"
-        href="{{ asset('public/web-assets/frontend/css/dashboard.css') }}?v={{ filemtime(public_path('web-assets/frontend/css/dashboard.css')) }}">
+        href="{{ asset('web-assets/frontend/css/dashboard.css') }}?v={{ filemtime(public_path('web-assets/frontend/css/dashboard.css')) }}">
     <style>
         /* Dashboard green theme — overrides any DB-stored primary color */
         :root {

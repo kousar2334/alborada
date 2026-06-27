@@ -4,7 +4,7 @@
             class="single-media-item single-media-key-{{ $key }} {{ in_array($file->id, $selected_items) ? 'selected' : '' }}"
             onclick="selectMedia(event,{{ $file->id }})">
             <div class="thumbnail">
-                <img src="{{ asset('public/' . $file->path) }}" alt="{{ $file->id }}" width="150"
+                <img src="{{ asset('' . $file->path) }}" alt="{{ $file->id }}" width="150"
                     class="preview_image" id="single-media-file" />
             </div>
             <button type="button" class="check" id="check_{{ $file->id }}">

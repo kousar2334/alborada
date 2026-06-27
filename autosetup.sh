@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==========================================================================
 # Alborada Box — Automated VPS Setup
-# Laravel 12 IPTV Platform + XUI One Streaming Server
+# Laravel 12 IPTV Platform + XUI Xtream Streaming Server
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
 # Run as     : sudo ./autosetup.sh [--domain yourdomain.com]
@@ -9,11 +9,11 @@
 # Port layout after installation:
 #   :443  → Host Nginx (HTTPS/TLS) → 127.0.0.1:8081 (Docker web container)
 #   :80   → HTTP → HTTPS redirect
-#   :8080 → XUI One IPTV panel  (host-level, public, not proxied)
-#   :3306 → MySQL               (127.0.0.1 only, never public)
+#   :8080 → XUI Xtream IPTV panel  (host-level, public, not proxied)
+#   :3306 → MySQL                  (127.0.0.1 only, never public)
 #
-# Docker → XUI One communication:
-#   The app container uses http://host.docker.internal:8080 to reach XUI One.
+# Docker → XUI Xtream communication:
+#   The app container uses http://host.docker.internal:8080 to reach XUI Xtream.
 #   (localhost inside Docker refers to the container, not the VPS host.)
 # ==========================================================================
 
@@ -41,7 +41,7 @@ DB_PORT="3306"
 DB_NAME="alborada"
 DB_USERNAME="alborada"
 
-IPTV_PANEL_PORT=8080            # XUI One — host-level
+IPTV_PANEL_PORT=8080            # XUI Xtream — host-level
 DOCKER_WEB_PORT=8081            # Docker web container (proxied by host Nginx)
 NODE_VERSION=20                 # Node.js LTS major version
 
@@ -437,7 +437,7 @@ DAEMON
 # ==========================================================================
 # STEP 03 — Host-level Nginx
 # Terminates TLS on port 443 and reverse-proxies to the Docker web
-# container on 127.0.0.1:8081.  XUI One owns port 8080 exclusively.
+# container on 127.0.0.1:8081.  XUI Xtream owns port 8080 exclusively.
 # ==========================================================================
 
 install_nginx() {
@@ -594,7 +594,7 @@ build_frontend() {
 # IMPORTANT: Never put "web: ports:" in this override file.
 # Docker Compose MERGES (not replaces) port lists across files.
 # Ports are set correctly in docker-compose.yml:
-#   web → 127.0.0.1:8081:80   (keeps port 8080 free for XUI One)
+#   web → 127.0.0.1:8081:80   (keeps port 8080 free for XUI Xtream)
 #   db  → 127.0.0.1:3306:3306 (localhost only, never public)
 # This file only injects the auto-generated DB credentials.
 # ==========================================================================
@@ -608,7 +608,7 @@ write_compose_override() {
 #
 # NOTE: No "ports:" entries here.  Docker Compose concatenates port lists
 # from all files, so adding ports here would cause double-binding conflicts
-# with XUI One on port 8080.  Ports live only in docker-compose.yml.
+# with XUI Xtream on port 8080.  Ports live only in docker-compose.yml.
 
 services:
   db:
@@ -707,7 +707,10 @@ AWS_USE_PATH_STYLE_ENDPOINT=false
 VITE_APP_NAME="${APP_DISPLAY_NAME}"
 ENV
 
-    chmod 640 "$APP_DIR/.env"
+    # 644: owner (root) read/write, group+others read.
+    # Must be world-readable so the Docker www-data user (UID 1000, not root)
+    # can read .env at runtime, and key:generate can write APP_KEY into it.
+    chmod 644 "$APP_DIR/.env"
     log_success ".env written at $APP_DIR/.env"
 }
 
@@ -958,9 +961,16 @@ setup_laravel() {
     fi
 
     # ── 9b. Generate application key ────────────────────────────────────
+    # .env is owned by root; make it writable by www-data (UID 1000) before
+    # running key:generate so the command can write APP_KEY into the file.
     log_progress "Generating APP_KEY"
+    chmod 666 "$APP_DIR/.env"
     docker compose exec -T app php artisan key:generate --force >> "$INSTALL_LOG" 2>&1 \
         || { log_error "key:generate failed"; return 1; }
+    chmod 644 "$APP_DIR/.env"
+    # Verify the key was actually written
+    grep -q 'APP_KEY=base64:' "$APP_DIR/.env" \
+        || { log_error ".env APP_KEY is still blank after key:generate"; return 1; }
     log_success "APP_KEY generated"
 
     # ── 9c. Clear any stale config cache ────────────────────────────────
@@ -1029,28 +1039,28 @@ echo PHP_EOL . 'Role: Super Admin assigned.';
 }
 
 # ==========================================================================
-# STEP 10 — XUI One IPTV Streaming Panel
+# STEP 10 — XUI Xtream IPTV Streaming Panel
 #
 # Installed directly on the host — uses port 8080 exclusively.
 # The Docker web container uses port 8081, so there is NO conflict.
 #
-# Docker → XUI One communication:
-#   The app/worker containers reach XUI One via http://host.docker.internal:8080
+# Docker → XUI Xtream communication:
+#   The app/worker containers reach XUI Xtream via http://host.docker.internal:8080
 #   (extra_hosts is already set in docker-compose.yml for both services).
 # ==========================================================================
 
-install_xui_one() {
-    log_header "INSTALLING XUI ONE IPTV STREAMING PANEL"
+install_xui_xtream() {
+    log_header "INSTALLING XUI XTREAM IPTV STREAMING PANEL"
 
     local IP
     IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
 
     echo ""
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}  XUI One IPTV Panel — Interactive Installer${NC}"
+    echo -e "${YELLOW}  XUI Xtream IPTV Panel — Interactive Installer${NC}"
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  XUI One will be installed on port ${CYAN}${IPTV_PANEL_PORT}${NC} (host-level)."
+    echo -e "  XUI Xtream will be installed on port ${CYAN}${IPTV_PANEL_PORT}${NC} (host-level)."
     echo -e "  The web panel Docker container is on ${CYAN}${DOCKER_WEB_PORT}${NC} — no conflict."
     echo ""
     echo -e "${YELLOW}  When the installer prompts you:${NC}"
@@ -1061,32 +1071,32 @@ install_xui_one() {
     echo -e "${YELLOW}  You will need these credentials later to connect the web${NC}"
     echo -e "${YELLOW}  panel to the IPTV server (Admin → Settings → IPTV).${NC}"
     echo ""
-    echo -en "${CYAN}>>> Press Enter to launch the XUI One installer: ${NC}"
+    echo -en "${CYAN}>>> Press Enter to launch the XUI Xtream installer: ${NC}"
     read -r
 
-    if bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-One/master/install.sh); then
-        log_success "XUI One installed successfully"
+    if bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh); then
+        log_success "XUI Xtream installed successfully"
         echo ""
         echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${GREEN}  XUI One is now running${NC}"
+        echo -e "${GREEN}  XUI Xtream is now running${NC}"
         echo -e ""
         echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
         echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
         echo ""
-        echo -e "${YELLOW}  To connect the web panel to XUI One (after full install):${NC}"
+        echo -e "${YELLOW}  To connect the web panel to XUI Xtream (after full install):${NC}"
         echo -e "  1. Open  : ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
         echo -e "  2. Set   : ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
         echo -e "     ${YELLOW}(Use host.docker.internal — NOT localhost — the app runs inside Docker)${NC}"
-        echo -e "  3. Enter : your XUI One admin username and password"
+        echo -e "  3. Enter : your XUI Xtream admin username and password"
         echo -e "  4. Enable: iptv_provisioning_enabled = 1"
         echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
         echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
         read -r
     else
-        log_warning "XUI One installer returned a non-zero exit code or was skipped"
+        log_warning "XUI Xtream installer returned a non-zero exit code or was skipped"
         log_info "Install manually later:"
-        log_info "  bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-One/master/install.sh)"
+        log_info "  bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh)"
         log_info "Continuing with remaining steps…"
     fi
 }
@@ -1103,7 +1113,7 @@ configure_firewall() {
     ufw default allow outgoing
     ufw allow ssh
     ufw allow 'Nginx Full'
-    ufw allow "${IPTV_PANEL_PORT}/tcp" comment 'XUI One IPTV panel'
+    ufw allow "${IPTV_PANEL_PORT}/tcp" comment 'XUI Xtream IPTV panel'
     ufw --force enable
 
     log_success "Firewall enabled"
@@ -1111,7 +1121,7 @@ configure_firewall() {
     log_info   "    22   (SSH)"
     log_info   "    80   (HTTP  → HTTPS redirect via Nginx)"
     log_info   "    443  (HTTPS → Docker web container via Nginx)"
-    log_info   "    ${IPTV_PANEL_PORT}  (XUI One IPTV panel)"
+    log_info   "    ${IPTV_PANEL_PORT}  (XUI Xtream IPTV panel)"
     log_info   "  Blocked: 8081 (Docker internal only), 3306 (DB localhost only)"
     ufw status >> "$INSTALL_LOG" 2>&1
 }
@@ -1207,9 +1217,9 @@ verify_install() {
     code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
         "http://localhost:${IPTV_PANEL_PORT}" 2>/dev/null || echo 0)
     if [[ "$code" =~ ^(200|301|302|403)$ ]]; then
-        log_success "XUI One responding on :${IPTV_PANEL_PORT} (HTTP $code)"
+        log_success "XUI Xtream responding on :${IPTV_PANEL_PORT} (HTTP $code)"
     else
-        log_warning "XUI One not responding on :${IPTV_PANEL_PORT} (install manually if skipped)"
+        log_warning "XUI Xtream not responding on :${IPTV_PANEL_PORT} (install manually if skipped)"
     fi
 }
 
@@ -1230,7 +1240,7 @@ show_summary() {
     echo -e "  Admin pass  : ${CYAN}${ADMIN_PASSWORD}${NC}"
     echo ""
 
-    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI One)${NC}"
+    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI Xtream)${NC}"
     echo -e "  Admin URL   : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
     echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
     echo -e "  (Use this stream URL when customers configure their IPTV apps)"
@@ -1248,7 +1258,7 @@ show_summary() {
     echo -e "  2. Set ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
     echo -e "     ${YELLOW}Important: use 'host.docker.internal', NOT 'localhost'${NC}"
     echo -e "     ${YELLOW}(The web app runs inside Docker; localhost = container, not VPS)${NC}"
-    echo -e "  3. Enter your XUI One admin username and password"
+    echo -e "  3. Enter your XUI Xtream admin username and password"
     echo -e "  4. Set  ${CYAN}iptv_provisioning_enabled = 1${NC}"
     echo -e "  5. Click Test Connection → should return 'Connection successful'"
     echo ""
@@ -1270,14 +1280,14 @@ show_summary() {
     echo ""
 
     echo -e "${YELLOW}STEP D — LOAD IPTV CONTENT${NC}"
-    echo -e "  XUI One Admin → Bouquets → Add Source"
+    echo -e "  XUI Xtream Admin → Bouquets → Add Source"
     echo -e "  Test content (dev only): https://iptv-org.github.io/iptv/index.m3u"
     echo ""
 
     echo -e "${YELLOW}STEP E — TEST END-TO-END${NC}"
     echo -e "  1. Use Stripe test card: ${CYAN}4242 4242 4242 4242${NC} (any date, any CVC)"
     echo -e "  2. Register a customer and complete a subscription purchase"
-    echo -e "  3. Verify: XUI One → Lines → new line created"
+    echo -e "  3. Verify: XUI Xtream → Lines → new line created"
     echo -e "  4. Verify: customer welcome email with Xtream Codes login"
     echo -e "  5. Test IPTV app: XCIPTV / IPTV Smarters → Xtream Codes API login"
     echo -e "     Server: ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
@@ -1336,14 +1346,14 @@ show_help() {
     echo "  5. Vite/Tailwind frontend build (npm run build)"
     echo "  6. Laravel 12 in Docker (PHP 8.4-FPM + MySQL 8 + queue worker)"
     echo "     ↳ composer install, migrate, seed, admin user"
-    echo "  7. XUI One IPTV streaming panel (port $IPTV_PANEL_PORT)"
+    echo "  7. XUI Xtream IPTV streaming panel (port $IPTV_PANEL_PORT)"
     echo "  8. UFW firewall"
     echo "  9. Laravel scheduler cron"
     echo ""
     echo -e "${YELLOW}Port layout:${NC}"
     echo "  443  HTTPS (web panel, proxied by Nginx)"
     echo "  80   HTTP → HTTPS redirect"
-    echo "  8080 XUI One IPTV panel (host-level, public)"
+    echo "  8080 XUI Xtream IPTV panel (host-level, public)"
     echo "  8081 Docker web container (localhost only, Nginx proxy target)"
     echo "  3306 MySQL (localhost only, never public)"
     echo ""
@@ -1414,7 +1424,7 @@ main() {
     echo -e "    07. Laravel .env  (production)"
     echo -e "    08. Build + start containers  (PHP 8.4, MySQL 8, worker)"
     echo -e "    09. Laravel init  (composer, migrate, seed, admin user)"
-    echo -e "    10. XUI One IPTV panel  (port ${IPTV_PANEL_PORT}, interactive)"
+    echo -e "    10. XUI Xtream IPTV panel  (port ${IPTV_PANEL_PORT}, interactive)"
     echo -e "    11. UFW firewall"
     echo -e "    12. Scheduler cron"
     echo -e "    13. Production cache  (config, routes, views)"
@@ -1436,7 +1446,7 @@ main() {
     run_step "08_env_file"           write_env
     run_step "09_containers"         start_containers
     run_step "10_laravel_setup"      setup_laravel
-    run_step "11_xui_one"            install_xui_one
+    run_step "11_xui_xtream"         install_xui_xtream
     run_step "12_firewall"           configure_firewall
     run_step "13_cron"               configure_cron
     run_step "14_optimize"           optimize_production

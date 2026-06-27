@@ -716,7 +716,7 @@
 @endsection
 
 @section('page-script')
-    <script src="{{ asset('public/web-assets/backend/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset('web-assets/backend/plugins/jquery-ui/jquery-ui.min.js') }}"></script>
     <script>
         (function($) {
             "use strict";
