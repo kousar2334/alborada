@@ -296,8 +296,17 @@ check_ubuntu() {
     ver=$(lsb_release -sr 2>/dev/null || grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
     log_info "OS: $os $ver"
     [[ "$os" == "Ubuntu" ]] || log_warning "Tested on Ubuntu only (running: $os)"
-    [[ "$ver" == "22.04" || "$ver" == "24.04" ]] || \
-        log_warning "Recommended: Ubuntu 22.04 or 24.04 LTS (detected: $ver)"
+    if [[ "$ver" == "22.04" ]]; then
+        log_success "Ubuntu 22.04 LTS — fully supported"
+    elif [[ "$ver" == "24.04" ]]; then
+        log_warning "Ubuntu 24.04 detected — XUI Xtream installer is NOT compatible with 24.04"
+        log_warning "XUI Xtream step will likely fail. Downgrade to Ubuntu 22.04 LTS is strongly recommended."
+        echo -en "${YELLOW}Continue anyway? (y/N): ${NC}"
+        read -r _r; echo ""
+        [[ "$_r" =~ ^[Yy]$ ]] || { log_warning "Aborted. Re-provision with Ubuntu 22.04 LTS."; exit 0; }
+    else
+        log_warning "Recommended: Ubuntu 22.04 LTS (detected: $ver) — proceeding but untested"
+    fi
 }
 
 check_disk() {
@@ -442,7 +451,7 @@ DAEMON
 
 install_nginx() {
     log_header "INSTALLING HOST NGINX"
-    if dpkg -l nginx &>/dev/null 2>&1; then
+    if dpkg -s nginx 2>/dev/null | grep -q '^Status: install ok installed'; then
         log_info "Nginx already installed"
         return 0
     fi
@@ -476,11 +485,12 @@ server {
 
     client_max_body_size 100M;
 
-    # Security headers
-    add_header X-Frame-Options        "SAMEORIGIN"                   always;
-    add_header X-Content-Type-Options "nosniff"                      always;
-    add_header X-XSS-Protection       "1; mode=block"                always;
-    add_header Referrer-Policy        "strict-origin-when-cross-origin" always;
+    # Security headers (certbot preserves these when it upgrades this block to HTTPS)
+    add_header X-Frame-Options           "SAMEORIGIN"                        always;
+    add_header X-Content-Type-Options    "nosniff"                           always;
+    add_header X-XSS-Protection          "1; mode=block"                     always;
+    add_header Referrer-Policy           "strict-origin-when-cross-origin"   always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     # Proxy to Docker web container (port ${DOCKER_WEB_PORT})
     location / {
@@ -636,6 +646,7 @@ APP_ENV=production
 APP_KEY=
 APP_DEBUG=false
 APP_URL=${SITE_URL}
+ASSET_URL=${SITE_URL}
 
 APP_LOCALE=en
 APP_FALLBACK_LOCALE=en
@@ -662,6 +673,7 @@ SESSION_LIFETIME=120
 SESSION_ENCRYPT=false
 SESSION_PATH=/
 SESSION_DOMAIN=null
+SESSION_SECURE_COOKIE=true
 
 BROADCAST_CONNECTION=log
 FILESYSTEM_DISK=local
@@ -1030,9 +1042,24 @@ echo PHP_EOL . 'Role: Super Admin assigned.';
     log_success "Storage symlink created"
 
     # ── 9h. File permissions ─────────────────────────────────────────────
-    log_progress "Setting write permissions on storage/ and bootstrap/cache/"
+    log_progress "Setting write permissions on storage/, bootstrap/cache/, and public upload directories"
+
+    # Laravel framework dirs
     docker compose exec -T app chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
     chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
+
+    # Public upload directories — must be writable by www-data (UID 1000) inside Docker.
+    # On a fresh git clone these are owned by root or the deploy user, so they must be
+    # chmod'd to 775 or chown'd to www-data.  Without this, any file upload returns a
+    # 500 error on the server even though it works locally (local UID matches).
+    for _dir in uploaded uploads profile featured bank-slips; do
+        mkdir -p "$APP_DIR/public/$_dir"
+        chmod 775 "$APP_DIR/public/$_dir"
+    done
+    docker compose exec -T app chown -R www-data:www-data \
+        public/uploaded public/uploads public/profile public/featured public/bank-slips \
+        2>/dev/null || true
+
     log_success "File permissions set"
 
     log_success "Laravel application initialized"
@@ -1074,7 +1101,22 @@ install_xui_xtream() {
     echo -en "${CYAN}>>> Press Enter to launch the XUI Xtream installer: ${NC}"
     read -r
 
-    if bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh); then
+    # Try primary installer URL, then fallback
+    local _xui_installed=false
+    local _urls=(
+        "https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh"
+        "https://xui.one/install.sh"
+    )
+    for _url in "${_urls[@]}"; do
+        log_info "Trying installer: $_url"
+        if bash <(curl -fsSL --max-time 30 "$_url" 2>/dev/null); then
+            _xui_installed=true
+            break
+        fi
+        log_warning "Installer at $_url failed — trying next"
+    done
+
+    if [[ "$_xui_installed" == true ]]; then
         log_success "XUI Xtream installed successfully"
         echo ""
         echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -1094,9 +1136,10 @@ install_xui_xtream() {
         echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
         read -r
     else
-        log_warning "XUI Xtream installer returned a non-zero exit code or was skipped"
-        log_info "Install manually later:"
-        log_info "  bash <(curl -s https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh)"
+        log_warning "All XUI Xtream installer URLs failed or were skipped"
+        log_info "Install manually later (run as root on the VPS):"
+        log_info "  bash <(curl -fsSL https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh)"
+        log_info "  OR: bash <(curl -fsSL https://xui.one/install.sh)"
         log_info "Continuing with remaining steps…"
     fi
 }
@@ -1141,7 +1184,9 @@ configure_cron() {
 
     # Use --project-directory so cron picks up both docker-compose.yml
     # and docker-compose.override.yml regardless of working directory.
-    local JOB="* * * * * /usr/bin/docker compose --project-directory ${APP_DIR} exec -T app php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1"
+    local DOCKER_BIN
+    DOCKER_BIN=$(command -v docker || echo "/usr/bin/docker")
+    local JOB="* * * * * ${DOCKER_BIN} compose --project-directory ${APP_DIR} exec -T app php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1"
 
     if crontab -l 2>/dev/null | grep -q "artisan schedule:run"; then
         log_info "Scheduler cron already exists — skipping"
