@@ -42,8 +42,13 @@ services:
       MYSQL_PASSWORD: secret
     volumes:
       - dbdata:/var/lib/mysql
-    ports:
-      - "127.0.0.1:3306:3306"
+    # No host port binding — Docker containers reach MySQL via internal network (db:3306).
+    # Host MariaDB (used by XUI.ONE) occupies 127.0.0.1:3306; exposing this port here
+    # would cause EADDRINUSE on production.
+    # For local dev access add to docker-compose.local.yml:
+    #   db:
+    #     ports:
+    #       - "127.0.0.1:3306:3306"
     networks:
       - alborada
 

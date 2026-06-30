@@ -260,7 +260,7 @@ get_domain() {
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     echo -e "${YELLOW}  This domain will serve the web panel over HTTPS.${NC}"
-    echo -e "${YELLOW}  Customers stream IPTV at: http://stream.YOURDOMAIN:8080${NC}"
+    echo -e "${YELLOW}  Customers stream IPTV at: http://stream.YOURDOMAIN:${XUI_CLIENT_PORT}${NC}"
     echo -e "${GREEN}  Examples:${NC} ${CYAN}alboradabox.com${NC}  or  ${CYAN}app.example.com${NC}"
     echo ""
     while true; do
@@ -275,7 +275,7 @@ get_domain() {
     log_success "Domain set: $CANONICAL_DOMAIN"
     log_info    "  Web panel    : $SITE_URL"
     log_info    "  Admin panel  : $SITE_URL/admin"
-    log_info    "  IPTV streams : http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}"
+    log_info    "  IPTV streams : http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}"
     [[ "$NEEDS_WWW_REDIRECT" == true ]] && \
         log_info "  WWW redirect : https://$WWW_DOMAIN → $SITE_URL"
     echo ""
@@ -1066,84 +1066,226 @@ echo PHP_EOL . 'Role: Super Admin assigned.';
 }
 
 # ==========================================================================
-# STEP 10 — XUI Xtream IPTV Streaming Panel
+# STEP 10 — XUI.ONE 1.5.13 IPTV Streaming Panel (Ubuntu 22.04)
 #
-# Installed directly on the host — uses port 8080 exclusively.
-# The Docker web container uses port 8081, so there is NO conflict.
+# Source: https://xtream-masters.com/guide/how_to_install_xui_one_ubuntu_22_04.php
 #
-# Docker → XUI Xtream communication:
-#   The app/worker containers reach XUI Xtream via http://host.docker.internal:8080
-#   (extra_hosts is already set in docker-compose.yml for both services).
+# Installed directly on the host (not in Docker).
+# Port layout:
+#   :8080  — XUI.ONE admin panel
+#   :2086  — client streaming port (customers use this)
+#   :25461 — internal XUI.ONE management port
+#
+# Docker web container is on :8081 — no conflict.
+#
+# Docker → XUI.ONE communication:
+#   http://host.docker.internal:8080  (extra_hosts set in docker-compose.yml)
+#
+# MariaDB is installed on the HOST for XUI.ONE.
+# Docker MySQL runs inside containers only (no host port binding).
 # ==========================================================================
 
-install_xui_xtream() {
-    log_header "INSTALLING XUI XTREAM IPTV STREAMING PANEL"
+XUI_CLIENT_PORT=2086
 
-    local IP
+install_xui_one() {
+    log_header "INSTALLING XUI.ONE 1.5.13 — IPTV STREAMING PANEL"
+
+    local IP XUI_DB_PASS
     IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
+    XUI_DB_PASS=$(generate_password 24)
 
     echo ""
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}  XUI Xtream IPTV Panel — Interactive Installer${NC}"
+    echo -e "${YELLOW}  XUI.ONE 1.5.13 — Ubuntu 22.04 Installer${NC}"
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  XUI Xtream will be installed on port ${CYAN}${IPTV_PANEL_PORT}${NC} (host-level)."
-    echo -e "  The web panel Docker container is on ${CYAN}${DOCKER_WEB_PORT}${NC} — no conflict."
+    echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  Stream port : ${CYAN}${XUI_CLIENT_PORT}${NC}  (customers connect here)"
     echo ""
     echo -e "${YELLOW}  When the installer prompts you:${NC}"
-    echo -e "    Panel port     → enter ${CYAN}${IPTV_PANEL_PORT}${NC}"
-    echo -e "    Admin username → choose one and ${RED}WRITE IT DOWN${NC}"
-    echo -e "    Admin password → choose strong and ${RED}WRITE IT DOWN${NC}"
+    echo -e "    Installation type → ${CYAN}main${NC}"
+    echo -e "    MySQL host        → ${CYAN}127.0.0.1${NC}"
+    echo -e "    Admin panel port  → ${CYAN}${IPTV_PANEL_PORT}${NC}"
+    echo -e "    Client port       → ${CYAN}${XUI_CLIENT_PORT}${NC}"
     echo ""
-    echo -e "${YELLOW}  You will need these credentials later to connect the web${NC}"
-    echo -e "${YELLOW}  panel to the IPTV server (Admin → Settings → IPTV).${NC}"
-    echo ""
-    echo -en "${CYAN}>>> Press Enter to launch the XUI Xtream installer: ${NC}"
+    echo -en "${CYAN}>>> Press Enter to begin XUI.ONE installation: ${NC}"
     read -r
 
-    # XUI.ONE 1.5.13 — official installer (Ubuntu 20.04 / 22.04)
-    # Source: https://github.com/midesidotnet/XUI.ONE-1.5.13-Install-Guide
-    local _xui_installed=false
-    local _urls=(
-        "https://www.midesi.net/xuione/installxui.sh"
-        "https://raw.githubusercontent.com/AXUIone/XUI.ONE/master/install.sh"
-    )
-    for _url in "${_urls[@]}"; do
-        log_info "Trying installer: $_url"
-        if bash <(wget -qO- "$_url" 2>/dev/null); then
-            _xui_installed=true
-            break
-        fi
-        log_warning "Installer at $_url failed — trying next"
-    done
+    # ── 1. Hostname ───────────────────────────────────────────────────────────
+    log_progress "Setting hostname"
+    hostnamectl set-hostname "xui.${CANONICAL_DOMAIN}" >> "$INSTALL_LOG" 2>&1
+    grep -q "xui.${CANONICAL_DOMAIN}" /etc/hosts || \
+        echo "127.0.0.1 xui.${CANONICAL_DOMAIN}" >> /etc/hosts
+    log_success "Hostname: xui.${CANONICAL_DOMAIN}"
 
-    if [[ "$_xui_installed" == true ]]; then
-        log_success "XUI Xtream installed successfully"
-        echo ""
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${GREEN}  XUI Xtream is now running${NC}"
-        echo -e ""
-        echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
-        echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
-        echo ""
-        echo -e "${YELLOW}  To connect the web panel to XUI Xtream (after full install):${NC}"
-        echo -e "  1. Open  : ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
-        echo -e "  2. Set   : ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
-        echo -e "     ${YELLOW}(Use host.docker.internal — NOT localhost — the app runs inside Docker)${NC}"
-        echo -e "  3. Enter : your XUI Xtream admin username and password"
-        echo -e "  4. Enable: iptv_provisioning_enabled = 1"
-        echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo ""
-        echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
-        read -r
+    # Disable UFW temporarily — installer needs unrestricted outbound access.
+    # Step 11 (configure_firewall) re-enables it with the correct rules.
+    ufw disable >> "$INSTALL_LOG" 2>&1 || true
+
+    # ── 2. Legacy libssl1.1 (Ubuntu 22.04 ships OpenSSL 3; XUI.ONE needs 1.1) ─
+    log_wait "Installing legacy libssl1.1"
+    wget -q "http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb" \
+        -O /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1
+    dpkg -i /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || \
+        apt-get install -f -y >> "$INSTALL_LOG" 2>&1
+    ldconfig
+    if ldconfig -p | grep -q "libssl.so.1.1"; then
+        log_success "libssl1.1 installed"
     else
-        log_warning "All XUI.ONE installer URLs failed or were skipped"
-        log_info "Install manually later (run as root on the VPS):"
-        log_info "  bash <(wget -qO- https://www.midesi.net/xuione/installxui.sh)"
-        log_info "  When prompted to overwrite sysctl config → enter y"
-        log_info "  Credentials saved to /root/credentials.txt after install"
-        log_info "Continuing with remaining steps…"
+        log_warning "libssl1.1 may not have installed correctly — continuing"
     fi
+
+    # ── 3. Python 2 (XUI.ONE internal scripts require Python 2) ──────────────
+    log_wait "Installing Python 2"
+    add-apt-repository -y ppa:deadsnakes/ppa >> "$INSTALL_LOG" 2>&1
+    apt-get update >> "$INSTALL_LOG" 2>&1
+    apt-get install -y python2 python2-dev >> "$INSTALL_LOG" 2>&1
+    ln -sf /usr/bin/python2 /usr/bin/python        2>/dev/null || true
+    ln -sf /usr/bin/python2 /usr/local/bin/python2.7 2>/dev/null || true
+    curl -sSL https://bootstrap.pypa.io/pip/2.7/get-pip.py -o /tmp/get-pip.py 2>/dev/null
+    python2 /tmp/get-pip.py >> "$INSTALL_LOG" 2>&1 || true
+    python2 -m pip install --upgrade "setuptools<45" "paramiko<2.9" >> "$INSTALL_LOG" 2>&1 || true
+    log_success "Python 2 installed: $(python --version 2>&1)"
+
+    # ── 4. MariaDB (host-level — separate from Docker MySQL) ──────────────────
+    # Docker MySQL runs inside containers only (no host port binding).
+    # Host MariaDB is exclusively for XUI.ONE.
+    log_wait "Installing MariaDB"
+    apt-get install -y mariadb-server mariadb-client >> "$INSTALL_LOG" 2>&1
+    systemctl enable mariadb >> "$INSTALL_LOG" 2>&1
+    systemctl start mariadb
+
+    log_progress "Configuring MariaDB for XUI.ONE"
+    local MYCNF="/etc/mysql/mariadb.conf.d/99-xui-one.cnf"
+    cat > "$MYCNF" <<MYCNFBLOCK
+# XUI.ONE required settings
+[mysqld]
+sql_mode                      = NO_ENGINE_SUBSTITUTION
+innodb_strict_mode            = 0
+max_allowed_packet            = 256M
+innodb_buffer_pool_size       = 1G
+innodb_file_per_table         = 1
+wait_timeout                  = 28800
+interactive_timeout           = 28800
+max_connections               = 500
+default_authentication_plugin = mysql_native_password
+MYCNFBLOCK
+    systemctl restart mariadb
+
+    log_progress "Creating XUI.ONE database and user"
+    mysql -u root <<MYSQL >> "$INSTALL_LOG" 2>&1
+CREATE DATABASE IF NOT EXISTS xui_one
+    DEFAULT CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'xui_user'@'localhost' IDENTIFIED BY '${XUI_DB_PASS}';
+GRANT ALL PRIVILEGES ON xui_one.* TO 'xui_user'@'localhost';
+FLUSH PRIVILEGES;
+MYSQL
+    log_success "MariaDB configured  (DB: xui_one  user: xui_user)"
+
+    # ── 5. XUI.ONE installer ──────────────────────────────────────────────────
+    log_wait "Downloading XUI.ONE 1.5.13 installer"
+    wget -q "https://xtream-masters.com/guide/resources.php?file=xui-one/install.sh" \
+        -O /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1
+    chmod +x /tmp/xui-install.sh
+
+    log_info "Launching XUI.ONE installer — answer prompts as shown above"
+    bash /tmp/xui-install.sh
+
+    # ── 6. Post-install patches ───────────────────────────────────────────────
+
+    # Patch 1 — force legacy SSL library path
+    log_progress "Patch 1/5: SSL library path"
+    echo "/usr/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/xui-one-libssl.conf
+    ldconfig
+
+    # Patch 2 — systemd service unit
+    log_progress "Patch 2/5: systemd service"
+    cat > /etc/systemd/system/xui-one.service <<SERVICE
+[Unit]
+Description=XUI.ONE IPTV Streaming Panel
+After=network.target mariadb.service
+Wants=mariadb.service
+
+[Service]
+Type=forking
+ExecStart=/bin/bash /home/xui/content/start.sh
+ExecStop=/bin/bash /home/xui/content/stop.sh
+Restart=on-failure
+RestartSec=10
+User=root
+LimitNOFILE=655350
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+    systemctl daemon-reload
+    systemctl enable xui-one.service >> "$INSTALL_LOG" 2>&1
+    systemctl start  xui-one.service
+    log_success "xui-one.service enabled and started"
+
+    # Patch 3 — file descriptor limits
+    log_progress "Patch 3/5: file descriptor limits"
+    grep -q '655350' /etc/security/limits.conf || {
+        echo '* soft nofile 655350' >> /etc/security/limits.conf
+        echo '* hard nofile 655350' >> /etc/security/limits.conf
+    }
+    sed -i 's/^#*DefaultLimitNOFILE=.*/DefaultLimitNOFILE=655350/' /etc/systemd/system.conf
+    systemctl daemon-reexec >> "$INSTALL_LOG" 2>&1
+
+    # Patch 4 — GeoIP database
+    log_progress "Patch 4/5: GeoIP database"
+    if [[ -d /home/xui/content ]]; then
+        chattr -i /home/xui/content/GeoLite2.mmdb 2>/dev/null || true
+        wget -q "https://xtream-masters.com/guide/resources.php?file=xui/GeoLite2.mmdb" \
+            -O /home/xui/content/GeoLite2.mmdb >> "$INSTALL_LOG" 2>&1 \
+            && chattr +i /home/xui/content/GeoLite2.mmdb 2>/dev/null || true
+        log_success "GeoIP database updated"
+    else
+        log_warning "GeoIP patch skipped — /home/xui/content not found"
+    fi
+
+    # Patch 5 — FFmpeg segfault fix
+    log_progress "Patch 5/5: FFmpeg"
+    apt-get install -y ffmpeg >> "$INSTALL_LOG" 2>&1
+    if [[ -d /home/xui/content/bin/ffmpeg ]]; then
+        mv /home/xui/content/bin/ffmpeg/ffmpeg \
+           /home/xui/content/bin/ffmpeg/ffmpeg.bak 2>/dev/null || true
+        ln -sf "$(which ffmpeg)" /home/xui/content/bin/ffmpeg/ffmpeg
+        log_success "FFmpeg symlink patched"
+    fi
+
+    # ── 7. Verify ─────────────────────────────────────────────────────────────
+    sleep 5
+    if ss -tlnp | grep -q ":${IPTV_PANEL_PORT}"; then
+        log_success "XUI.ONE is listening on port ${IPTV_PANEL_PORT}"
+    else
+        log_warning "Port ${IPTV_PANEL_PORT} not yet open — XUI.ONE may still be starting"
+        log_info "Check: systemctl status xui-one"
+    fi
+
+    # Save XUI.ONE DB credentials alongside app credentials
+    printf '\n# XUI.ONE Database\nXUI_DB_NAME=xui_one\nXUI_DB_USER=xui_user\nXUI_DB_PASS=%s\n' \
+        "$XUI_DB_PASS" >> "$CREDENTIALS_FILE"
+
+    echo ""
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${GREEN}  XUI.ONE installation complete${NC}"
+    echo ""
+    echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
+    echo -e "  DB password : ${CYAN}${XUI_DB_PASS}${NC}  (also saved to ${CREDENTIALS_FILE})"
+    echo ""
+    echo -e "${YELLOW}  To connect web panel → XUI.ONE:${NC}"
+    echo -e "  1. Open  : ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
+    echo -e "  2. Set   : ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
+    echo -e "     ${YELLOW}(host.docker.internal — NOT localhost — app runs inside Docker)${NC}"
+    echo -e "  3. Enter : your XUI.ONE admin credentials"
+    echo -e "  4. Set   : ${CYAN}iptv_provisioning_enabled = 1${NC}"
+    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
+    read -r
 }
 
 # ==========================================================================
@@ -1158,16 +1300,20 @@ configure_firewall() {
     ufw default allow outgoing
     ufw allow ssh
     ufw allow 'Nginx Full'
-    ufw allow "${IPTV_PANEL_PORT}/tcp" comment 'XUI Xtream IPTV panel'
+    ufw allow "${IPTV_PANEL_PORT}/tcp"  comment 'XUI.ONE admin panel'
+    ufw allow "${XUI_CLIENT_PORT}/tcp"  comment 'XUI.ONE client streaming port'
+    ufw allow "25461/tcp"               comment 'XUI.ONE internal management'
     ufw --force enable
 
     log_success "Firewall enabled"
     log_info   "  Open ports:"
-    log_info   "    22   (SSH)"
-    log_info   "    80   (HTTP  → HTTPS redirect via Nginx)"
-    log_info   "    443  (HTTPS → Docker web container via Nginx)"
-    log_info   "    ${IPTV_PANEL_PORT}  (XUI Xtream IPTV panel)"
-    log_info   "  Blocked: 8081 (Docker internal only), 3306 (DB localhost only)"
+    log_info   "    22    (SSH)"
+    log_info   "    80    (HTTP  → HTTPS redirect via Nginx)"
+    log_info   "    443   (HTTPS → Docker web container via Nginx)"
+    log_info   "    ${IPTV_PANEL_PORT}   (XUI.ONE admin panel)"
+    log_info   "    ${XUI_CLIENT_PORT}   (XUI.ONE client streaming)"
+    log_info   "    25461 (XUI.ONE internal management)"
+    log_info   "  Blocked: 8081 (Docker internal only), 3306 (DB internal only)"
     ufw status >> "$INSTALL_LOG" 2>&1
 }
 
@@ -1287,10 +1433,12 @@ show_summary() {
     echo -e "  Admin pass  : ${CYAN}${ADMIN_PASSWORD}${NC}"
     echo ""
 
-    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI Xtream)${NC}"
+    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI.ONE 1.5.13)${NC}"
     echo -e "  Admin URL   : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  (Use this stream URL when customers configure their IPTV apps)"
+    echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
+    echo -e "  Admin port  : ${IPTV_PANEL_PORT}  (XUI.ONE panel)"
+    echo -e "  Client port : ${XUI_CLIENT_PORT}  (customers use this — Xtream Codes API)"
+    echo -e "  (Use the stream URL when customers configure their IPTV apps)"
     echo ""
 
     echo -e "${YELLOW}DATABASE${NC}"
@@ -1337,7 +1485,7 @@ show_summary() {
     echo -e "  3. Verify: XUI Xtream → Lines → new line created"
     echo -e "  4. Verify: customer welcome email with Xtream Codes login"
     echo -e "  5. Test IPTV app: XCIPTV / IPTV Smarters → Xtream Codes API login"
-    echo -e "     Server: ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "     Server: ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
     echo ""
 
     echo -e "${YELLOW}DOCKER MANAGEMENT${NC}"
@@ -1393,7 +1541,7 @@ show_help() {
     echo "  5. Vite/Tailwind frontend build (npm run build)"
     echo "  6. Laravel 12 in Docker (PHP 8.4-FPM + MySQL 8 + queue worker)"
     echo "     ↳ composer install, migrate, seed, admin user"
-    echo "  7. XUI Xtream IPTV streaming panel (port $IPTV_PANEL_PORT)"
+    echo "  7. XUI.ONE 1.5.13 IPTV panel (admin :$IPTV_PANEL_PORT  streams :$XUI_CLIENT_PORT)"
     echo "  8. UFW firewall"
     echo "  9. Laravel scheduler cron"
     echo ""
@@ -1459,7 +1607,7 @@ main() {
     echo -e "  Domain    : ${CYAN}${CANONICAL_DOMAIN}${NC}"
     echo -e "  Web panel : ${CYAN}${SITE_URL}${NC}"
     echo -e "  Admin     : ${CYAN}${ADMIN_EMAIL}${NC}"
-    echo -e "  IPTV      : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${IPTV_PANEL_PORT}${NC}"
+    echo -e "  IPTV      : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
     echo ""
     echo -e "  Steps:"
     echo -e "    01. System packages + Node.js ${NODE_VERSION} LTS"
@@ -1471,7 +1619,7 @@ main() {
     echo -e "    07. Laravel .env  (production)"
     echo -e "    08. Build + start containers  (PHP 8.4, MySQL 8, worker)"
     echo -e "    09. Laravel init  (composer, migrate, seed, admin user)"
-    echo -e "    10. XUI Xtream IPTV panel  (port ${IPTV_PANEL_PORT}, interactive)"
+    echo -e "    10. XUI.ONE 1.5.13 IPTV panel  (ports ${IPTV_PANEL_PORT} admin / ${XUI_CLIENT_PORT} streams)"
     echo -e "    11. UFW firewall"
     echo -e "    12. Scheduler cron"
     echo -e "    13. Production cache  (config, routes, views)"
@@ -1493,7 +1641,7 @@ main() {
     run_step "08_env_file"           write_env
     run_step "09_containers"         start_containers
     run_step "10_laravel_setup"      setup_laravel
-    run_step "11_xui_xtream"         install_xui_xtream
+    run_step "11_xui_one"            install_xui_one
     run_step "12_firewall"           configure_firewall
     run_step "13_cron"               configure_cron
     run_step "14_optimize"           optimize_production
