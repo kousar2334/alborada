@@ -1101,15 +1101,16 @@ install_xui_xtream() {
     echo -en "${CYAN}>>> Press Enter to launch the XUI Xtream installer: ${NC}"
     read -r
 
-    # Try primary installer URL, then fallback
+    # XUI.ONE 1.5.13 — official installer (Ubuntu 20.04 / 22.04)
+    # Source: https://github.com/midesidotnet/XUI.ONE-1.5.13-Install-Guide
     local _xui_installed=false
     local _urls=(
-        "https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh"
-        "https://xui.one/install.sh"
+        "https://www.midesi.net/xuione/installxui.sh"
+        "https://raw.githubusercontent.com/AXUIone/XUI.ONE/master/install.sh"
     )
     for _url in "${_urls[@]}"; do
         log_info "Trying installer: $_url"
-        if bash <(curl -fsSL --max-time 30 "$_url" 2>/dev/null); then
+        if bash <(wget -qO- "$_url" 2>/dev/null); then
             _xui_installed=true
             break
         fi
@@ -1136,10 +1137,11 @@ install_xui_xtream() {
         echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
         read -r
     else
-        log_warning "All XUI Xtream installer URLs failed or were skipped"
+        log_warning "All XUI.ONE installer URLs failed or were skipped"
         log_info "Install manually later (run as root on the VPS):"
-        log_info "  bash <(curl -fsSL https://raw.githubusercontent.com/AXUIone/XUI-Xtream/master/install.sh)"
-        log_info "  OR: bash <(curl -fsSL https://xui.one/install.sh)"
+        log_info "  bash <(wget -qO- https://www.midesi.net/xuione/installxui.sh)"
+        log_info "  When prompted to overwrite sysctl config → enter y"
+        log_info "  Credentials saved to /root/credentials.txt after install"
         log_info "Continuing with remaining steps…"
     fi
 }

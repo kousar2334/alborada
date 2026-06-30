@@ -132,9 +132,11 @@ What the script does (in order):
   7.  Write .env (production Laravel config)
   8.  Build and start Docker containers (app, web on :8081, MySQL, worker)
   9.  Run database migrations and seed initial data
-  10. INTERACTIVE: Install XUI One IPTV panel on port 8080
-      → Follow the prompts; confirm port 8080; save your admin credentials
-      → Docker uses :8081, so there is no port conflict with XUI One on :8080
+  10. INTERACTIVE: Install XUI.ONE 1.5.13 IPTV panel on port 8080
+      → Installer: bash <(wget -qO- https://www.midesi.net/xuione/installxui.sh)
+      → When asked to overwrite sysctl config → enter y
+      → Credentials saved to /root/credentials.txt after install
+      → Docker uses :8081, so there is no port conflict with XUI.ONE on :8080
   11. Configure UFW firewall (opens 22, 80, 443, 8080)
   12. Add Laravel scheduler cron job
   13. Build Laravel production cache
