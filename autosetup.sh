@@ -45,6 +45,16 @@ IPTV_PANEL_PORT=8080            # XUI Xtream — host-level
 DOCKER_WEB_PORT=8081            # Docker web container (proxied by host Nginx)
 NODE_VERSION=20                 # Node.js LTS major version
 
+# XUI.ONE installer source. XUI.ONE is a LICENSED commercial panel — the
+# installer URL is tied to your purchase and the vendor rotates these paths.
+# Override without editing this file:  XUI_INSTALLER_URL="https://..." ./autosetup.sh
+# Space-separated fallbacks are tried in order until one returns a real script.
+XUI_INSTALLER_URL="${XUI_INSTALLER_URL:-}"
+XUI_INSTALLER_URL_CANDIDATES=(
+    "https://xtream-masters.com/guide/resources.php?file=xui-one/install.sh"
+    "https://tut.xtream-masters.com/files/xui-one/install.sh"
+)
+
 # ── Runtime state ──────────────────────────────────────────────────────────
 DOMAIN=""
 CANONICAL_DOMAIN=""
@@ -1226,14 +1236,31 @@ MYSQL
 
     # ── 5. XUI.ONE installer ──────────────────────────────────────────────────
     log_wait "Downloading XUI.ONE 1.5.13 installer"
-    rm -f /tmp/xui-install.sh
-    curl -fL --max-time 60 \
-        "https://tut.xtream-masters.com/files/xui-one/install.sh" \
-        -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1 || true
-    # A dead/changed URL yields an empty file or an HTML error page — don't bash that.
-    if [[ ! -s /tmp/xui-install.sh ]] || ! head -c 64 /tmp/xui-install.sh | grep -qE '^#!|bash|sh'; then
-        log_error "XUI.ONE installer download failed or is not a shell script"
-        log_error "Verify the URL is reachable: https://tut.xtream-masters.com/files/xui-one/install.sh"
+
+    # Build the URL list: operator override first, then known vendor fallbacks.
+    local xui_urls=()
+    [[ -n "$XUI_INSTALLER_URL" ]] && xui_urls+=("$XUI_INSTALLER_URL")
+    xui_urls+=("${XUI_INSTALLER_URL_CANDIDATES[@]}")
+
+    local xui_got=0 xui_url
+    for xui_url in "${xui_urls[@]}"; do
+        rm -f /tmp/xui-install.sh
+        # -f fails on HTTP errors, -L follows the vendor's redirects to the CDN.
+        curl -fL --max-time 60 "$xui_url" -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1 || true
+        # A dead/changed URL yields an empty file or an HTML error page — don't bash that.
+        if [[ -s /tmp/xui-install.sh ]] && head -c 64 /tmp/xui-install.sh | grep -qE '^#!|bash|sh'; then
+            xui_got=1
+            log_info "XUI.ONE installer source: ${xui_url}"
+            break
+        fi
+    done
+
+    if [[ "$xui_got" -ne 1 ]]; then
+        log_error "Could not fetch a valid XUI.ONE installer from any known URL."
+        log_error "XUI.ONE is a LICENSED product and the vendor rotates/removes installer URLs."
+        log_error "Get the current installer link from your XUI.ONE account/license, then re-run with:"
+        log_error "  XUI_INSTALLER_URL=\"https://your-installer-url/install.sh\" $0"
+        log_error "(Do not substitute an unofficial 'cracked' installer — it is unlicensed and unsafe.)"
         return 1
     fi
     chmod +x /tmp/xui-install.sh

@@ -120,6 +120,18 @@ Run as root:
 Or pass your domain directly to skip the interactive prompt:
   sudo /var/www/alborada/autosetup.sh --domain moissanitevisions.com
 
+IMPORTANT — XUI.ONE installer URL:
+  XUI.ONE is a LICENSED commercial panel. The vendor rotates and sometimes
+  removes the public installer URL, so the built-in default may 404. If the
+  "11_xui_one" step fails with "Could not fetch a valid XUI.ONE installer",
+  get the current installer link from your XUI.ONE account/license and re-run:
+
+    sudo XUI_INSTALLER_URL="https://your-installer-url/install.sh" \
+         /var/www/alborada/autosetup.sh
+
+  The script resumes from the failed step. Do NOT substitute an unofficial
+  "cracked" installer — it is unlicensed and unsafe.
+
 What the script does (in order):
   1.  Update system packages
   2.  Install Docker CE + Docker Compose plugin
