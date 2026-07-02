@@ -16,6 +16,8 @@
                                 <h3 class="footer-site-name mb-3">{{ get_setting('site_name') }}</h3>
                             @endif
 
+                            <p class="footer-slogan mb-3">{{ get_setting('site_tagline', 'Where every Stream sparkles') }}</p>
+
                             @if (get_setting('footer_address') || get_setting('footer_phone_number') || get_setting('footer_hotline'))
                                 <ul class="footer-contact-list">
                                     @if (get_setting('footer_address'))

@@ -13,10 +13,18 @@ class IptvProvisioningService
     public function __construct(
         protected XtreamCodesService $xtream,
         protected WhmcsService $whmcs,
+        protected InvoiceService $invoices,
     ) {}
 
     public function provision(UserSubscription $subscription): bool
     {
+        // Idempotency guard: if this subscription already has a provisioned line,
+        // don't create a duplicate on the panel. The Stripe webhook and the
+        // browser-return path can both fire for the same payment.
+        if ($subscription->xtream_line_id) {
+            return true;
+        }
+
         $user = $subscription->user;
         $plan = $subscription->plan;
 
@@ -52,6 +60,9 @@ class IptvProvisioningService
                 'xtream_password' => $password,
             ]);
 
+            // Generate the paid invoice / receipt and email it to the customer.
+            $this->generateInvoice($subscription);
+
             // WHMCS sync
             if ($this->whmcs->isConfigured() && get_setting('whmcs_sync_enabled', 0)) {
                 $this->syncToWhmcs($user, $subscription);
@@ -68,6 +79,50 @@ class IptvProvisioningService
         }
     }
 
+    /**
+     * Remove the Xtream line and terminate the WHMCS service for a subscription.
+     * Called before a subscription record is deleted so no orphan account is left
+     * on the streaming panel.
+     */
+    public function delete(UserSubscription $subscription): bool
+    {
+        try {
+            if ($subscription->xtream_username) {
+                $this->xtream->deleteLine($subscription->xtream_username);
+            }
+
+            if ($this->whmcs->isConfigured() && $subscription->whmcs_service_id) {
+                $this->whmcs->terminateService((int) $subscription->whmcs_service_id);
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('IPTV delete failed for subscription ' . $subscription->id . ': ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create + email the invoice receipt for a subscription, once.
+     * A failure here must not abort provisioning.
+     */
+    private function generateInvoice(UserSubscription $subscription): void
+    {
+        if ($subscription->invoice_id) {
+            return;
+        }
+
+        try {
+            $invoice = $this->invoices->createForSubscription($subscription, [
+                'amount'       => $subscription->amount ?? $subscription->plan->price ?? 0,
+                'total_amount' => $subscription->amount ?? $subscription->plan->price ?? 0,
+            ]);
+            $this->invoices->sendByEmail($invoice);
+        } catch (\Exception $e) {
+            \Log::error('Invoice generation failed for subscription ' . $subscription->id . ': ' . $e->getMessage());
+        }
+    }
+
     public function suspend(UserSubscription $subscription): bool
     {
         if (!$subscription->xtream_username) {
@@ -77,8 +132,12 @@ class IptvProvisioningService
         try {
             $this->xtream->banLine($subscription->xtream_username);
 
-            if ($this->whmcs->isConfigured() && $subscription->user->whmcs_client_id) {
-                $this->whmcs->syncSubscriptionStatus($subscription->user->whmcs_client_id, false);
+            if ($this->whmcs->isConfigured()) {
+                if ($subscription->whmcs_service_id) {
+                    $this->whmcs->suspendService((int) $subscription->whmcs_service_id, 'Subscription suspended');
+                } elseif ($subscription->user->whmcs_client_id) {
+                    $this->whmcs->syncSubscriptionStatus($subscription->user->whmcs_client_id, false);
+                }
             }
 
             return true;
@@ -99,8 +158,12 @@ class IptvProvisioningService
                 'exp_date' => $subscription->expires_at?->timestamp,
             ]);
 
-            if ($this->whmcs->isConfigured() && $subscription->user->whmcs_client_id) {
-                $this->whmcs->syncSubscriptionStatus($subscription->user->whmcs_client_id, true);
+            if ($this->whmcs->isConfigured()) {
+                if ($subscription->whmcs_service_id) {
+                    $this->whmcs->unsuspendService((int) $subscription->whmcs_service_id);
+                } elseif ($subscription->user->whmcs_client_id) {
+                    $this->whmcs->syncSubscriptionStatus($subscription->user->whmcs_client_id, true);
+                }
             }
 
             return true;
@@ -133,14 +196,73 @@ class IptvProvisioningService
         ];
     }
 
+    /**
+     * Full two-way WHMCS sync for a newly provisioned subscription:
+     * ensure client → place + accept order (creates service + invoice) →
+     * mark invoice paid. IDs are stored on the subscription for later
+     * suspend/terminate and inbound webhook matching.
+     */
     private function syncToWhmcs(User $user, UserSubscription $subscription): void
+    {
+        // 1. Ensure a WHMCS client exists.
+        $clientId = $this->ensureWhmcsClient($user);
+        if (!$clientId) {
+            return;
+        }
+
+        // Nothing more to do without a product mapping, or if already ordered.
+        $productId = (int) get_setting('whmcs_product_id', 0);
+        if ($productId <= 0 || $subscription->whmcs_order_id) {
+            return;
+        }
+
+        // 2. Place the order for the IPTV product.
+        $order = $this->whmcs->addOrder([
+            'clientid'        => $clientId,
+            'pid'             => $productId,
+            'billingcycle'    => 'onetime',
+            'paymentmethod'   => 'stripe',
+            'noinvoiceemail'  => true,
+        ]);
+
+        if (($order['result'] ?? '') !== 'success') {
+            return;
+        }
+
+        $orderId   = $order['orderid'] ?? null;
+        $serviceId = $this->firstId($order['productids'] ?? null);
+        $invoiceId = $order['invoiceid'] ?? null;
+
+        // 3. Accept the order so WHMCS provisions the module.
+        if ($orderId) {
+            $this->whmcs->acceptOrder((int) $orderId, ['sendemail' => false]);
+        }
+
+        // 4. Record the payment against the generated invoice.
+        if ($invoiceId) {
+            $this->whmcs->addInvoicePayment(
+                (int) $invoiceId,
+                $subscription->transaction_id ?? ('SUB-' . $subscription->id),
+                (float) ($subscription->amount ?? 0),
+                'stripe'
+            );
+        }
+
+        $subscription->update([
+            'whmcs_order_id'   => $orderId,
+            'whmcs_service_id' => $serviceId,
+            'whmcs_invoice_id' => $invoiceId,
+        ]);
+    }
+
+    private function ensureWhmcsClient(User $user): ?int
     {
         if ($user->whmcs_client_id) {
             $this->whmcs->updateClient($user->whmcs_client_id, [
-                'email'    => $user->email,
+                'email'     => $user->email,
                 'firstname' => $user->name,
             ]);
-            return;
+            return (int) $user->whmcs_client_id;
         }
 
         $result = $this->whmcs->createClient([
@@ -158,6 +280,23 @@ class IptvProvisioningService
 
         if (($result['result'] ?? '') === 'success' && isset($result['clientid'])) {
             $user->update(['whmcs_client_id' => $result['clientid']]);
+            return (int) $result['clientid'];
         }
+
+        return null;
+    }
+
+    /**
+     * WHMCS returns productids as a comma-separated string (e.g. "12,13").
+     */
+    private function firstId(mixed $ids): ?int
+    {
+        if (is_array($ids)) {
+            $ids = reset($ids);
+        }
+        if (is_string($ids) && $ids !== '') {
+            $ids = explode(',', $ids)[0];
+        }
+        return is_numeric($ids) ? (int) $ids : null;
     }
 }

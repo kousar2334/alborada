@@ -22,7 +22,7 @@ class WelcomeWithCredentialsMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Welcome to ' . get_setting('site_name', 'Alborada Box') . ' — Your IPTV Credentials');
+        return new Envelope(subject: 'Welcome to ' . get_setting('site_name', 'Moissanite Radiance') . ' — Your IPTV Credentials');
     }
 
     public function content(): Content

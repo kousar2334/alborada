@@ -38,7 +38,7 @@
         <p>Need help? <a href="{{ route('member.tickets.create') }}">Contact support</a>.</p>
     </div>
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Alborada Box') }}. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Radiance') }}. All rights reserved.</p>
     </div>
 </div>
 </body>

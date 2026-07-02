@@ -5,7 +5,7 @@
 
 OVERVIEW
 --------
-The autosetup.sh script fully deploys the Alborada Box web panel AND the XUI One
+The autosetup.sh script fully deploys the Moissanite Radiance web panel AND the XUI One
 IPTV streaming panel on a single Ubuntu VPS.
 
 After installation:
@@ -165,7 +165,7 @@ Then in your web panel:
   MAIL_USERNAME    postmaster@mg.yourdomain.com
   MAIL_PASSWORD    <mailgun SMTP password>
   MAIL_FROM        noreply@yourdomain.com
-  FROM_NAME        Alborada Box
+  FROM_NAME        Moissanite Radiance
 
 Send a test email to confirm delivery before going live.
 

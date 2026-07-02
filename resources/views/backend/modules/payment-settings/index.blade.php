@@ -475,6 +475,50 @@
         </div>
 
     </div>
+
+    {{-- Bank Transfer (manual) --}}
+    @php $bankEnabled = get_setting('bank_transfer_enabled', 0); @endphp
+    <div class="row">
+        <div class="col-lg-7 mb-4">
+            <form action="{{ route('admin.payment.settings.update') }}" method="POST">
+                @csrf
+                <input type="hidden" name="section" value="bank_transfer">
+                <div class="ps-form-card">
+                    <div class="ps-form-header">
+                        <div class="ps-form-header-left">
+                            <div class="ps-form-icon"><i class="fas fa-university"></i></div>
+                            <h3 class="ps-form-title">{{ __tr('Bank Transfer (Manual)') }}</h3>
+                        </div>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="bank_transfer_enabled"
+                                name="bank_transfer_enabled" value="1" {{ $bankEnabled ? 'checked' : '' }}>
+                            <label class="custom-control-label"
+                                for="bank_transfer_enabled">{{ __tr('Enable Bank Transfer') }}</label>
+                        </div>
+                    </div>
+                    <div class="ps-form-body">
+                        <div class="form-group mb-0">
+                            <label class="ps-field-label"
+                                for="bank_transfer_instructions">{{ __tr('Payment Instructions') }}</label>
+                            <textarea id="bank_transfer_instructions" name="bank_transfer_instructions" class="form-control" rows="6"
+                                placeholder="{{ __tr('Bank name, account number, IBAN/SWIFT, and any reference the customer should include.') }}">{{ get_setting('bank_transfer_instructions') }}</textarea>
+                            <p class="ps-field-hint">
+                                {{ __tr('Shown to customers on the checkout page. They submit a reference and an uploaded slip, which you approve from Subscriptions.') }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="ps-form-footer">
+                        <span class="ps-footer-note">
+                            <i class="fas fa-info-circle mr-1"></i>{{ __tr('Bank transfers require manual approval.') }}
+                        </span>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-1"></i>{{ __tr('Save Settings') }}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @section('page-script')

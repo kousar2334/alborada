@@ -17,7 +17,7 @@
         @endif
         <div>
             <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-            <div class="sidebar-user-role">{{ __tr('Alborada Box Member') }}</div>
+            <div class="sidebar-user-role">{{ __tr('Moissanite Radiance Member') }}</div>
         </div>
     </div>
 

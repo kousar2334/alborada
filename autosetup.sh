@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# Alborada Box — Automated VPS Setup
+# Moissanite Radiance — Automated VPS Setup
 # Laravel 12 IPTV Platform + XUI Xtream Streaming Server
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
@@ -33,7 +33,7 @@ LOG_MAX_BYTES=10485760          # 10 MB — rotate when exceeded
 STATE_FILE="/root/.alborada_install_state"
 CREDENTIALS_FILE="/root/.alborada_credentials"
 
-APP_DISPLAY_NAME="Alborada Box"
+APP_DISPLAY_NAME="Moissanite Radiance"
 APP_DIR="/var/www/alborada"
 
 DB_HOST="db"                    # Docker Compose service name
@@ -129,7 +129,7 @@ generate_credentials() {
 }
 
 save_credentials() {
-    printf '# Alborada Box Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
+    printf '# Moissanite Radiance Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
         "$(date)" "$MYSQL_ROOT_PASSWORD" "$DB_PASSWORD" "$ADMIN_PASSWORD" \
         > "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
@@ -147,7 +147,7 @@ load_credentials() {
 
 save_state() {
     {
-        echo "# Alborada Install State — $(date)"
+        echo "# Moissanite Radiance Install State — $(date)"
         echo "DOMAIN=$DOMAIN"
         echo "CANONICAL_DOMAIN=$CANONICAL_DOMAIN"
         echo "WWW_DOMAIN=$WWW_DOMAIN"
@@ -1123,28 +1123,57 @@ install_xui_one() {
     ufw disable >> "$INSTALL_LOG" 2>&1 || true
 
     # ── 2. Legacy libssl1.1 (Ubuntu 22.04 ships OpenSSL 3; XUI.ONE needs 1.1) ─
+    # The exact point-release filename rotates as Ubuntu publishes security
+    # updates, so a single pinned URL eventually 404s. Try a candidate list and
+    # verify each download is a real .deb before installing.
     log_wait "Installing legacy libssl1.1"
-    wget -q "http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb" \
-        -O /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1
-    dpkg -i /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || \
-        apt-get install -f -y >> "$INSTALL_LOG" 2>&1
+    local ssl_base="http://security.ubuntu.com/ubuntu/pool/main/o/openssl"
+    local ssl_candidates=(
+        "libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
+        "libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb"
+        "libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb"
+        "libssl1.1_1.1.1f-1ubuntu2.21_amd64.deb"
+    )
+    local ssl_installed=0 ssl_file
+    for ssl_file in "${ssl_candidates[@]}"; do
+        rm -f /tmp/libssl1.1.deb
+        wget -q "${ssl_base}/${ssl_file}" -O /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || true
+        # A 404 still writes a small HTML body — require a genuine Debian package.
+        if [[ -s /tmp/libssl1.1.deb ]] && file /tmp/libssl1.1.deb 2>/dev/null | grep -qi "Debian binary package"; then
+            dpkg -i /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || \
+                apt-get install -f -y >> "$INSTALL_LOG" 2>&1
+            ssl_installed=1
+            log_info "libssl1.1 source: ${ssl_file}"
+            break
+        fi
+    done
     ldconfig
     if ldconfig -p | grep -q "libssl.so.1.1"; then
         log_success "libssl1.1 installed"
     else
-        log_warning "libssl1.1 may not have installed correctly — continuing"
+        log_error "libssl1.1 could not be installed — XUI.ONE binaries will not run"
+        log_error "Fetch a working libssl1.1_*_amd64.deb from ${ssl_base} and install it manually, then re-run"
+        return 1
     fi
 
     # ── 3. Python 2 (XUI.ONE internal scripts require Python 2) ──────────────
+    # python2 ships in the 22.04 'universe' repo — no PPA needed. The deadsnakes
+    # PPA does NOT provide python2 for jammy and only slows this step down.
     log_wait "Installing Python 2"
-    add-apt-repository -y ppa:deadsnakes/ppa >> "$INSTALL_LOG" 2>&1
+    add-apt-repository -y universe >> "$INSTALL_LOG" 2>&1 || true
     apt-get update >> "$INSTALL_LOG" 2>&1
     apt-get install -y python2 python2-dev >> "$INSTALL_LOG" 2>&1
+    if ! command -v python2 >/dev/null 2>&1; then
+        log_error "python2 could not be installed from the universe repo — XUI.ONE scripts require it"
+        return 1
+    fi
     ln -sf /usr/bin/python2 /usr/bin/python        2>/dev/null || true
     ln -sf /usr/bin/python2 /usr/local/bin/python2.7 2>/dev/null || true
-    curl -sSL https://bootstrap.pypa.io/pip/2.7/get-pip.py -o /tmp/get-pip.py 2>/dev/null
-    python2 /tmp/get-pip.py >> "$INSTALL_LOG" 2>&1 || true
-    python2 -m pip install --upgrade "setuptools<45" "paramiko<2.9" >> "$INSTALL_LOG" 2>&1 || true
+    curl -sSL https://bootstrap.pypa.io/pip/2.7/get-pip.py -o /tmp/get-pip.py 2>/dev/null || true
+    if [[ -s /tmp/get-pip.py ]]; then
+        python2 /tmp/get-pip.py >> "$INSTALL_LOG" 2>&1 || true
+        python2 -m pip install --upgrade "setuptools<45" "paramiko<2.9" >> "$INSTALL_LOG" 2>&1 || true
+    fi
     log_success "Python 2 installed: $(python --version 2>&1)"
 
     # ── 4. MariaDB (host-level — separate from Docker MySQL) ──────────────────
@@ -1157,6 +1186,10 @@ install_xui_one() {
 
     log_progress "Configuring MariaDB for XUI.ONE"
     local MYCNF="/etc/mysql/mariadb.conf.d/99-xui-one.cnf"
+    # NOTE: do NOT set default_authentication_plugin here — that is a MySQL-8-only
+    # server variable. MariaDB 10.6 (the 22.04 default) refuses to start on it,
+    # which previously broke the whole XUI.ONE install. mysql_native_password is
+    # already the MariaDB default and is set per-user in the CREATE USER below.
     cat > "$MYCNF" <<MYCNFBLOCK
 # XUI.ONE required settings
 [mysqld]
@@ -1168,9 +1201,13 @@ innodb_file_per_table         = 1
 wait_timeout                  = 28800
 interactive_timeout           = 28800
 max_connections               = 500
-default_authentication_plugin = mysql_native_password
 MYCNFBLOCK
     systemctl restart mariadb
+    if ! systemctl is-active --quiet mariadb; then
+        log_error "MariaDB failed to start after applying ${MYCNF}"
+        log_error "Check: journalctl -u mariadb --no-pager | tail -n 40"
+        return 1
+    fi
 
     log_progress "Creating XUI.ONE database and user"
     mysql -u root <<MYSQL >> "$INSTALL_LOG" 2>&1
@@ -1181,13 +1218,24 @@ CREATE USER IF NOT EXISTS 'xui_user'@'localhost' IDENTIFIED BY '${XUI_DB_PASS}';
 GRANT ALL PRIVILEGES ON xui_one.* TO 'xui_user'@'localhost';
 FLUSH PRIVILEGES;
 MYSQL
+    if ! mysql -u root -e "USE xui_one" >> "$INSTALL_LOG" 2>&1; then
+        log_error "XUI.ONE database 'xui_one' was not created — aborting"
+        return 1
+    fi
     log_success "MariaDB configured  (DB: xui_one  user: xui_user)"
 
     # ── 5. XUI.ONE installer ──────────────────────────────────────────────────
     log_wait "Downloading XUI.ONE 1.5.13 installer"
-    curl -L --max-time 60 \
+    rm -f /tmp/xui-install.sh
+    curl -fL --max-time 60 \
         "https://tut.xtream-masters.com/files/xui-one/install.sh" \
-        -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1
+        -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1 || true
+    # A dead/changed URL yields an empty file or an HTML error page — don't bash that.
+    if [[ ! -s /tmp/xui-install.sh ]] || ! head -c 64 /tmp/xui-install.sh | grep -qE '^#!|bash|sh'; then
+        log_error "XUI.ONE installer download failed or is not a shell script"
+        log_error "Verify the URL is reachable: https://tut.xtream-masters.com/files/xui-one/install.sh"
+        return 1
+    fi
     chmod +x /tmp/xui-install.sh
 
     log_info "Launching XUI.ONE installer — answer prompts as shown above"
@@ -1257,12 +1305,22 @@ SERVICE
     fi
 
     # ── 7. Verify ─────────────────────────────────────────────────────────────
-    sleep 5
-    if ss -tlnp | grep -q ":${IPTV_PANEL_PORT}"; then
+    # Give XUI.ONE a grace period to bind its port, then treat a persistent
+    # failure as a real error so run_step stops instead of marking this "done".
+    local xui_ok=0 attempt
+    for attempt in 1 2 3 4 5 6; do
+        if ss -tlnp | grep -q ":${IPTV_PANEL_PORT}"; then
+            xui_ok=1
+            break
+        fi
+        sleep 5
+    done
+    if [[ "$xui_ok" -eq 1 ]]; then
         log_success "XUI.ONE is listening on port ${IPTV_PANEL_PORT}"
     else
-        log_warning "Port ${IPTV_PANEL_PORT} not yet open — XUI.ONE may still be starting"
-        log_info "Check: systemctl status xui-one"
+        log_error "XUI.ONE did not open port ${IPTV_PANEL_PORT} after ~30s — install did not complete"
+        log_error "Check: systemctl status xui-one  &&  journalctl -u xui-one --no-pager | tail -n 40"
+        return 1
     fi
 
     # Save XUI.ONE DB credentials alongside app credentials

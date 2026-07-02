@@ -17,7 +17,7 @@ class InvoiceMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Invoice ' . $this->invoice->invoice_number . ' — ' . get_setting('site_name', 'Alborada Box'));
+        return new Envelope(subject: 'Invoice ' . $this->invoice->invoice_number . ' — ' . get_setting('site_name', 'Moissanite Radiance'));
     }
 
     public function content(): Content

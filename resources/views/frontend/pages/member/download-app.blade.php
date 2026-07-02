@@ -7,7 +7,7 @@
 
     <div class="dashboard-header">
         <h1 class="dash-page-title">{{ __tr('Download the App') }}</h1>
-        <p class="dash-page-subtitle">{{ __tr('Install Alborada Box on any device using the codes below.') }}</p>
+        <p class="dash-page-subtitle">{{ __tr('Install Moissanite Radiance on any device using the codes below.') }}</p>
     </div>
 
     {{-- How-to Banner --}}
@@ -22,7 +22,7 @@
                     <li>{{ __tr('Open the') }} <strong class="text-white fw-bold">Downloader</strong>
                         {{ __tr('app on your device (available free on all platforms).') }}</li>
                     <li>{{ __tr('Enter the code shown below for your device type.') }}</li>
-                    <li>{{ __tr('The Alborada Box app will install automatically.') }}</li>
+                    <li>{{ __tr('The Moissanite Radiance app will install automatically.') }}</li>
                     <li>{{ __tr('Open the app and log in with your IPTV credentials from the Dashboard.') }}</li>
                 </ol>
             </div>

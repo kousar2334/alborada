@@ -144,6 +144,8 @@ class SettingController extends Controller
             'whmcs_api_url'             => $request->input('whmcs_api_url', ''),
             'whmcs_api_identifier'      => $request->input('whmcs_api_identifier', ''),
             'whmcs_api_secret'          => $request->input('whmcs_api_secret', ''),
+            'whmcs_product_id'          => $request->input('whmcs_product_id', 0),
+            'whmcs_webhook_secret'      => $request->input('whmcs_webhook_secret', ''),
             'iptv_provisioning_enabled' => $request->input('iptv_provisioning_enabled', 0),
             'whmcs_sync_enabled'        => $request->input('whmcs_sync_enabled', 0),
         ];

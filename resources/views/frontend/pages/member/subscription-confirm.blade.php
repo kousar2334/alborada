@@ -73,7 +73,7 @@
         {{-- Payment Section --}}
         <div class="sc-main">
 
-            @if (!$stripeEnabled)
+            @if (!$stripeEnabled && !$bankTransferEnabled)
                 <div class="sc-empty-state">
                     <div class="sc-empty-icon">
                         <i class="fas fa-credit-card"></i>
@@ -81,7 +81,9 @@
                     <h4 class="sc-empty-title">{{ __tr('No Payment Method Available') }}</h4>
                     <p class="sc-empty-text">{{ __tr('Please contact the administrator to enable a payment method.') }}</p>
                 </div>
-            @else
+            @endif
+
+            @if ($stripeEnabled)
                 <div class="dashboard-card sc-pay-card">
                     <div class="sc-pay-header">
                         <span class="sc-pay-icon"><i class="fab fa-stripe-s"></i></span>
@@ -122,6 +124,48 @@
                                 <i class="fas fa-spinner fa-spin"></i> {{ __tr('Processing...') }}
                             </span>
                         </button>
+                    </div>
+                </div>
+            @endif
+
+            @if ($bankTransferEnabled)
+                <div class="dashboard-card sc-pay-card sc-bank-card">
+                    <div class="sc-pay-header">
+                        <span class="sc-pay-icon"><i class="fas fa-university"></i></span>
+                        <div>
+                            <h4 class="sc-pay-title">{{ __tr('Pay by Bank Transfer') }}</h4>
+                            <p class="sc-pay-sub">{{ __tr('Transfer the total, then submit your reference and receipt below.') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="sc-pay-body">
+                        @if (!empty($bankTransferInstructions))
+                            <div class="sc-bank-instructions">
+                                {!! nl2br(e($bankTransferInstructions)) !!}
+                            </div>
+                        @endif
+
+                        <form action="{{ route('membership.bank.submit') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="membership_id" value="{{ $plan->id }}">
+
+                            <div class="sc-field-group">
+                                <label class="sc-field-label" for="bank_transaction_number">{{ __tr('Transfer Reference / Transaction Number') }}</label>
+                                <input type="text" id="bank_transaction_number" name="bank_transaction_number"
+                                    class="form-control" required maxlength="191">
+                            </div>
+
+                            <div class="sc-field-group">
+                                <label class="sc-field-label" for="bank_slip">{{ __tr('Upload Payment Slip') }} <span class="sc-field-hint">({{ __tr('JPG, PNG or PDF, max 5MB') }})</span></label>
+                                <input type="file" id="bank_slip" name="bank_slip" class="form-control"
+                                    accept=".jpg,.jpeg,.png,.pdf" required>
+                            </div>
+
+                            <button type="submit" class="sc-pay-btn">
+                                <i class="fas fa-paper-plane sc-btn-lock"></i>
+                                {{ __tr('Submit Bank Transfer') }}
+                            </button>
+                        </form>
                     </div>
                 </div>
             @endif

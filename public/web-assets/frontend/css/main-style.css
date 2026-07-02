@@ -2019,6 +2019,14 @@ header.header-style-01.sticky-bar .header-bg {
     margin-bottom: .7rem;
 }
 
+.footer-slogan {
+    font-size: .95rem;
+    font-style: italic;
+    color: #22c55e;
+    opacity: .95;
+    margin-bottom: 1rem;
+}
+
 .footer-contact-list {
     list-style: none;
     padding: 0;

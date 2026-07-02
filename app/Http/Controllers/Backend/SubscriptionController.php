@@ -89,11 +89,17 @@ class SubscriptionController extends Controller
             ->with('success', __tr('Subscription rejected successfully'));
     }
 
-    public function delete(Request $request)
+    public function delete(Request $request, \App\Services\IptvProvisioningService $provisioning)
     {
         $request->validate(['id' => 'required|integer|exists:user_subscriptions,id']);
 
-        UserSubscription::findOrFail($request->id)->delete();
+        $subscription = UserSubscription::findOrFail($request->id);
+
+        // Remove the account from the streaming panel before dropping the record,
+        // otherwise the Xtream line is orphaned and keeps streaming.
+        $provisioning->delete($subscription);
+
+        $subscription->delete();
 
         return redirect()->route('admin.subscriptions.list')
             ->with('success', __tr('Subscription deleted successfully'));

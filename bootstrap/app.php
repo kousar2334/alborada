@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             '/ad/impression',
             '/ad/click',
             '/stripe/webhook',
+            '/whmcs/webhook',
             '/membership/ssl-success',
             '/membership/ssl-fail',
             '/membership/ssl-cancel',

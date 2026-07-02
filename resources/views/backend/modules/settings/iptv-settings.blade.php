@@ -70,11 +70,29 @@
                             <input type="text" name="whmcs_api_identifier" class="form-control"
                                 value="{{ get_setting('whmcs_api_identifier') }}" placeholder="API identifier key">
                         </div>
-                        <div class="form-group mb-0">
+                        <div class="form-group">
                             <label>{{ __tr('API Secret') }}</label>
                             <input type="password" name="whmcs_api_secret" class="form-control"
                                 value="{{ get_setting('whmcs_api_secret') }}" placeholder="••••••••"
                                 autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label>{{ __tr('IPTV Product ID') }}</label>
+                            <input type="number" name="whmcs_product_id" class="form-control" min="0"
+                                value="{{ get_setting('whmcs_product_id', 0) }}"
+                                placeholder="{{ __tr('WHMCS product/service ID to order') }}">
+                            <small class="form-text text-muted">{{ __tr('The WHMCS product an order is placed against when provisioning. Leave 0 to only sync the client record.') }}</small>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label>{{ __tr('Inbound Webhook Secret') }}</label>
+                            <input type="password" name="whmcs_webhook_secret" class="form-control"
+                                value="{{ get_setting('whmcs_webhook_secret') }}" placeholder="••••••••"
+                                autocomplete="new-password">
+                            <small class="form-text text-muted">
+                                {{ __tr('Shared secret for WHMCS → app callbacks. Endpoint:') }}
+                                <code>{{ url('/whmcs/webhook') }}</code>.
+                                {{ __tr('Sign the raw body as HMAC-SHA256 in the X-WHMCS-Signature header.') }}
+                            </small>
                         </div>
                     </div>
                 </div>

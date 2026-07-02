@@ -44,6 +44,9 @@ Route::post('/blog/{permalink}/comment', [BlogController::class, 'storeComment']
 // Stripe webhook (no auth, no CSRF)
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])->name('stripe.webhook');
 
+// WHMCS inbound webhook (no auth, no CSRF — authenticated via HMAC signature)
+Route::post('/whmcs/webhook', [\App\Http\Controllers\Frontend\WhmcsWebhookController::class, 'handle'])->name('whmcs.webhook');
+
 // Payment link (public token-based URL)
 Route::get('/pay/{token}', [SubscriptionController::class, 'paymentLinkRedirect'])->name('payment.link');
 
@@ -91,6 +94,7 @@ Route::group(['middleware' => ['auth', 'member']], function () {
     Route::get('/membership/confirm/{planId}', [SubscriptionController::class, 'confirm'])->name('subscription.confirm');
     Route::post('/membership/stripe/initiate', [SubscriptionController::class, 'initiateStripePayment'])->name('membership.stripe.initiate');
     Route::get('/membership/stripe/success', [SubscriptionController::class, 'stripeSuccess'])->name('membership.stripe.success');
+    Route::post('/membership/bank-transfer', [SubscriptionController::class, 'bankTransfer'])->name('membership.bank.submit');
 
     // Support tickets
     Route::prefix('member/support')->group(function () {

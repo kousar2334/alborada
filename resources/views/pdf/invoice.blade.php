@@ -32,7 +32,7 @@
 
 <div class="header">
     <div>
-        <div class="company-name">{{ get_setting('site_name', 'Alborada Box') }}</div>
+        <div class="company-name">{{ get_setting('site_name', 'Moissanite Radiance') }}</div>
         <div class="company-sub">{{ get_setting('site_email', '') }}</div>
         <div class="company-sub">{{ get_setting('site_address', '') }}</div>
     </div>
@@ -125,7 +125,7 @@
 @endif
 
 <div class="footer">
-    <p>Thank you for your business — {{ get_setting('site_name', 'Alborada Box') }}</p>
+    <p>Thank you for your business — {{ get_setting('site_name', 'Moissanite Radiance') }}</p>
     <p>{{ get_setting('site_email', '') }} &bull; {{ get_setting('site_url', '') }}</p>
 </div>
 

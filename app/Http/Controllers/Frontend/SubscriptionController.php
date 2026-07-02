@@ -43,11 +43,75 @@ class SubscriptionController extends Controller
         $stripeEnabled   = (bool) get_setting('stripe_enabled', 0);
         $stripePublicKey = get_setting('stripe_public_key', config('services.stripe.key', ''));
 
+        $bankTransferEnabled      = (bool) get_setting('bank_transfer_enabled', 0);
+        $bankTransferInstructions = get_setting('bank_transfer_instructions', '');
+
         return view('frontend.pages.member.subscription-confirm', compact(
             'plan',
             'stripeEnabled',
-            'stripePublicKey'
+            'stripePublicKey',
+            'bankTransferEnabled',
+            'bankTransferInstructions'
         ));
+    }
+
+    /**
+     * Record a bank-transfer payment: creates a pending subscription with the
+     * customer's reference and uploaded slip. An admin reviews and approves it
+     * from the backend, which triggers provisioning + receipt.
+     */
+    public function bankTransfer(Request $request)
+    {
+        $request->validate([
+            'membership_id'          => 'required|integer|exists:pricing_plans,id',
+            'bank_transaction_number' => 'required|string|max:191',
+            'bank_slip'              => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        if (!get_setting('bank_transfer_enabled', 0)) {
+            return back()->with('error', __tr('Bank transfer is not available.'));
+        }
+
+        $plan = PricingPlan::where('id', $request->membership_id)
+            ->where('status', config('settings.general_status.active'))
+            ->firstOrFail();
+
+        $user = Auth::user();
+
+        $activeSubscription = UserSubscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if ($activeSubscription) {
+            return back()->with('error', __tr('You already have an active subscription.'));
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $slipPath = $request->file('bank_slip')->store('bank-slips', 'public');
+
+            UserSubscription::create([
+                'user_id'                 => $user->id,
+                'plan_id'                 => $plan->id,
+                'transaction_id'          => 'BANK-' . strtoupper(Str::random(12)),
+                'amount'                  => $plan->price,
+                'payment_method'          => 'bank_transfer',
+                'status'                  => 'pending',
+                'bank_transaction_number' => $request->bank_transaction_number,
+                'bank_slip'               => $slipPath,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('member.subscriptions')
+                ->with('success', __tr('Your bank transfer was submitted and is pending review. You will be notified once approved.'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Bank transfer submission failed: ' . $e->getMessage());
+            return back()->with('error', __tr('Failed to submit bank transfer. Please try again.'));
+        }
     }
 
     /**
@@ -200,6 +264,13 @@ class SubscriptionController extends Controller
                     'starts_at'        => now(),
                     'expires_at'       => now()->addDays($subscription->plan->duration_days),
                 ]);
+
+                // Provision here too — the browser may return before the webhook
+                // fires. ProvisionSubscriptionJob is idempotent (guards on an
+                // existing xtream_line_id), so webhook + return won't double-create.
+                if (get_setting('iptv_provisioning_enabled', 0) && empty($subscription->xtream_username)) {
+                    dispatch(new \App\Jobs\ProvisionSubscriptionJob($subscription));
+                }
 
                 return redirect()->route('member.subscriptions')
                     ->with('success', 'Payment successful! Your subscription is now active.');

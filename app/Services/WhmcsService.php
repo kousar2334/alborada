@@ -57,6 +57,66 @@ class WhmcsService
         return ($result['result'] ?? '') === 'success';
     }
 
+    // ── Order / service lifecycle ──────────────────────────────────────────────
+
+    /**
+     * Place an order for the configured IPTV product. Returns the raw response,
+     * which includes `orderid` and `productids` on success.
+     */
+    public function addOrder(array $orderData): array
+    {
+        return $this->call('AddOrder', $orderData);
+    }
+
+    /**
+     * Accept a pending order — provisions the module and generates the invoice.
+     */
+    public function acceptOrder(int $orderId, array $params = []): array
+    {
+        return $this->call('AcceptOrder', array_merge(['orderid' => $orderId], $params));
+    }
+
+    public function moduleCreate(int $serviceId): bool
+    {
+        $result = $this->call('ModuleCreate', ['serviceid' => $serviceId]);
+        return ($result['result'] ?? '') === 'success';
+    }
+
+    public function suspendService(int $serviceId, string $reason = ''): bool
+    {
+        $result = $this->call('ModuleSuspend', array_filter([
+            'serviceid'     => $serviceId,
+            'suspendreason' => $reason ?: null,
+        ]));
+        return ($result['result'] ?? '') === 'success';
+    }
+
+    public function unsuspendService(int $serviceId): bool
+    {
+        $result = $this->call('ModuleUnsuspend', ['serviceid' => $serviceId]);
+        return ($result['result'] ?? '') === 'success';
+    }
+
+    public function terminateService(int $serviceId): bool
+    {
+        $result = $this->call('ModuleTerminate', ['serviceid' => $serviceId]);
+        return ($result['result'] ?? '') === 'success';
+    }
+
+    /**
+     * Record a payment against a WHMCS invoice (marks it Paid).
+     */
+    public function addInvoicePayment(int $invoiceId, string $transactionId, float $amount = 0, string $gateway = 'stripe'): bool
+    {
+        $result = $this->call('AddInvoicePayment', array_filter([
+            'invoiceid' => $invoiceId,
+            'transid'   => $transactionId,
+            'gateway'   => $gateway,
+            'amount'    => $amount > 0 ? $amount : null,
+        ]));
+        return ($result['result'] ?? '') === 'success';
+    }
+
     protected function call(string $action, array $params = []): array
     {
         if (!$this->isConfigured()) {

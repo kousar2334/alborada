@@ -1,4 +1,4 @@
-# Alborada — IPTV Subscription Platform
+# Moissanite Radiance — IPTV Subscription Platform
 
 A multi-tenant IPTV subscription management platform built on **Laravel 12**. It handles customer subscriptions, reseller management, automatic IPTV provisioning via Xtream Codes, and payment processing through Stripe, SSL Commerce, and bank transfer.
 

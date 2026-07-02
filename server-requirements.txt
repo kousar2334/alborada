@@ -148,7 +148,7 @@ Configure in admin panel → Settings → SMTP Settings:
   MAIL_USERNAME         postmaster@mg.yourdomain.com
   MAIL_PASSWORD         <mailgun smtp password>
   MAIL_FROM_ADDRESS     noreply@yourdomain.com
-  MAIL_FROM_NAME        Alborada Box
+  MAIL_FROM_NAME        Moissanite Radiance
 
 Emails sent automatically by the platform:
   - Welcome email with IPTV username, password, M3U URL, EPG URL
@@ -175,7 +175,7 @@ TIP: Enable Cloudflare proxy (orange cloud) for @ and www only.
 ================================================================================
 Required variables (see .env.example for full list):
 
-  APP_NAME                  "Alborada Box"
+  APP_NAME                  "Moissanite Radiance"
   APP_ENV                   production
   APP_DEBUG                 false
   APP_URL                   https://yourdomain.com
@@ -198,7 +198,7 @@ Required variables (see .env.example for full list):
   MAIL_USERNAME             <mailgun smtp user>
   MAIL_PASSWORD             <mailgun smtp password>
   MAIL_FROM_ADDRESS         noreply@yourdomain.com
-  MAIL_FROM_NAME            "Alborada Box"
+  MAIL_FROM_NAME            "Moissanite Radiance"
 
   SESSION_DRIVER            database
   QUEUE_CONNECTION          database

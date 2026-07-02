@@ -20,6 +20,8 @@ class PaymentSettingsController extends Controller
             'stripe_secret_key' => 'nullable|string|max:255',
             'stripe_webhook_secret' => 'nullable|string|max:255',
             'stripe_currency'   => 'nullable|string|max:10',
+            'bank_transfer_enabled'      => 'nullable|in:0,1',
+            'bank_transfer_instructions' => 'nullable|string|max:5000',
         ]);
 
         $settings = [
@@ -28,6 +30,8 @@ class PaymentSettingsController extends Controller
             'stripe_secret_key'     => $request->input('stripe_secret_key', ''),
             'stripe_webhook_secret' => $request->input('stripe_webhook_secret', ''),
             'stripe_currency'       => $request->input('stripe_currency', 'usd'),
+            'bank_transfer_enabled'      => $request->input('bank_transfer_enabled', 0),
+            'bank_transfer_instructions' => $request->input('bank_transfer_instructions', ''),
         ];
 
         foreach ($settings as $key => $value) {

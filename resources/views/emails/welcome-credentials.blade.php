@@ -21,7 +21,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Welcome to {{ get_setting('site_name', 'Alborada Box') }}!</h1>
+        <h1>Welcome to {{ get_setting('site_name', 'Moissanite Radiance') }}!</h1>
     </div>
     <div class="body">
         <p>Hello <strong>{{ $user->name }}</strong>,</p>
@@ -56,7 +56,7 @@
         <p>Need help? <a href="{{ route('member.tickets.create') }}">Open a support ticket</a> and we'll assist you.</p>
     </div>
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Alborada Box') }}. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Radiance') }}. All rights reserved.</p>
     </div>
 </div>
 </body>

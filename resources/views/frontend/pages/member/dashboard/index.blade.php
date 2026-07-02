@@ -9,7 +9,7 @@
     <div class="dashboard-header">
         <div>
             <h1 class="dash-page-title">{{ __tr('Welcome back') }}, {{ auth()->user()->name }}!</h1>
-            <p class="dash-page-subtitle">{{ __tr('Your Alborada Box dashboard — manage your streaming service below.') }}
+            <p class="dash-page-subtitle">{{ __tr('Your Moissanite Radiance dashboard — manage your streaming service below.') }}
             </p>
         </div>
         @if ($activeSubscription)
