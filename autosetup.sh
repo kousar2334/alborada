@@ -1185,8 +1185,9 @@ MYSQL
 
     # ── 5. XUI.ONE installer ──────────────────────────────────────────────────
     log_wait "Downloading XUI.ONE 1.5.13 installer"
-    wget -q "https://xtream-masters.com/guide/resources.php?file=xui-one/install.sh" \
-        -O /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1
+    curl -L --max-time 60 \
+        "https://tut.xtream-masters.com/files/xui-one/install.sh" \
+        -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1
     chmod +x /tmp/xui-install.sh
 
     log_info "Launching XUI.ONE installer — answer prompts as shown above"
