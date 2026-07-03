@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Models\Media;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Intervention\Image\Facades\Image;
 
 class MediaRepository
@@ -21,7 +22,12 @@ class MediaRepository
             $files = $request->file('file');
 
             if (empty($files)) {
-                return ['success' => false, 'message' => 'No file received'];
+                // A POST body larger than post_max_size reaches PHP completely
+                // empty, so this is also what an oversized upload looks like.
+                return [
+                    'success' => false,
+                    'message' => 'No file received — the file may exceed the server upload limit',
+                ];
             }
 
             if (!is_array($files)) {
@@ -38,6 +44,18 @@ class MediaRepository
                 $disk = 'public';
                 $destination_folder = "uploads/" . date("Y") . "/" . date("M");
                 $path = $file->store($destination_folder, $disk);
+
+                // The 'public' disk is configured with 'throw' => false, so a
+                // failed write (unwritable directory) returns false instead of
+                // throwing — without this check the Media row is saved with an
+                // empty path and the upload looks successful.
+                if ($path === false) {
+                    Log::error("Media upload failed: cannot write to public/{$destination_folder} — check directory ownership (www-data) and permissions");
+                    return [
+                        'success' => false,
+                        'message' => "Cannot write to {$destination_folder} — directory is not writable by the web server",
+                    ];
+                }
 
                 $media = new Media();
                 $media->title = $file_name_with_out_extension;
@@ -58,13 +76,11 @@ class MediaRepository
                 'success' => true,
                 'files' => $uploaded_files
             ];
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('Media upload failed: ' . $e->getMessage(), ['exception' => $e]);
             return [
                 'success' => false,
-            ];
-        } catch (\Error $e) {
-            return [
-                'success' => false,
+                'message' => $e->getMessage(),
             ];
         }
     }
