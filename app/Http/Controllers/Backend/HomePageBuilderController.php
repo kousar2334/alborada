@@ -52,6 +52,10 @@ class HomePageBuilderController extends Controller
         $lang = $request->get('lang', defaultLangCode());
 
         foreach ($request->except('_token', 'lang', 'section_key') as $key => $value) {
+            // Empty inputs arrive as null (ConvertEmptyStringsToNull middleware),
+            // but page_contents.value is NOT NULL — store an empty string instead.
+            $value = $value ?? '';
+
             if ($lang === defaultLangCode()) {
                 PageContent::updateOrCreate(
                     ['key' => $key],
