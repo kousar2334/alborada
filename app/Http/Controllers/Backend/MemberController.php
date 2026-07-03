@@ -34,10 +34,11 @@ class MemberController extends Controller
         }
 
         if ($request->has('search') && $request['search'] != null) {
-            $query = $query->where('name', 'like', '%' . $request['search'] . '%')
-                ->orWhere('email', 'like', '%' . $request['search'] . '%')
-                ->orWhere('uid', 'like', '%' . $request['search'] . '%')
-                ->orWhere('phone', 'like', '%' . $request['search'] . '%');
+            $query = $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request['search'] . '%')
+                    ->orWhere('email', 'like', '%' . $request['search'] . '%')
+                    ->orWhere('phone', 'like', '%' . $request['search'] . '%');
+            });
         }
 
         $per_page = $request->has('per_page') && $request['per_page'] != null ? $request['per_page'] : 10;
