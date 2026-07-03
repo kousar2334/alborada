@@ -77,7 +77,12 @@ class SubscriptionController extends Controller
             'expires_at'     => now()->addDays($plan->duration_days),
         ]);
 
-        $user->notify(new SubscriptionApproved($subscription));
+        // Mail failure (e.g. SMTP not configured yet) must not undo the assignment
+        try {
+            $user->notify(new SubscriptionApproved($subscription));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         if (get_setting('iptv_provisioning_enabled', 0)) {
             dispatch(new ProvisionSubscriptionJob($subscription));
