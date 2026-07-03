@@ -1,0 +1,240 @@
+================================================================================
+  ALBORADA BOX — STREAMING SERVER INSTALLATION GUIDE
+  XUI.ONE 1.5.13 IPTV Streaming Panel (dedicated VPS)
+================================================================================
+
+OVERVIEW
+--------
+The streamsetup.sh script deploys the XUI.ONE IPTV streaming panel on a
+dedicated Ubuntu VPS. The Laravel web panel runs on a SEPARATE VPS — see
+install-web.txt.
+
+After installation this server runs:
+  - XUI.ONE admin panel  → http://STREAMING_SERVER_IP:8080
+  - Stream delivery      → http://stream.yourdomain.com:2086
+    (customers' IPTV apps connect here via the Xtream Codes API)
+
+PORT LAYOUT
+  Port 8080  : XUI.ONE admin panel (public)
+  Port 2086  : Client streaming port — customers connect here
+  Port 25461 : XUI.ONE internal management
+  Port 3306  : MariaDB (localhost only, never public)
+
+================================================================================
+SECTION 1 — SERVER REQUIREMENTS
+================================================================================
+
+Minimum spec (up to ~150 subscribers / ~50 concurrent streams):
+  OS       : Ubuntu 22.04 LTS ONLY (fresh install — XUI.ONE requirement;
+             the installer is NOT compatible with 24.04)
+  CPU      : 4 vCPU  (8 vCPU for 300+ subscribers)
+  RAM      : 8 GB    (16 GB for 300+ subscribers)
+  Storage  : 100 GB+ SSD
+  Bandwidth: 1 Gbps port, generous or unmetered traffic
+  Location : data center closest to your customers
+
+Recommended providers:
+  Hetzner       https://hetzner.com        (~$40/mo, generous bandwidth)
+  DigitalOcean  https://digitalocean.com   (~$48/mo)
+  Vultr         https://vultr.com          (~$48/mo)
+  (Offshore/IPTV-friendly hosts are also an option for production.)
+
+Ports opened by the script:
+  22     SSH (restrict to your admin IP if possible)
+  8080   XUI.ONE admin panel + Xtream Codes API
+  2086   Stream delivery (customer apps)
+  25461  XUI.ONE internal management
+
+LICENSE: XUI.ONE is a LICENSED commercial panel. Buy a license before
+installing. The vendor rotates installer URLs, so you may need to supply
+the URL from your own XUI.ONE account (see Section 3). Do NOT use
+"cracked" installers — they are unlicensed and unsafe.
+
+================================================================================
+SECTION 2 — DNS RECORD (SET BEFORE OR AFTER INSTALL)
+================================================================================
+
+In your DNS provider, add:
+
+  Type   Host      Value
+  ─────────────────────────────────────────
+  A      stream    <STREAMING_SERVER_IP>
+
+  If using Cloudflare: set DNS-only (grey cloud) for "stream".
+  Cloudflare cannot proxy IPTV video traffic on the free plan.
+
+Verify propagation: https://dnschecker.org
+
+================================================================================
+SECTION 3 — RUNNING THE SETUP SCRIPT
+================================================================================
+
+Step 1: Provision the VPS with Ubuntu 22.04 LTS (fresh install)
+
+Step 2: Upload the script and run it
+  scp streamsetup.sh root@STREAMING_SERVER_IP:/root/
+  ssh root@STREAMING_SERVER_IP
+  chmod +x /root/streamsetup.sh
+  sudo /root/streamsetup.sh
+
+Or pass your domain directly to skip the interactive prompt:
+  sudo /root/streamsetup.sh --domain moissanitevisions.com
+  (Enter the MAIN domain — the script derives stream.yourdomain.com.)
+
+IMPORTANT — XUI.ONE installer URL:
+  The vendor rotates and sometimes removes the public installer URL, so the
+  built-in default may 404. If the "02_xui_one" step fails with "Could not
+  fetch a valid XUI.ONE installer", get the current installer link from
+  your XUI.ONE account/license and re-run (it resumes from the failed step):
+
+    sudo XUI_INSTALLER_URL="https://your-installer-url/install.sh" \
+         /root/streamsetup.sh
+
+What the script does (in order):
+  1. Update system packages
+  2. Install XUI.ONE 1.5.13:
+     - legacy libssl1.1 (Ubuntu 22.04 ships OpenSSL 3; XUI.ONE needs 1.1)
+     - Python 2 (required by XUI.ONE internal scripts)
+     - MariaDB (host-level, database xui_one)
+     - INTERACTIVE: the official XUI.ONE installer
+         → Installation type → main
+         → MySQL host        → 127.0.0.1
+         → Admin panel port  → 8080
+         → Client port       → 2086
+         → When asked to overwrite sysctl config → enter y
+     - post-install patches (systemd service, ulimits, GeoIP, FFmpeg)
+  3. Configure UFW firewall (opens 22, 8080, 2086, 25461)
+  4. Verify all services
+
+If the script fails at any step, re-run it — it will resume from where it
+left off. State is stored in /root/.alborada_stream_install_state.
+Credentials are stored in /root/.alborada_stream_credentials.
+
+================================================================================
+SECTION 4 — CONNECTING THE WEB PANEL TO THIS SERVER
+================================================================================
+
+This links the Laravel web panel (on the web VPS) to XUI.ONE so that when a
+customer pays, their IPTV account is created automatically.
+
+Step 1: On the WEB server, log into https://yourdomain.com/admin
+
+Step 2: Open Admin Panel → Settings → IPTV and set:
+
+  Setting                   Value
+  ──────────────────────────────────────────────────────────────
+  xtream_base_url           http://STREAMING_SERVER_IP:8080
+  xtream_admin_username     <XUI.ONE admin username set during install>
+  xtream_admin_password     <XUI.ONE admin password set during install>
+  iptv_provisioning_enabled 1
+
+  NOTE: use this server's public IP (or stream.yourdomain.com), NOT
+  localhost and NOT host.docker.internal — the web panel runs on a
+  different VPS.
+
+Step 3: Click Test Connection → "Connection successful"
+
+Step 4: Verify auto-provisioning
+  - Register a test user on the website, purchase a subscription
+  - Check XUI.ONE panel (http://STREAMING_SERVER_IP:8080) → Lines
+  - A new IPTV line should have been created automatically
+
+================================================================================
+SECTION 5 — LOADING IPTV CONTENT INTO XUI.ONE
+================================================================================
+
+XUI.ONE delivers streams to customers. You need to load content first.
+
+Option A: Free test content (development only)
+  XUI.ONE → Bouquets → Add Source → M3U URL
+  Live TV:   https://iptv-org.github.io/iptv/index.m3u
+  Movies:    https://iptv-org.github.io/iptv/categories/movies.m3u
+
+Option B: Premium content (for production)
+  Purchase credits/reseller package from a content provider.
+  They will give you an Xtream Codes API URL, username, and password.
+  XUI.ONE → Bouquets → Add Source → Xtream Codes API
+  XUI.ONE re-delivers the streams to your customers under their credentials.
+
+================================================================================
+SECTION 6 — CUSTOMER APP SETUP (HOW CUSTOMERS USE IPTV)
+================================================================================
+
+Recommended apps (compatible with Xtream Codes API):
+  XCIPTV        — Android, Firestick
+  IPTV Smarters — Android, iOS, Smart TV
+  IBO Player    — Smart TV, Android
+
+How customers log in:
+  1. Download XCIPTV, IPTV Smarters, or IBO Player
+  2. Select "Xtream Codes API" login
+  3. Enter:
+       Server URL: http://stream.yourdomain.com:2086
+       Username:   (from their welcome email)
+       Password:   (from their welcome email)
+  4. App downloads all channels, movies, and series automatically
+
+Never give customers direct access to the XUI.ONE admin panel (port 8080).
+
+================================================================================
+SECTION 7 — MANAGING THE INSTALLATION
+================================================================================
+
+Service status:
+  systemctl status xui-one
+  systemctl status mariadb
+
+Restart XUI.ONE:
+  systemctl restart xui-one
+
+Logs:
+  journalctl -u xui-one -f
+
+Test the XUI.ONE API manually:
+  curl -X POST "http://localhost:8080/api.php" \
+    -d "username=YOUR_ADMIN&password=YOUR_PASS&action=get_user_info&target_username=YOUR_ADMIN"
+
+Firewall:
+  ufw status
+
+================================================================================
+SECTION 8 — TROUBLESHOOTING
+================================================================================
+
+XUI.ONE panel not accessible on port 8080
+  → Check service: systemctl status xui-one
+  → Check firewall: ufw status  →  ufw allow 8080/tcp
+  → Check port:     ss -tlnp | grep 8080
+
+Customers cannot connect in their IPTV app
+  → Verify DNS: stream.yourdomain.com resolves to this server's IP
+    (grey cloud / DNS-only in Cloudflare)
+  → Test from outside: curl -I http://stream.yourdomain.com:2086
+  → Check ports 2086 and 8080 are open: ufw status
+
+Web panel's Test Connection fails
+  → From the WEB server, run: curl -I http://STREAMING_SERVER_IP:8080
+  → Verify xtream_base_url uses THIS server's IP, not localhost
+  → Verify the XUI.ONE admin credentials are correct
+
+XUI.ONE binaries won't start / libssl errors
+  → ldconfig -p | grep libssl.so.1.1   (must be present)
+  → Re-run streamsetup.sh — the libssl step retries multiple package versions
+
+Installer download fails
+  → The vendor rotated the URL; supply your licensed installer URL:
+    sudo XUI_INSTALLER_URL="https://.../install.sh" /root/streamsetup.sh
+
+================================================================================
+SECTION 9 — ESTIMATED MONTHLY COSTS (STREAMING SERVER)
+================================================================================
+
+  Streaming VPS          : $40–60/mo (scale up with subscriber count)
+  XUI.ONE license        : per vendor pricing
+  Content/streams        : $150–400 (one-time or monthly reseller credits)
+  ────────────────────────────────────────────
+  (Web server costs are listed in install-web.txt.)
+
+================================================================================
+END OF STREAMING SERVER INSTALL GUIDE
+================================================================================

@@ -1,20 +1,25 @@
 #!/bin/bash
 # ==========================================================================
-# Moissanite Radiance — Automated VPS Setup
-# Laravel 12 IPTV Platform + XUI Xtream Streaming Server
+# Moissanite Radiance — WEB SERVER Setup
+# Laravel 12 IPTV Platform web panel + phpMyAdmin + Postfix mail server
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
-# Run as     : sudo ./autosetup.sh [--domain yourdomain.com]
+# Run as     : sudo ./websetup.sh [--domain yourdomain.com]
+#
+# This script sets up the WEB server only. The IPTV streaming server
+# (XUI.ONE) is installed on a SEPARATE VPS with streamsetup.sh.
 #
 # Port layout after installation:
 #   :443  → Host Nginx (HTTPS/TLS) → 127.0.0.1:8081 (Docker web container)
 #   :80   → HTTP → HTTPS redirect
-#   :8080 → XUI Xtream IPTV panel  (host-level, public, not proxied)
-#   :3306 → MySQL                  (127.0.0.1 only, never public)
+#   :8081 → Docker web container    (127.0.0.1 only, proxied by Nginx)
+#   :8082 → phpMyAdmin container    (127.0.0.1 only, proxied at /phpmyadmin)
+#   :25   → Postfix mail server     (localhost + Docker network only)
+#   :3306 → MySQL                   (Docker internal only, never public)
 #
-# Docker → XUI Xtream communication:
-#   The app container uses http://host.docker.internal:8080 to reach XUI Xtream.
-#   (localhost inside Docker refers to the container, not the VPS host.)
+# Docker → services on the host:
+#   The app container reaches host Postfix via http://host.docker.internal
+#   (extra_hosts is set in docker-compose.yml).
 # ==========================================================================
 
 # ── Colours ────────────────────────────────────────────────────────────────
@@ -28,10 +33,11 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # ── Constants ──────────────────────────────────────────────────────────────
-INSTALL_LOG="/var/log/alborada-install.log"
+INSTALL_LOG="/var/log/alborada-web-install.log"
 LOG_MAX_BYTES=10485760          # 10 MB — rotate when exceeded
-STATE_FILE="/root/.alborada_install_state"
+STATE_FILE="/root/.alborada_web_install_state"
 CREDENTIALS_FILE="/root/.alborada_credentials"
+DNS_RECORDS_FILE="/root/.alborada_dns_records"
 
 APP_DISPLAY_NAME="Moissanite Radiance"
 APP_DIR="/var/www/alborada"
@@ -41,19 +47,10 @@ DB_PORT="3306"
 DB_NAME="alborada"
 DB_USERNAME="alborada"
 
-IPTV_PANEL_PORT=8080            # XUI Xtream — host-level
 DOCKER_WEB_PORT=8081            # Docker web container (proxied by host Nginx)
+PHPMYADMIN_PORT=8082            # phpMyAdmin container (proxied at /phpmyadmin)
 NODE_VERSION=20                 # Node.js LTS major version
-
-# XUI.ONE installer source. XUI.ONE is a LICENSED commercial panel — the
-# installer URL is tied to your purchase and the vendor rotates these paths.
-# Override without editing this file:  XUI_INSTALLER_URL="https://..." ./autosetup.sh
-# Space-separated fallbacks are tried in order until one returns a real script.
-XUI_INSTALLER_URL="${XUI_INSTALLER_URL:-}"
-XUI_INSTALLER_URL_CANDIDATES=(
-    "https://xtream-masters.com/guide/resources.php?file=xui-one/install.sh"
-    "https://tut.xtream-masters.com/files/xui-one/install.sh"
-)
+DKIM_SELECTOR="mail"            # DKIM selector for the Postfix mail server
 
 # ── Runtime state ──────────────────────────────────────────────────────────
 DOMAIN=""
@@ -81,7 +78,7 @@ setup_logging() {
     fi
     {
         echo "========================================================"
-        echo "  ALBORADA BOX — VPS INSTALLATION LOG"
+        echo "  ALBORADA BOX — WEB SERVER INSTALLATION LOG"
         echo "  Started : $(date)"
         echo "  Script  : $0"
         echo "========================================================"
@@ -109,16 +106,6 @@ log_highlight() {
     echo -e "\n${MAGENTA}╔════════════════════════════════════════════════════╗${NC}"
     echo -e "${MAGENTA}  $1${NC}"
     echo -e "${MAGENTA}╚════════════════════════════════════════════════════╝${NC}\n"
-}
-
-log_banner() {
-    local width=54
-    local pad=$(( (width - ${#1}) / 2 ))
-    local line
-    printf -v line '%*s' "$width" '' && line="${line// /─}"
-    echo -e "\n${CYAN}${line}${NC}"
-    printf "${CYAN}%*s%s%*s${NC}\n" "$pad" "" "$1" "$pad" ""
-    echo -e "${CYAN}${line}${NC}\n"
 }
 
 # ==========================================================================
@@ -157,7 +144,7 @@ load_credentials() {
 
 save_state() {
     {
-        echo "# Moissanite Radiance Install State — $(date)"
+        echo "# Moissanite Radiance Web Install State — $(date)"
         echo "DOMAIN=$DOMAIN"
         echo "CANONICAL_DOMAIN=$CANONICAL_DOMAIN"
         echo "WWW_DOMAIN=$WWW_DOMAIN"
@@ -270,7 +257,7 @@ get_domain() {
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     echo -e "${YELLOW}  This domain will serve the web panel over HTTPS.${NC}"
-    echo -e "${YELLOW}  Customers stream IPTV at: http://stream.YOURDOMAIN:${XUI_CLIENT_PORT}${NC}"
+    echo -e "${YELLOW}  The IPTV streaming server is a SEPARATE VPS (streamsetup.sh).${NC}"
     echo -e "${GREEN}  Examples:${NC} ${CYAN}alboradabox.com${NC}  or  ${CYAN}app.example.com${NC}"
     echo ""
     while true; do
@@ -285,7 +272,7 @@ get_domain() {
     log_success "Domain set: $CANONICAL_DOMAIN"
     log_info    "  Web panel    : $SITE_URL"
     log_info    "  Admin panel  : $SITE_URL/admin"
-    log_info    "  IPTV streams : http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}"
+    log_info    "  phpMyAdmin   : $SITE_URL/phpmyadmin"
     [[ "$NEEDS_WWW_REDIRECT" == true ]] && \
         log_info "  WWW redirect : https://$WWW_DOMAIN → $SITE_URL"
     echo ""
@@ -296,7 +283,7 @@ get_domain() {
 # ==========================================================================
 
 check_root() {
-    [[ $EUID -eq 0 ]] || { log_error "Must run as root.  Try: sudo ./autosetup.sh"; exit 1; }
+    [[ $EUID -eq 0 ]] || { log_error "Must run as root.  Try: sudo ./websetup.sh"; exit 1; }
     log_info "Running as root: OK"
 }
 
@@ -306,16 +293,10 @@ check_ubuntu() {
     ver=$(lsb_release -sr 2>/dev/null || grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '"')
     log_info "OS: $os $ver"
     [[ "$os" == "Ubuntu" ]] || log_warning "Tested on Ubuntu only (running: $os)"
-    if [[ "$ver" == "22.04" ]]; then
-        log_success "Ubuntu 22.04 LTS — fully supported"
-    elif [[ "$ver" == "24.04" ]]; then
-        log_warning "Ubuntu 24.04 detected — XUI Xtream installer is NOT compatible with 24.04"
-        log_warning "XUI Xtream step will likely fail. Downgrade to Ubuntu 22.04 LTS is strongly recommended."
-        echo -en "${YELLOW}Continue anyway? (y/N): ${NC}"
-        read -r _r; echo ""
-        [[ "$_r" =~ ^[Yy]$ ]] || { log_warning "Aborted. Re-provision with Ubuntu 22.04 LTS."; exit 0; }
+    if [[ "$ver" == "22.04" || "$ver" == "24.04" ]]; then
+        log_success "Ubuntu $ver LTS — supported"
     else
-        log_warning "Recommended: Ubuntu 22.04 LTS (detected: $ver) — proceeding but untested"
+        log_warning "Recommended: Ubuntu 22.04/24.04 LTS (detected: $ver) — proceeding but untested"
     fi
 }
 
@@ -341,7 +322,7 @@ verify_project_files() {
         echo -e "    ├── composer.json"
         echo -e "    ├── package.json"
         echo -e "    ├── docker-compose.yml"
-        echo -e "    ├── autosetup.sh"
+        echo -e "    ├── websetup.sh"
         echo -e "    └── docker/php/Dockerfile"
         exit 1
     fi
@@ -456,7 +437,7 @@ DAEMON
 # ==========================================================================
 # STEP 03 — Host-level Nginx
 # Terminates TLS on port 443 and reverse-proxies to the Docker web
-# container on 127.0.0.1:8081.  XUI Xtream owns port 8080 exclusively.
+# container on 127.0.0.1:8081 and phpMyAdmin on 127.0.0.1:8082.
 # ==========================================================================
 
 install_nginx() {
@@ -502,6 +483,17 @@ server {
     add_header Referrer-Policy           "strict-origin-when-cross-origin"   always;
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+    # phpMyAdmin (Docker container on port ${PHPMYADMIN_PORT})
+    location = /phpmyadmin { return 301 /phpmyadmin/; }
+    location /phpmyadmin/ {
+        proxy_pass         http://127.0.0.1:${PHPMYADMIN_PORT}/;
+        proxy_set_header   Host              \$host;
+        proxy_set_header   X-Real-IP         \$remote_addr;
+        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 120s;
+    }
+
     # Proxy to Docker web container (port ${DOCKER_WEB_PORT})
     location / {
         proxy_pass         http://127.0.0.1:${DOCKER_WEB_PORT};
@@ -523,7 +515,7 @@ NGINX
 
     nginx -t >> "$INSTALL_LOG" 2>&1 || { log_error "Nginx config test failed"; nginx -t; return 1; }
     systemctl reload nginx
-    log_success "Nginx configured: $CANONICAL_DOMAIN → 127.0.0.1:${DOCKER_WEB_PORT}"
+    log_success "Nginx configured: $CANONICAL_DOMAIN → 127.0.0.1:${DOCKER_WEB_PORT} (+ /phpmyadmin → :${PHPMYADMIN_PORT})"
 }
 
 # ==========================================================================
@@ -544,17 +536,18 @@ install_ssl() {
     echo -e "${YELLOW}  DNS A RECORDS — add these before continuing${NC}"
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  Your VPS IP: ${CYAN}${IP}${NC}"
+    echo -e "  Your WEB server IP: ${CYAN}${IP}${NC}"
     echo ""
     echo -e "  Type  Name      Value"
     echo -e "  ──────────────────────────────────────────"
     echo -e "  A     @         ${IP}   ← main domain"
     [[ "$NEEDS_WWW_REDIRECT" == true ]] && \
     echo -e "  A     www       ${IP}   ← www redirect"
-    echo -e "  A     stream    ${IP}   ← IPTV (keep DNS-only / grey cloud in Cloudflare)"
+    echo -e "  A     mail      ${IP}   ← mail server (this VPS)"
+    echo -e "  A     stream    <STREAMING_SERVER_IP>   ← IPTV server (separate VPS)"
     echo ""
     echo -e "${YELLOW}  Cloudflare tip: enable proxy (orange) for @ and www only.${NC}"
-    echo -e "${YELLOW}  Keep 'stream' as grey cloud — Cloudflare cannot proxy IPTV video.${NC}"
+    echo -e "${YELLOW}  Keep 'stream' and 'mail' as grey cloud (DNS-only).${NC}"
     echo ""
     echo -e "  Verify: ${CYAN}https://dnschecker.org${NC}"
     echo ""
@@ -609,26 +602,28 @@ build_frontend() {
 }
 
 # ==========================================================================
-# STEP 06 — Docker Compose Override (DB credentials only)
+# STEP 06 — Docker Compose Override (DB credentials + phpMyAdmin)
 #
 # IMPORTANT: Never put "web: ports:" in this override file.
 # Docker Compose MERGES (not replaces) port lists across files.
-# Ports are set correctly in docker-compose.yml:
-#   web → 127.0.0.1:8081:80   (keeps port 8080 free for XUI Xtream)
-#   db  → 127.0.0.1:3306:3306 (localhost only, never public)
-# This file only injects the auto-generated DB credentials.
+# Ports for the base services are set in docker-compose.yml:
+#   web → 127.0.0.1:8081:80
+#   db  → internal only (never public)
+# This file injects the auto-generated DB credentials and adds the
+# phpMyAdmin service (a NEW service, so no merge conflict).
 # ==========================================================================
 
 write_compose_override() {
-    log_header "WRITING DOCKER COMPOSE OVERRIDE (DB CREDENTIALS)"
+    log_header "WRITING DOCKER COMPOSE OVERRIDE (DB CREDENTIALS + PHPMYADMIN)"
 
     cat > "$APP_DIR/docker-compose.override.yml" <<OVERRIDE
-# Auto-generated by autosetup.sh on $(date)
-# DO NOT EDIT MANUALLY — re-run autosetup.sh to regenerate.
+# Auto-generated by websetup.sh on $(date)
+# DO NOT EDIT MANUALLY — re-run websetup.sh to regenerate.
 #
-# NOTE: No "ports:" entries here.  Docker Compose concatenates port lists
-# from all files, so adding ports here would cause double-binding conflicts
-# with XUI Xtream on port 8080.  Ports live only in docker-compose.yml.
+# NOTE: No "ports:" entries for base services here.  Docker Compose
+# concatenates port lists from all files, so adding ports for web/db here
+# would cause double-binding conflicts.  phpmyadmin is a NEW service, so
+# its port mapping lives here safely (127.0.0.1 only — proxied by Nginx).
 
 services:
   db:
@@ -637,6 +632,21 @@ services:
       MYSQL_DATABASE: "${DB_NAME}"
       MYSQL_USER: "${DB_USERNAME}"
       MYSQL_PASSWORD: "${DB_PASSWORD}"
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: alborada_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_ABSOLUTE_URI: "${SITE_URL}/phpmyadmin/"
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "127.0.0.1:${PHPMYADMIN_PORT}:80"
+    depends_on:
+      - db
+    networks:
+      - alborada
 OVERRIDE
 
     chmod 600 "$APP_DIR/docker-compose.override.yml"
@@ -696,14 +706,16 @@ REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
 
-# SMTP — configure in Admin → Settings → SMTP after installation
-# Emails currently log to storage/logs/laravel.log (safe default)
-MAIL_MAILER=log
-MAIL_SCHEME=tls
-MAIL_HOST=
-MAIL_PORT=587
-MAIL_USERNAME=
-MAIL_PASSWORD=
+# Mail — local Postfix mail server on this VPS (free, self-hosted).
+# The app container relays via host.docker.internal:25 (host Postfix).
+# DKIM/SPF/DMARC DNS records: see ${DNS_RECORDS_FILE}
+# To switch to an external SMTP provider instead, use Admin → Settings → SMTP.
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=host.docker.internal
+MAIL_PORT=25
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
 MAIL_FROM_ADDRESS=noreply@${CANONICAL_DOMAIN}
 MAIL_FROM_NAME="${APP_DISPLAY_NAME}"
 
@@ -762,7 +774,7 @@ start_containers() {
     fi
     log_success "Application image built"
 
-    log_wait "Starting all containers: app, web (nginx), db (mysql), worker"
+    log_wait "Starting all containers: app, web (nginx), db (mysql), worker, phpmyadmin"
     if ! docker compose up -d >> "$INSTALL_LOG" 2>&1; then
         log_error "docker compose up failed — check $INSTALL_LOG"
         log_error "Run 'docker compose logs' in $APP_DIR for details"
@@ -861,7 +873,7 @@ setup_laravel() {
     cd "$APP_DIR" || return 1
 
     # ── Pre-flight: verify MySQL credentials ─────────────────────────────
-    # When step 09 (start_containers) is already marked done but migrations
+    # When step 08 (start_containers) is already marked done but migrations
     # still fail with "Access denied", the dbdata volume was created before
     # the override file was written (e.g. from a manual 'docker compose up').
     # Detect this here so the script auto-recovers even on a clean resume.
@@ -918,7 +930,7 @@ setup_laravel() {
     #   Local: composer install --no-dev && tar -czf vendor.tar.gz vendor/
     #   Upload: scp vendor.tar.gz root@VPS_IP:/var/www/alborada/
     #   VPS:    cd /var/www/alborada && tar -xzf vendor.tar.gz
-    # Then re-run autosetup.sh — this step will be skipped automatically.
+    # Then re-run websetup.sh — this step will be skipped automatically.
     if [[ -f "$APP_DIR/vendor/autoload.php" ]]; then
         log_info "vendor/autoload.php already present — regenerating autoloader only"
         docker compose exec -T app composer dump-autoload \
@@ -961,7 +973,7 @@ setup_laravel() {
                 log_error "  ON THE VPS:"
                 log_error "    cd /var/www/alborada && tar -xzf vendor.tar.gz"
                 log_error ""
-                log_error "Then re-run: sudo /var/www/alborada/autosetup.sh"
+                log_error "Then re-run: sudo /var/www/alborada/websetup.sh"
                 log_error "The script will resume from this step automatically."
                 return 1
             fi
@@ -1079,320 +1091,196 @@ echo PHP_EOL . 'Role: Super Admin assigned.';
 }
 
 # ==========================================================================
-# STEP 10 — XUI.ONE 1.5.13 IPTV Streaming Panel (Ubuntu 22.04)
+# STEP 10 — Free Email Server (Postfix + OpenDKIM)
 #
-# Source: https://xtream-masters.com/guide/how_to_install_xui_one_ubuntu_22_04.php
+# Self-hosted, zero-cost outbound mail for welcome emails, renewal
+# reminders, receipts, etc.  No Mailgun/Brevo account needed.
 #
-# Installed directly on the host (not in Docker).
-# Port layout:
-#   :8080  — XUI.ONE admin panel
-#   :2086  — client streaming port (customers use this)
-#   :25461 — internal XUI.ONE management port
+# How it works:
+#   - Postfix runs on the VPS host and listens on port 25.
+#   - Only localhost and the Docker network (172.16.0.0/12) may relay —
+#     the firewall never exposes port 25 to the internet for relaying.
+#   - The Laravel app container sends via host.docker.internal:25.
+#   - OpenDKIM signs every outgoing message so mail passes DKIM checks.
+#   - SPF / DKIM / DMARC DNS records are written to $DNS_RECORDS_FILE —
+#     ADD THEM to your DNS or mail will land in spam.
 #
-# Docker web container is on :8081 — no conflict.
-#
-# Docker → XUI.ONE communication:
-#   http://host.docker.internal:8080  (extra_hosts set in docker-compose.yml)
-#
-# MariaDB is installed on the HOST for XUI.ONE.
-# Docker MySQL runs inside containers only (no host port binding).
+# NOTE: some VPS providers block OUTBOUND port 25 by default
+# (DigitalOcean, Hetzner for new accounts, …).  If test mail never
+# arrives, open a support ticket asking them to unblock port 25, or
+# fall back to an external SMTP provider in Admin → Settings → SMTP.
 # ==========================================================================
 
-XUI_CLIENT_PORT=2086
+install_mail_server() {
+    log_header "INSTALLING FREE EMAIL SERVER (POSTFIX + OPENDKIM)"
+    export DEBIAN_FRONTEND=noninteractive
 
-install_xui_one() {
-    log_header "INSTALLING XUI.ONE 1.5.13 — IPTV STREAMING PANEL"
+    local MAIL_HOSTNAME="mail.${CANONICAL_DOMAIN}"
+    local KEY_DIR="/etc/opendkim/keys/${CANONICAL_DOMAIN}"
 
-    # The web platform does NOT require a local panel — it can point at any
-    # Xtream Codes-compatible panel via Admin → Settings → IPTV (xtream_base_url).
-    # Skip the local install to finish setup and connect an external panel later:
-    #   SKIP_XUI=1 ./autosetup.sh   (or  XUI_INSTALLER_URL=skip )
-    if [[ "${SKIP_XUI:-0}" == "1" || "${XUI_INSTALLER_URL:-}" == "skip" ]]; then
-        log_warning "Skipping local XUI.ONE install (SKIP_XUI set)."
-        log_info "Connect an external Xtream/XUI panel later at: ${SITE_URL}/admin → Settings → IPTV"
-        log_info "Set xtream_base_url, admin credentials, and iptv_provisioning_enabled = 1 there."
-        return 0
+    # ── 1. Install packages (preseed postfix so it never prompts) ─────────
+    log_wait "Installing Postfix, OpenDKIM and mail utilities"
+    echo "postfix postfix/main_mailer_type string Internet Site" | debconf-set-selections
+    echo "postfix postfix/mailname string ${CANONICAL_DOMAIN}"   | debconf-set-selections
+    apt-get install -y postfix opendkim opendkim-tools mailutils >> "$INSTALL_LOG" 2>&1 \
+        || { log_error "Package install failed — see $INSTALL_LOG"; return 1; }
+    log_success "Postfix + OpenDKIM installed"
+
+    # ── 2. Postfix main configuration ─────────────────────────────────────
+    log_progress "Configuring Postfix"
+    postconf -e "myhostname = ${MAIL_HOSTNAME}"
+    postconf -e "mydomain = ${CANONICAL_DOMAIN}"
+    postconf -e "myorigin = ${CANONICAL_DOMAIN}"
+    postconf -e "mydestination = \$myhostname, ${CANONICAL_DOMAIN}, localhost.localdomain, localhost"
+    postconf -e "inet_interfaces = all"
+    postconf -e "inet_protocols = ipv4"
+    # Relaying allowed ONLY from localhost and the Docker network.
+    # UFW additionally restricts inbound :25 to 172.16.0.0/12 (step 11),
+    # so this box can never be abused as an open relay.
+    postconf -e "mynetworks = 127.0.0.0/8 172.16.0.0/12"
+    postconf -e "smtpd_relay_restrictions = permit_mynetworks, defer_unauth_destination"
+    postconf -e "smtpd_banner = \$myhostname ESMTP"
+    postconf -e "smtpd_helo_required = yes"
+    postconf -e "disable_vrfy_command = yes"
+    postconf -e "smtp_tls_security_level = may"
+    postconf -e "smtpd_tls_security_level = may"
+    postconf -e "message_size_limit = 26214400"    # 25 MB
+
+    # Reuse the Let's Encrypt certificate if step 04 obtained one
+    if [[ -f "/etc/letsencrypt/live/${CANONICAL_DOMAIN}/fullchain.pem" ]]; then
+        postconf -e "smtpd_tls_cert_file = /etc/letsencrypt/live/${CANONICAL_DOMAIN}/fullchain.pem"
+        postconf -e "smtpd_tls_key_file = /etc/letsencrypt/live/${CANONICAL_DOMAIN}/privkey.pem"
+        log_success "Postfix TLS uses the Let's Encrypt certificate"
     fi
 
-    local IP XUI_DB_PASS
+    # ── 3. DKIM key + OpenDKIM configuration ──────────────────────────────
+    log_progress "Generating 2048-bit DKIM key (selector: ${DKIM_SELECTOR})"
+    mkdir -p "$KEY_DIR"
+    if [[ ! -f "${KEY_DIR}/${DKIM_SELECTOR}.private" ]]; then
+        opendkim-genkey -b 2048 -d "$CANONICAL_DOMAIN" -D "$KEY_DIR" \
+            -s "$DKIM_SELECTOR" -v >> "$INSTALL_LOG" 2>&1 \
+            || { log_error "DKIM key generation failed"; return 1; }
+    else
+        log_info "DKIM key already exists — keeping it (DNS record stays valid)"
+    fi
+    chown -R opendkim:opendkim /etc/opendkim
+    chmod 600 "${KEY_DIR}/${DKIM_SELECTOR}.private"
+
+    cat > /etc/opendkim.conf <<DKIMCONF
+# Auto-generated by websetup.sh
+Syslog                  yes
+UMask                   002
+Mode                    sv
+SubDomains              no
+AutoRestart             yes
+AutoRestartRate         10/1h
+Background              yes
+DNSTimeout              5
+Canonicalization        relaxed/simple
+SignatureAlgorithm      rsa-sha256
+OversignHeaders         From
+KeyTable                refile:/etc/opendkim/key.table
+SigningTable            refile:/etc/opendkim/signing.table
+ExternalIgnoreList      /etc/opendkim/trusted.hosts
+InternalHosts           /etc/opendkim/trusted.hosts
+Socket                  inet:8891@localhost
+PidFile                 /run/opendkim/opendkim.pid
+UserID                  opendkim
+DKIMCONF
+
+    cat > /etc/opendkim/key.table <<KEYTABLE
+${DKIM_SELECTOR}._domainkey.${CANONICAL_DOMAIN} ${CANONICAL_DOMAIN}:${DKIM_SELECTOR}:${KEY_DIR}/${DKIM_SELECTOR}.private
+KEYTABLE
+
+    cat > /etc/opendkim/signing.table <<SIGNTABLE
+*@${CANONICAL_DOMAIN} ${DKIM_SELECTOR}._domainkey.${CANONICAL_DOMAIN}
+SIGNTABLE
+
+    cat > /etc/opendkim/trusted.hosts <<TRUSTED
+127.0.0.1
+localhost
+172.16.0.0/12
+*.${CANONICAL_DOMAIN}
+TRUSTED
+
+    # ── 4. Hook OpenDKIM into Postfix as a milter ─────────────────────────
+    postconf -e "milter_default_action = accept"
+    postconf -e "milter_protocol = 6"
+    postconf -e "smtpd_milters = inet:localhost:8891"
+    postconf -e "non_smtpd_milters = inet:localhost:8891"
+
+    # ── 5. Start services ─────────────────────────────────────────────────
+    systemctl enable opendkim postfix >> "$INSTALL_LOG" 2>&1 || true
+    systemctl restart opendkim
+    systemctl restart postfix
+    if ! systemctl is-active --quiet postfix; then
+        log_error "Postfix failed to start — check: journalctl -u postfix --no-pager | tail -n 40"
+        return 1
+    fi
+    if ! systemctl is-active --quiet opendkim; then
+        log_error "OpenDKIM failed to start — check: journalctl -u opendkim --no-pager | tail -n 40"
+        return 1
+    fi
+    log_success "Postfix and OpenDKIM running"
+
+    # ── 6. Write the DNS records the operator must add ────────────────────
+    local IP DKIM_VALUE
     IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
-    XUI_DB_PASS=$(generate_password 24)
+    # mail.txt splits the record into multiple quoted chunks — flatten them.
+    DKIM_VALUE=$(grep -o '"[^"]*"' "${KEY_DIR}/${DKIM_SELECTOR}.txt" 2>/dev/null \
+        | tr -d '"' | tr -d '\n')
 
-    echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}  XUI.ONE 1.5.13 — Ubuntu 22.04 Installer${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  Stream port : ${CYAN}${XUI_CLIENT_PORT}${NC}  (customers connect here)"
-    echo ""
-    echo -e "${YELLOW}  When the installer prompts you:${NC}"
-    echo -e "    Installation type → ${CYAN}main${NC}"
-    echo -e "    MySQL host        → ${CYAN}127.0.0.1${NC}"
-    echo -e "    Admin panel port  → ${CYAN}${IPTV_PANEL_PORT}${NC}"
-    echo -e "    Client port       → ${CYAN}${XUI_CLIENT_PORT}${NC}"
-    echo ""
-    echo -en "${CYAN}>>> Press Enter to begin XUI.ONE installation: ${NC}"
-    read -r
+    cat > "$DNS_RECORDS_FILE" <<DNSREC
+# ============================================================
+# EMAIL DNS RECORDS for ${CANONICAL_DOMAIN} — generated $(date)
+# Add ALL of these in your DNS provider, or mail will go to spam.
+# ============================================================
 
-    # ── 1. Hostname ───────────────────────────────────────────────────────────
-    log_progress "Setting hostname"
-    hostnamectl set-hostname "xui.${CANONICAL_DOMAIN}" >> "$INSTALL_LOG" 2>&1
-    grep -q "xui.${CANONICAL_DOMAIN}" /etc/hosts || \
-        echo "127.0.0.1 xui.${CANONICAL_DOMAIN}" >> /etc/hosts
-    log_success "Hostname: xui.${CANONICAL_DOMAIN}"
+# 1) A record for the mail host
+Type: A
+Name: mail
+Value: ${IP}
 
-    # Disable UFW temporarily — installer needs unrestricted outbound access.
-    # Step 11 (configure_firewall) re-enables it with the correct rules.
-    ufw disable >> "$INSTALL_LOG" 2>&1 || true
+# 2) MX record
+Type: MX
+Name: @
+Value: mail.${CANONICAL_DOMAIN}
+Priority: 10
 
-    # ── 2. Legacy libssl1.1 (Ubuntu 22.04 ships OpenSSL 3; XUI.ONE needs 1.1) ─
-    # The exact point-release filename rotates as Ubuntu publishes security
-    # updates, so a single pinned URL eventually 404s. Try a candidate list and
-    # verify each download is a real .deb before installing.
-    log_wait "Installing legacy libssl1.1"
-    local ssl_base="http://security.ubuntu.com/ubuntu/pool/main/o/openssl"
-    local ssl_candidates=(
-        "libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
-        "libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb"
-        "libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb"
-        "libssl1.1_1.1.1f-1ubuntu2.21_amd64.deb"
-    )
-    local ssl_installed=0 ssl_file
-    for ssl_file in "${ssl_candidates[@]}"; do
-        rm -f /tmp/libssl1.1.deb
-        wget -q "${ssl_base}/${ssl_file}" -O /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || true
-        # A 404 still writes a small HTML body — require a genuine Debian package.
-        if [[ -s /tmp/libssl1.1.deb ]] && file /tmp/libssl1.1.deb 2>/dev/null | grep -qi "Debian binary package"; then
-            dpkg -i /tmp/libssl1.1.deb >> "$INSTALL_LOG" 2>&1 || \
-                apt-get install -f -y >> "$INSTALL_LOG" 2>&1
-            ssl_installed=1
-            log_info "libssl1.1 source: ${ssl_file}"
-            break
-        fi
-    done
-    ldconfig
-    if ldconfig -p | grep -q "libssl.so.1.1"; then
-        log_success "libssl1.1 installed"
+# 3) SPF
+Type: TXT
+Name: @
+Value: v=spf1 a mx ip4:${IP} ~all
+
+# 4) DKIM  (selector: ${DKIM_SELECTOR})
+Type: TXT
+Name: ${DKIM_SELECTOR}._domainkey
+Value: ${DKIM_VALUE}
+
+# 5) DMARC
+Type: TXT
+Name: _dmarc
+Value: v=DMARC1; p=quarantine; rua=mailto:admin@${CANONICAL_DOMAIN}; fo=1
+
+# 6) Reverse DNS (PTR) — set in your VPS PROVIDER's control panel,
+#    not in your DNS zone:  ${IP} → mail.${CANONICAL_DOMAIN}
+
+# Test deliverability after DNS propagates: https://www.mail-tester.com
+DNSREC
+    chmod 600 "$DNS_RECORDS_FILE"
+    log_success "Email DNS records written to $DNS_RECORDS_FILE"
+
+    # ── 7. Verify Postfix is listening on :25 ─────────────────────────────
+    if ss -tlnp | grep -q ':25 '; then
+        log_success "Postfix listening on port 25"
     else
-        log_error "libssl1.1 could not be installed — XUI.ONE binaries will not run"
-        log_error "Fetch a working libssl1.1_*_amd64.deb from ${ssl_base} and install it manually, then re-run"
+        log_error "Postfix is not listening on port 25"
         return 1
     fi
 
-    # ── 3. Python 2 (XUI.ONE internal scripts require Python 2) ──────────────
-    # python2 ships in the 22.04 'universe' repo — no PPA needed. The deadsnakes
-    # PPA does NOT provide python2 for jammy and only slows this step down.
-    log_wait "Installing Python 2"
-    add-apt-repository -y universe >> "$INSTALL_LOG" 2>&1 || true
-    apt-get update >> "$INSTALL_LOG" 2>&1
-    apt-get install -y python2 python2-dev >> "$INSTALL_LOG" 2>&1
-    if ! command -v python2 >/dev/null 2>&1; then
-        log_error "python2 could not be installed from the universe repo — XUI.ONE scripts require it"
-        return 1
-    fi
-    ln -sf /usr/bin/python2 /usr/bin/python        2>/dev/null || true
-    ln -sf /usr/bin/python2 /usr/local/bin/python2.7 2>/dev/null || true
-    curl -sSL https://bootstrap.pypa.io/pip/2.7/get-pip.py -o /tmp/get-pip.py 2>/dev/null || true
-    if [[ -s /tmp/get-pip.py ]]; then
-        python2 /tmp/get-pip.py >> "$INSTALL_LOG" 2>&1 || true
-        python2 -m pip install --upgrade "setuptools<45" "paramiko<2.9" >> "$INSTALL_LOG" 2>&1 || true
-    fi
-    log_success "Python 2 installed: $(python --version 2>&1)"
-
-    # ── 4. MariaDB (host-level — separate from Docker MySQL) ──────────────────
-    # Docker MySQL runs inside containers only (no host port binding).
-    # Host MariaDB is exclusively for XUI.ONE.
-    log_wait "Installing MariaDB"
-    apt-get install -y mariadb-server mariadb-client >> "$INSTALL_LOG" 2>&1
-    systemctl enable mariadb >> "$INSTALL_LOG" 2>&1
-    systemctl start mariadb
-
-    log_progress "Configuring MariaDB for XUI.ONE"
-    local MYCNF="/etc/mysql/mariadb.conf.d/99-xui-one.cnf"
-    # NOTE: do NOT set default_authentication_plugin here — that is a MySQL-8-only
-    # server variable. MariaDB 10.6 (the 22.04 default) refuses to start on it,
-    # which previously broke the whole XUI.ONE install. mysql_native_password is
-    # already the MariaDB default and is set per-user in the CREATE USER below.
-    cat > "$MYCNF" <<MYCNFBLOCK
-# XUI.ONE required settings
-[mysqld]
-sql_mode                      = NO_ENGINE_SUBSTITUTION
-innodb_strict_mode            = 0
-max_allowed_packet            = 256M
-innodb_buffer_pool_size       = 1G
-innodb_file_per_table         = 1
-wait_timeout                  = 28800
-interactive_timeout           = 28800
-max_connections               = 500
-MYCNFBLOCK
-    systemctl restart mariadb
-    if ! systemctl is-active --quiet mariadb; then
-        log_error "MariaDB failed to start after applying ${MYCNF}"
-        log_error "Check: journalctl -u mariadb --no-pager | tail -n 40"
-        return 1
-    fi
-
-    log_progress "Creating XUI.ONE database and user"
-    mysql -u root <<MYSQL >> "$INSTALL_LOG" 2>&1
-CREATE DATABASE IF NOT EXISTS xui_one
-    DEFAULT CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'xui_user'@'localhost' IDENTIFIED BY '${XUI_DB_PASS}';
-GRANT ALL PRIVILEGES ON xui_one.* TO 'xui_user'@'localhost';
-FLUSH PRIVILEGES;
-MYSQL
-    if ! mysql -u root -e "USE xui_one" >> "$INSTALL_LOG" 2>&1; then
-        log_error "XUI.ONE database 'xui_one' was not created — aborting"
-        return 1
-    fi
-    log_success "MariaDB configured  (DB: xui_one  user: xui_user)"
-
-    # ── 5. XUI.ONE installer ──────────────────────────────────────────────────
-    log_wait "Downloading XUI.ONE 1.5.13 installer"
-
-    # Build the URL list: operator override first, then known vendor fallbacks.
-    local xui_urls=()
-    [[ -n "$XUI_INSTALLER_URL" ]] && xui_urls+=("$XUI_INSTALLER_URL")
-    xui_urls+=("${XUI_INSTALLER_URL_CANDIDATES[@]}")
-
-    local xui_got=0 xui_url
-    for xui_url in "${xui_urls[@]}"; do
-        rm -f /tmp/xui-install.sh
-        # -f fails on HTTP errors, -L follows the vendor's redirects to the CDN.
-        curl -fL --max-time 60 "$xui_url" -o /tmp/xui-install.sh >> "$INSTALL_LOG" 2>&1 || true
-        # A dead/changed URL yields an empty file or an HTML error page — don't bash that.
-        if [[ -s /tmp/xui-install.sh ]] && head -c 64 /tmp/xui-install.sh | grep -qE '^#!|bash|sh'; then
-            xui_got=1
-            log_info "XUI.ONE installer source: ${xui_url}"
-            break
-        fi
-    done
-
-    if [[ "$xui_got" -ne 1 ]]; then
-        log_error "Could not fetch a valid XUI.ONE installer from any known URL."
-        log_error "XUI.ONE is a LICENSED product and the vendor rotates/removes installer URLs."
-        log_error ""
-        log_error "Option A — install the panel now: get the current installer link from your"
-        log_error "  XUI.ONE account/license, then re-run (resumes from this step):"
-        log_error "    XUI_INSTALLER_URL=\"https://your-installer-url/install.sh\" $0"
-        log_error ""
-        log_error "Option B — skip the local panel and finish the platform install; connect an"
-        log_error "  external Xtream/XUI panel afterwards via Admin → Settings → IPTV:"
-        log_error "    SKIP_XUI=1 $0"
-        log_error ""
-        log_error "(Do not substitute an unofficial 'cracked' installer — it is unlicensed and unsafe.)"
-        return 1
-    fi
-    chmod +x /tmp/xui-install.sh
-
-    log_info "Launching XUI.ONE installer — answer prompts as shown above"
-    bash /tmp/xui-install.sh
-
-    # ── 6. Post-install patches ───────────────────────────────────────────────
-
-    # Patch 1 — force legacy SSL library path
-    log_progress "Patch 1/5: SSL library path"
-    echo "/usr/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/xui-one-libssl.conf
-    ldconfig
-
-    # Patch 2 — systemd service unit
-    log_progress "Patch 2/5: systemd service"
-    cat > /etc/systemd/system/xui-one.service <<SERVICE
-[Unit]
-Description=XUI.ONE IPTV Streaming Panel
-After=network.target mariadb.service
-Wants=mariadb.service
-
-[Service]
-Type=forking
-ExecStart=/bin/bash /home/xui/content/start.sh
-ExecStop=/bin/bash /home/xui/content/stop.sh
-Restart=on-failure
-RestartSec=10
-User=root
-LimitNOFILE=655350
-
-[Install]
-WantedBy=multi-user.target
-SERVICE
-    systemctl daemon-reload
-    systemctl enable xui-one.service >> "$INSTALL_LOG" 2>&1
-    systemctl start  xui-one.service
-    log_success "xui-one.service enabled and started"
-
-    # Patch 3 — file descriptor limits
-    log_progress "Patch 3/5: file descriptor limits"
-    grep -q '655350' /etc/security/limits.conf || {
-        echo '* soft nofile 655350' >> /etc/security/limits.conf
-        echo '* hard nofile 655350' >> /etc/security/limits.conf
-    }
-    sed -i 's/^#*DefaultLimitNOFILE=.*/DefaultLimitNOFILE=655350/' /etc/systemd/system.conf
-    systemctl daemon-reexec >> "$INSTALL_LOG" 2>&1
-
-    # Patch 4 — GeoIP database
-    log_progress "Patch 4/5: GeoIP database"
-    if [[ -d /home/xui/content ]]; then
-        chattr -i /home/xui/content/GeoLite2.mmdb 2>/dev/null || true
-        wget -q "https://xtream-masters.com/guide/resources.php?file=xui/GeoLite2.mmdb" \
-            -O /home/xui/content/GeoLite2.mmdb >> "$INSTALL_LOG" 2>&1 \
-            && chattr +i /home/xui/content/GeoLite2.mmdb 2>/dev/null || true
-        log_success "GeoIP database updated"
-    else
-        log_warning "GeoIP patch skipped — /home/xui/content not found"
-    fi
-
-    # Patch 5 — FFmpeg segfault fix
-    log_progress "Patch 5/5: FFmpeg"
-    apt-get install -y ffmpeg >> "$INSTALL_LOG" 2>&1
-    if [[ -d /home/xui/content/bin/ffmpeg ]]; then
-        mv /home/xui/content/bin/ffmpeg/ffmpeg \
-           /home/xui/content/bin/ffmpeg/ffmpeg.bak 2>/dev/null || true
-        ln -sf "$(which ffmpeg)" /home/xui/content/bin/ffmpeg/ffmpeg
-        log_success "FFmpeg symlink patched"
-    fi
-
-    # ── 7. Verify ─────────────────────────────────────────────────────────────
-    # Give XUI.ONE a grace period to bind its port, then treat a persistent
-    # failure as a real error so run_step stops instead of marking this "done".
-    local xui_ok=0 attempt
-    for attempt in 1 2 3 4 5 6; do
-        if ss -tlnp | grep -q ":${IPTV_PANEL_PORT}"; then
-            xui_ok=1
-            break
-        fi
-        sleep 5
-    done
-    if [[ "$xui_ok" -eq 1 ]]; then
-        log_success "XUI.ONE is listening on port ${IPTV_PANEL_PORT}"
-    else
-        log_error "XUI.ONE did not open port ${IPTV_PANEL_PORT} after ~30s — install did not complete"
-        log_error "Check: systemctl status xui-one  &&  journalctl -u xui-one --no-pager | tail -n 40"
-        return 1
-    fi
-
-    # Save XUI.ONE DB credentials alongside app credentials
-    printf '\n# XUI.ONE Database\nXUI_DB_NAME=xui_one\nXUI_DB_USER=xui_user\nXUI_DB_PASS=%s\n' \
-        "$XUI_DB_PASS" >> "$CREDENTIALS_FILE"
-
-    echo ""
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}  XUI.ONE installation complete${NC}"
-    echo ""
-    echo -e "  Admin panel : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
-    echo -e "  DB password : ${CYAN}${XUI_DB_PASS}${NC}  (also saved to ${CREDENTIALS_FILE})"
-    echo ""
-    echo -e "${YELLOW}  To connect web panel → XUI.ONE:${NC}"
-    echo -e "  1. Open  : ${CYAN}${SITE_URL}/admin${NC} → Settings → IPTV"
-    echo -e "  2. Set   : ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
-    echo -e "     ${YELLOW}(host.docker.internal — NOT localhost — app runs inside Docker)${NC}"
-    echo -e "  3. Enter : your XUI.ONE admin credentials"
-    echo -e "  4. Set   : ${CYAN}iptv_provisioning_enabled = 1${NC}"
-    echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo ""
-    echo -en "${CYAN}>>> Press Enter to continue with remaining setup steps: ${NC}"
-    read -r
+    log_info "Test after DNS is set:  echo 'Hello' | mail -s 'Test' -a 'From: noreply@${CANONICAL_DOMAIN}' you@example.com"
+    log_warning "If test mail never arrives, your VPS provider may block OUTBOUND port 25 —"
+    log_warning "ask their support to unblock it, or use an external SMTP in Admin → Settings → SMTP."
 }
 
 # ==========================================================================
@@ -1407,20 +1295,18 @@ configure_firewall() {
     ufw default allow outgoing
     ufw allow ssh
     ufw allow 'Nginx Full'
-    ufw allow "${IPTV_PANEL_PORT}/tcp"  comment 'XUI.ONE admin panel'
-    ufw allow "${XUI_CLIENT_PORT}/tcp"  comment 'XUI.ONE client streaming port'
-    ufw allow "25461/tcp"               comment 'XUI.ONE internal management'
+    # Postfix: reachable only from Docker containers (app/worker → host :25).
+    # Port 25 is NOT open to the internet — this box cannot be used as a relay.
+    ufw allow from 172.16.0.0/12 to any port 25 proto tcp comment 'Postfix relay from Docker' >> "$INSTALL_LOG" 2>&1
     ufw --force enable
 
     log_success "Firewall enabled"
     log_info   "  Open ports:"
     log_info   "    22    (SSH)"
     log_info   "    80    (HTTP  → HTTPS redirect via Nginx)"
-    log_info   "    443   (HTTPS → Docker web container via Nginx)"
-    log_info   "    ${IPTV_PANEL_PORT}   (XUI.ONE admin panel)"
-    log_info   "    ${XUI_CLIENT_PORT}   (XUI.ONE client streaming)"
-    log_info   "    25461 (XUI.ONE internal management)"
-    log_info   "  Blocked: 8081 (Docker internal only), 3306 (DB internal only)"
+    log_info   "    443   (HTTPS → web panel + /phpmyadmin via Nginx)"
+    log_info   "    25    (Postfix — Docker network 172.16.0.0/12 ONLY, not public)"
+    log_info   "  Blocked: 8081/8082 (127.0.0.1 only), 3306 (Docker internal only)"
     ufw status >> "$INSTALL_LOG" 2>&1
 }
 
@@ -1499,6 +1385,9 @@ verify_install() {
     _chk "Web (Nginx) container"     docker compose ps --status running | grep -q alborada_nginx
     _chk "MySQL container running"   docker compose ps --status running | grep -q alborada_mysql
     _chk "Worker container running"  docker compose ps --status running | grep -q alborada_worker
+    _chk "phpMyAdmin container"      docker compose ps --status running | grep -q alborada_phpmyadmin
+    _chk "Postfix running"           systemctl is-active --quiet postfix
+    _chk "OpenDKIM running"          systemctl is-active --quiet opendkim
     _chk "SSL certificate present"   test -f "/etc/letsencrypt/live/$CANONICAL_DOMAIN/fullchain.pem"
     _chk "Scheduler cron active"     crontab -l 2>/dev/null | grep -q "schedule:run"
     _chk "Frontend assets built"     test -d "$APP_DIR/public/build"
@@ -1515,11 +1404,11 @@ verify_install() {
     fi
 
     code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 8 \
-        "http://localhost:${IPTV_PANEL_PORT}" 2>/dev/null || echo 0)
-    if [[ "$code" =~ ^(200|301|302|403)$ ]]; then
-        log_success "XUI Xtream responding on :${IPTV_PANEL_PORT} (HTTP $code)"
+        "http://127.0.0.1:${PHPMYADMIN_PORT}" 2>/dev/null || echo 0)
+    if [[ "$code" =~ ^(200|301|302)$ ]]; then
+        log_success "phpMyAdmin responding on :${PHPMYADMIN_PORT} (HTTP $code)"
     else
-        log_warning "XUI Xtream not responding on :${IPTV_PANEL_PORT} (install manually if skipped)"
+        log_warning "phpMyAdmin not responding on :${PHPMYADMIN_PORT} (HTTP $code)"
     fi
 }
 
@@ -1531,7 +1420,7 @@ show_summary() {
     local IP
     IP=$(curl -s -4 --max-time 8 ifconfig.me 2>/dev/null || echo "YOUR_VPS_IP")
 
-    log_highlight "${APP_DISPLAY_NAME} — INSTALLATION COMPLETE"
+    log_highlight "${APP_DISPLAY_NAME} — WEB SERVER INSTALLATION COMPLETE"
 
     echo -e "${YELLOW}WEB PANEL${NC}"
     echo -e "  URL         : ${CYAN}${SITE_URL}${NC}"
@@ -1540,12 +1429,20 @@ show_summary() {
     echo -e "  Admin pass  : ${CYAN}${ADMIN_PASSWORD}${NC}"
     echo ""
 
-    echo -e "${YELLOW}IPTV STREAMING SERVER (XUI.ONE 1.5.13)${NC}"
-    echo -e "  Admin URL   : ${CYAN}http://${IP}:${IPTV_PANEL_PORT}${NC}"
-    echo -e "  Stream URL  : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
-    echo -e "  Admin port  : ${IPTV_PANEL_PORT}  (XUI.ONE panel)"
-    echo -e "  Client port : ${XUI_CLIENT_PORT}  (customers use this — Xtream Codes API)"
-    echo -e "  (Use the stream URL when customers configure their IPTV apps)"
+    echo -e "${YELLOW}PHPMYADMIN (DATABASE MANAGEMENT)${NC}"
+    echo -e "  URL      : ${CYAN}${SITE_URL}/phpmyadmin${NC}"
+    echo -e "  Login    : ${CYAN}${DB_USERNAME}${NC} / ${CYAN}${DB_PASSWORD}${NC}"
+    echo -e "  Root     : ${CYAN}root${NC} / ${CYAN}${MYSQL_ROOT_PASSWORD}${NC}"
+    echo ""
+
+    echo -e "${YELLOW}EMAIL SERVER (POSTFIX — FREE, SELF-HOSTED)${NC}"
+    echo -e "  The app already sends mail through the local Postfix server."
+    echo -e "  ${RED}${BOLD}ACTION REQUIRED:${NC} add the SPF/DKIM/DMARC DNS records from:"
+    echo -e "    ${CYAN}cat ${DNS_RECORDS_FILE}${NC}"
+    echo -e "  Also set reverse DNS (PTR) in your VPS provider panel: ${CYAN}${IP} → mail.${CANONICAL_DOMAIN}${NC}"
+    echo -e "  Test deliverability: ${CYAN}https://www.mail-tester.com${NC}"
+    echo -e "  ${YELLOW}Note: if your provider blocks outbound port 25, ask support to unblock it,${NC}"
+    echo -e "  ${YELLOW}or configure an external SMTP in Admin → Settings → SMTP instead.${NC}"
     echo ""
 
     echo -e "${YELLOW}DATABASE${NC}"
@@ -1555,20 +1452,17 @@ show_summary() {
     echo -e "  Root PW  : $MYSQL_ROOT_PASSWORD"
     echo ""
 
-    echo -e "${YELLOW}STEP A — CONNECT WEB PANEL TO IPTV SERVER${NC}"
-    echo -e "  1. Open Admin Panel → Settings → IPTV"
-    echo -e "  2. Set ${CYAN}xtream_base_url = http://host.docker.internal:${IPTV_PANEL_PORT}${NC}"
-    echo -e "     ${YELLOW}Important: use 'host.docker.internal', NOT 'localhost'${NC}"
-    echo -e "     ${YELLOW}(The web app runs inside Docker; localhost = container, not VPS)${NC}"
-    echo -e "  3. Enter your XUI Xtream admin username and password"
-    echo -e "  4. Set  ${CYAN}iptv_provisioning_enabled = 1${NC}"
-    echo -e "  5. Click Test Connection → should return 'Connection successful'"
+    echo -e "${YELLOW}STEP A — INSTALL THE STREAMING SERVER (SEPARATE VPS)${NC}"
+    echo -e "  On a second Ubuntu 22.04 VPS, run: ${CYAN}sudo ./streamsetup.sh${NC}"
+    echo -e "  (See install-stream.txt for the full guide.)"
     echo ""
 
-    echo -e "${YELLOW}STEP B — CONFIGURE SMTP (EMAIL)${NC}"
-    echo -e "  Admin Panel → Settings → SMTP Settings"
-    echo -e "  Recommended: Mailgun (free up to 1,000 emails/month)"
-    echo -e "  Until configured, all emails are logged to storage/logs/laravel.log"
+    echo -e "${YELLOW}STEP B — CONNECT WEB PANEL TO THE STREAMING SERVER${NC}"
+    echo -e "  1. Open Admin Panel → Settings → IPTV"
+    echo -e "  2. Set ${CYAN}xtream_base_url = http://STREAMING_SERVER_IP:8080${NC}"
+    echo -e "  3. Enter your XUI.ONE admin username and password"
+    echo -e "  4. Set  ${CYAN}iptv_provisioning_enabled = 1${NC}"
+    echo -e "  5. Click Test Connection → should return 'Connection successful'"
     echo ""
 
     echo -e "${YELLOW}STEP C — CONFIGURE STRIPE (PAYMENTS)${NC}"
@@ -1581,25 +1475,18 @@ show_summary() {
     echo -e "  Events: payment_intent.succeeded, payment_intent.payment_failed"
     echo ""
 
-    echo -e "${YELLOW}STEP D — LOAD IPTV CONTENT${NC}"
-    echo -e "  XUI Xtream Admin → Bouquets → Add Source"
-    echo -e "  Test content (dev only): https://iptv-org.github.io/iptv/index.m3u"
-    echo ""
-
-    echo -e "${YELLOW}STEP E — TEST END-TO-END${NC}"
+    echo -e "${YELLOW}STEP D — TEST END-TO-END${NC}"
     echo -e "  1. Use Stripe test card: ${CYAN}4242 4242 4242 4242${NC} (any date, any CVC)"
     echo -e "  2. Register a customer and complete a subscription purchase"
-    echo -e "  3. Verify: XUI Xtream → Lines → new line created"
+    echo -e "  3. Verify: XUI.ONE → Lines → new line created on the streaming server"
     echo -e "  4. Verify: customer welcome email with Xtream Codes login"
-    echo -e "  5. Test IPTV app: XCIPTV / IPTV Smarters → Xtream Codes API login"
-    echo -e "     Server: ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
     echo ""
 
     echo -e "${YELLOW}DOCKER MANAGEMENT${NC}"
     echo -e "  Status  : ${CYAN}cd ${APP_DIR} && docker compose ps${NC}"
     echo -e "  App logs: ${CYAN}docker compose logs -f app${NC}"
     echo -e "  Worker  : ${CYAN}docker compose logs -f worker${NC}"
-    echo -e "  Restart : ${CYAN}docker compose restart app web worker${NC}"
+    echo -e "  Restart : ${CYAN}docker compose restart app web worker phpmyadmin${NC}"
     echo -e "  Rebuild : ${CYAN}docker compose build app && docker compose up -d${NC}"
     echo ""
 
@@ -1617,6 +1504,7 @@ show_summary() {
     echo -e "  .env         : ${CYAN}${APP_DIR}/.env${NC}"
     echo -e "  Install log  : ${CYAN}${INSTALL_LOG}${NC}"
     echo -e "  Credentials  : ${CYAN}${CREDENTIALS_FILE}${NC}  (chmod 600)"
+    echo -e "  Email DNS    : ${CYAN}${DNS_RECORDS_FILE}${NC}  (chmod 600)"
     echo -e "  Scheduler log: ${CYAN}/var/log/laravel-scheduler.log${NC}"
     echo ""
 
@@ -1629,14 +1517,18 @@ show_summary() {
 
 show_help() {
     echo ""
-    echo -e "${CYAN}${APP_DISPLAY_NAME} — Automated VPS Deployment${NC}"
+    echo -e "${CYAN}${APP_DISPLAY_NAME} — Web Server Deployment${NC}"
     echo ""
     echo -e "${YELLOW}Usage:${NC}"
-    echo "  sudo ./autosetup.sh [--domain yourdomain.com]"
+    echo "  sudo ./websetup.sh [--domain yourdomain.com]"
+    echo ""
+    echo -e "${YELLOW}This script sets up the WEB server only.${NC}"
+    echo "  The IPTV streaming server (XUI.ONE) is installed on a SEPARATE"
+    echo "  VPS with streamsetup.sh — see install-stream.txt."
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
     echo "  • Ubuntu 22.04 or 24.04 LTS VPS (fresh install)"
-    echo "  • Minimum: 4 vCPU / 8 GB RAM / 100 GB SSD"
+    echo "  • Minimum: 2 vCPU / 4 GB RAM / 40 GB SSD"
     echo "  • Project files at $APP_DIR (git clone or scp)"
     echo "  • Domain name with DNS control"
     echo ""
@@ -1648,16 +1540,18 @@ show_help() {
     echo "  5. Vite/Tailwind frontend build (npm run build)"
     echo "  6. Laravel 12 in Docker (PHP 8.4-FPM + MySQL 8 + queue worker)"
     echo "     ↳ composer install, migrate, seed, admin user"
-    echo "  7. XUI.ONE 1.5.13 IPTV panel (admin :$IPTV_PANEL_PORT  streams :$XUI_CLIENT_PORT)"
-    echo "  8. UFW firewall"
-    echo "  9. Laravel scheduler cron"
+    echo "  7. phpMyAdmin (Docker, served at https://yourdomain.com/phpmyadmin)"
+    echo "  8. Free email server (Postfix + OpenDKIM, self-hosted)"
+    echo "  9. UFW firewall"
+    echo "  10. Laravel scheduler cron"
     echo ""
     echo -e "${YELLOW}Port layout:${NC}"
-    echo "  443  HTTPS (web panel, proxied by Nginx)"
+    echo "  443  HTTPS (web panel + /phpmyadmin, proxied by Nginx)"
     echo "  80   HTTP → HTTPS redirect"
-    echo "  8080 XUI Xtream IPTV panel (host-level, public)"
     echo "  8081 Docker web container (localhost only, Nginx proxy target)"
-    echo "  3306 MySQL (localhost only, never public)"
+    echo "  8082 phpMyAdmin container (localhost only, Nginx proxy target)"
+    echo "  25   Postfix (localhost + Docker network only, never public relay)"
+    echo "  3306 MySQL (Docker internal only, never public)"
     echo ""
 }
 
@@ -1691,12 +1585,12 @@ parse_args() {
 main() {
     setup_logging
 
-    log_highlight "${APP_DISPLAY_NAME} — AUTOMATED VPS SETUP"
+    log_highlight "${APP_DISPLAY_NAME} — WEB SERVER SETUP"
 
     parse_args "$@"
     check_root
     check_ubuntu
-    check_disk 25
+    check_disk 20
 
     if check_resume; then
         verify_project_files
@@ -1708,13 +1602,14 @@ main() {
 
     echo ""
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${MAGENTA}  INSTALLATION PLAN${NC}"
+    echo -e "${MAGENTA}  INSTALLATION PLAN — WEB SERVER${NC}"
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo -e "  Domain    : ${CYAN}${CANONICAL_DOMAIN}${NC}"
-    echo -e "  Web panel : ${CYAN}${SITE_URL}${NC}"
-    echo -e "  Admin     : ${CYAN}${ADMIN_EMAIL}${NC}"
-    echo -e "  IPTV      : ${CYAN}http://stream.${CANONICAL_DOMAIN}:${XUI_CLIENT_PORT}${NC}"
+    echo -e "  Domain     : ${CYAN}${CANONICAL_DOMAIN}${NC}"
+    echo -e "  Web panel  : ${CYAN}${SITE_URL}${NC}"
+    echo -e "  Admin      : ${CYAN}${ADMIN_EMAIL}${NC}"
+    echo -e "  phpMyAdmin : ${CYAN}${SITE_URL}/phpmyadmin${NC}"
+    echo -e "  Mail       : ${CYAN}mail.${CANONICAL_DOMAIN}${NC} (Postfix, self-hosted)"
     echo ""
     echo -e "  Steps:"
     echo -e "    01. System packages + Node.js ${NODE_VERSION} LTS"
@@ -1722,15 +1617,17 @@ main() {
     echo -e "    03. Host Nginx install + configure"
     echo -e "    04. Let's Encrypt SSL"
     echo -e "    05. Frontend build  (npm ci + npm run build)"
-    echo -e "    06. Docker Compose override  (DB credentials)"
+    echo -e "    06. Docker Compose override  (DB credentials + phpMyAdmin)"
     echo -e "    07. Laravel .env  (production)"
-    echo -e "    08. Build + start containers  (PHP 8.4, MySQL 8, worker)"
+    echo -e "    08. Build + start containers  (PHP 8.4, MySQL 8, worker, phpMyAdmin)"
     echo -e "    09. Laravel init  (composer, migrate, seed, admin user)"
-    echo -e "    10. XUI.ONE 1.5.13 IPTV panel  (ports ${IPTV_PANEL_PORT} admin / ${XUI_CLIENT_PORT} streams)"
+    echo -e "    10. Free email server  (Postfix + OpenDKIM)"
     echo -e "    11. UFW firewall"
     echo -e "    12. Scheduler cron"
     echo -e "    13. Production cache  (config, routes, views)"
     echo -e "    14. Verification"
+    echo ""
+    echo -e "  ${YELLOW}The IPTV streaming server is installed separately with streamsetup.sh${NC}"
     echo ""
     echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -en "${CYAN}${BOLD}>>> Proceed with installation? (y/N): ${NC}"
@@ -1748,7 +1645,7 @@ main() {
     run_step "08_env_file"           write_env
     run_step "09_containers"         start_containers
     run_step "10_laravel_setup"      setup_laravel
-    run_step "11_xui_one"            install_xui_one
+    run_step "11_mail_server"        install_mail_server
     run_step "12_firewall"           configure_firewall
     run_step "13_cron"               configure_cron
     run_step "14_optimize"           optimize_production
@@ -1758,7 +1655,7 @@ main() {
     rm -f "$STATE_FILE"
 
     show_summary
-    echo "[$(_ts)] Installation completed successfully" >> "$INSTALL_LOG"
+    echo "[$(_ts)] Web server installation completed successfully" >> "$INSTALL_LOG"
     exit 0
 }
 

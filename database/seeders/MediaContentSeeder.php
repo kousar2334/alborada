@@ -14,8 +14,12 @@ class MediaContentSeeder extends Seeder
     public function run(): void
     {
         $uploadDir = public_path('uploads/2026/May');
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        if (!is_dir($uploadDir) && !@mkdir($uploadDir, 0775, true)) {
+            $this->note("WARNING: cannot create {$uploadDir} — posters will not be saved.");
+            $this->note('Fix ownership (chown -R www-data:www-data public/uploads) and re-run: php artisan db:seed --class=' . static::class);
+        } elseif (!is_writable($uploadDir)) {
+            $this->note("WARNING: {$uploadDir} is not writable — posters will not be saved.");
+            $this->note('Fix ownership (chown -R www-data:www-data public/uploads) and re-run: php artisan db:seed --class=' . static::class);
         }
 
         // Step 1 — insert/update all DB records first (no image downloads yet)
@@ -65,6 +69,10 @@ class MediaContentSeeder extends Seeder
         }
 
         // Step 2 — download posters and update thumbnails (failures are non-fatal)
+        $downloaded = 0;
+        $alreadyPresent = 0;
+        $failed = 0;
+
         $allItems = array_merge($this->movies(), $this->tvShows());
         foreach ($allItems as $data) {
             // Skip if a valid poster is already stored for this title
@@ -72,6 +80,7 @@ class MediaContentSeeder extends Seeder
             if ($existing && $existing !== 'uploads/no-image.png') {
                 $existingPath = public_path($existing);
                 if (file_exists($existingPath) && filesize($existingPath) > 5000) {
+                    $alreadyPresent++;
                     continue;
                 }
             }
@@ -82,7 +91,18 @@ class MediaContentSeeder extends Seeder
             if ($poster['path'] !== 'uploads/no-image.png') {
                 MediaContent::where('title', $data['title'])->update(['thumbnail' => $poster['path']]);
                 DB::table('featured_content')->where('title', $data['title'])->update(['thumbnail' => $poster['path']]);
+                $downloaded++;
+                $this->note("  ✓ Poster downloaded: {$data['title']}");
+            } else {
+                $failed++;
             }
+        }
+
+        $this->note("Posters: {$downloaded} downloaded, {$alreadyPresent} already present, {$failed} failed.");
+        if ($failed > 0) {
+            $this->note('Some posters failed — the server may block outbound access to image.tmdb.org,');
+            $this->note('or public/uploads/ is not writable by the PHP user. Fix and re-run with:');
+            $this->note('  php artisan db:seed --class=' . static::class);
         }
     }
 
@@ -92,21 +112,25 @@ class MediaContentSeeder extends Seeder
         $localPath = $dir . '/' . $filename;
         $relativePath = 'uploads/2026/May/' . $filename;
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 20,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_USERAGENT      => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
-            CURLOPT_FRESH_CONNECT  => true,
-            CURLOPT_FORBID_REUSE   => true,
-        ]);
-        $image = curl_exec($ch);
-        curl_close($ch);
+        // Some servers cannot reach image.tmdb.org directly (filtered outbound
+        // traffic, regional blocks). Retry through the wsrv.nl image proxy.
+        $candidates = [
+            $url,
+            'https://wsrv.nl/?url=' . urlencode($url),
+        ];
 
-        if ($image && strlen($image) > 5000) {
-            file_put_contents($localPath, $image);
+        foreach ($candidates as $candidate) {
+            $error = null;
+            $image = $this->fetchImage($candidate, $error);
+            if ($image === null) {
+                $this->note("  ✗ {$title}: {$error} ({$candidate})");
+                continue;
+            }
+
+            if (@file_put_contents($localPath, $image) === false) {
+                $this->note("  ✗ {$title}: cannot write {$localPath} — check public/uploads permissions");
+                return ['path' => 'uploads/no-image.png', 'size' => 0];
+            }
             $size = filesize($localPath);
 
             // Register in media table so it appears in Media Manager
@@ -128,6 +152,56 @@ class MediaContentSeeder extends Seeder
         }
 
         return ['path' => 'uploads/no-image.png', 'size' => 0];
+    }
+
+    /**
+     * Fetch an image over HTTP. Returns the raw bytes, or null with $error
+     * set to the reason (curl error, HTTP status, or invalid image body).
+     */
+    private function fetchImage(string $url, ?string &$error = null): ?string
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            // Broken IPv6 on many VPSes makes curl hang until timeout — force IPv4.
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36',
+            CURLOPT_FRESH_CONNECT  => true,
+            CURLOPT_FORBID_REUSE   => true,
+        ]);
+        $image = curl_exec($ch);
+        $curlError = curl_error($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+
+        if ($image === false || $image === '') {
+            $error = $curlError !== '' ? $curlError : "empty response (HTTP {$status})";
+            return null;
+        }
+        if ($status >= 400) {
+            $error = "HTTP {$status}";
+            return null;
+        }
+        // Filtered networks often return an HTML block page instead of the image.
+        if (strlen($image) < 5000 || @getimagesizefromstring($image) === false) {
+            $error = 'response is not a valid image (blocked or error page?)';
+            return null;
+        }
+
+        return $image;
+    }
+
+    /**
+     * Print progress to the console when run via `db:seed`; stay silent when
+     * the seeder is invoked programmatically without a command instance.
+     */
+    private function note(string $message): void
+    {
+        $this->command?->line($message);
     }
 
     private function upsertFeaturedContent(string $title, array $fields): void
