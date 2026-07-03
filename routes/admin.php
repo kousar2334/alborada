@@ -123,6 +123,7 @@ Route::prefix('admin')->group(function () {
          */
         Route::prefix('subscriptions')->group(function () {
             Route::get('/', [SubscriptionController::class, 'index'])->name('admin.subscriptions.list');
+            Route::post('assign', [SubscriptionController::class, 'assign'])->name('admin.subscriptions.assign');
             Route::post('approve', [SubscriptionController::class, 'approve'])->name('admin.subscriptions.approve');
             Route::post('reject', [SubscriptionController::class, 'reject'])->name('admin.subscriptions.reject');
             Route::post('delete', [SubscriptionController::class, 'delete'])->name('admin.subscriptions.delete');

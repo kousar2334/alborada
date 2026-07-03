@@ -6,6 +6,7 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 
@@ -92,11 +93,9 @@ class SettingController extends Controller
 
             toastNotification('Success', 'Mail Sending Successfully', 'Success');
             return to_route('admin.system.settings.smtp');
-        } catch (\Exception $e) {
-            toastNotification('error', 'Mail Sending Failed', 'Error');
-            return redirect()->back();
-        } catch (\Error $e) {
-            toastNotification('error', 'Mail Sending Failed', 'Error');
+        } catch (\Throwable $e) {
+            Log::error('Test mail failed: ' . $e->getMessage(), ['exception' => $e]);
+            toastNotification('error', 'Mail Sending Failed: ' . $e->getMessage(), 'Error');
             return redirect()->back();
         }
     }

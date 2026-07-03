@@ -85,8 +85,7 @@ class MediaContentSeeder extends Seeder
                 }
             }
 
-            usleep(300000); // 0.3s pause to avoid CDN rate-limiting
-            $poster = $this->downloadPoster($data['_poster_url'], $uploadDir, $data['title']);
+            $poster = $this->resolvePoster($data['_poster_url'], $uploadDir, $data['title']);
 
             if ($poster['path'] !== 'uploads/no-image.png') {
                 MediaContent::where('title', $data['title'])->update(['thumbnail' => $poster['path']]);
@@ -106,11 +105,33 @@ class MediaContentSeeder extends Seeder
         }
     }
 
-    private function downloadPoster(string $url, string $dir, string $title): array
+    /**
+     * Resolve a poster for the given title. Posters ship with the codebase in
+     * database/seeders/posters/ so a fresh install never depends on outbound
+     * network access; downloading from the CDN is only a fallback for titles
+     * without a bundled file.
+     */
+    private function resolvePoster(string $url, string $dir, string $title): array
     {
         $filename = Str::random(40) . '.jpg';
         $localPath = $dir . '/' . $filename;
         $relativePath = 'uploads/2026/May/' . $filename;
+
+        $bundled = database_path('seeders/posters/' . Str::slug($title) . '.jpg');
+        if (is_file($bundled) && filesize($bundled) > 5000) {
+            if (@copy($bundled, $localPath)) {
+                return $this->registerMedia($title, $filename, $localPath, $relativePath);
+            }
+            $this->note("  ✗ {$title}: cannot write {$localPath} — check public/uploads permissions");
+            return ['path' => 'uploads/no-image.png', 'size' => 0];
+        }
+
+        return $this->downloadPoster($url, $localPath, $relativePath, $filename, $title);
+    }
+
+    private function downloadPoster(string $url, string $localPath, string $relativePath, string $filename, string $title): array
+    {
+        usleep(300000); // 0.3s pause to avoid CDN rate-limiting
 
         // Some servers cannot reach image.tmdb.org directly (filtered outbound
         // traffic, regional blocks). Retry through the wsrv.nl image proxy.
@@ -131,27 +152,34 @@ class MediaContentSeeder extends Seeder
                 $this->note("  ✗ {$title}: cannot write {$localPath} — check public/uploads permissions");
                 return ['path' => 'uploads/no-image.png', 'size' => 0];
             }
-            $size = filesize($localPath);
 
-            // Register in media table so it appears in Media Manager
-            $existing = Media::where('path', $relativePath)->first();
-            if (!$existing) {
-                $media = new Media();
-                $media->uuid       = (string) Str::uuid();
-                $media->title      = $title;
-                $media->file_name  = $filename;
-                $media->alt        = $title;
-                $media->mime_type  = 'jpg';
-                $media->size       = $size;
-                $media->path       = $relativePath;
-                $media->disk       = 'public';
-                $media->save();
-            }
-
-            return ['path' => $relativePath, 'size' => $size];
+            return $this->registerMedia($title, $filename, $localPath, $relativePath);
         }
 
         return ['path' => 'uploads/no-image.png', 'size' => 0];
+    }
+
+    /**
+     * Register the saved poster in the media table so it appears in Media Manager.
+     */
+    private function registerMedia(string $title, string $filename, string $localPath, string $relativePath): array
+    {
+        $size = filesize($localPath);
+
+        if (!Media::where('path', $relativePath)->exists()) {
+            $media = new Media();
+            $media->uuid       = (string) Str::uuid();
+            $media->title      = $title;
+            $media->file_name  = $filename;
+            $media->alt        = $title;
+            $media->mime_type  = 'jpg';
+            $media->size       = $size;
+            $media->path       = $relativePath;
+            $media->disk       = 'public';
+            $media->save();
+        }
+
+        return ['path' => $relativePath, 'size' => $size];
     }
 
     /**

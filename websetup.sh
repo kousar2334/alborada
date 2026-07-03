@@ -1142,16 +1142,14 @@ install_mail_server() {
     postconf -e "smtpd_banner = \$myhostname ESMTP"
     postconf -e "smtpd_helo_required = yes"
     postconf -e "disable_vrfy_command = yes"
+    # Outbound TLS (to Gmail, Outlook, …) — keep opportunistic encryption.
     postconf -e "smtp_tls_security_level = may"
-    postconf -e "smtpd_tls_security_level = may"
+    # Inbound TLS must stay OFF.  Port 25 is only reachable from localhost and
+    # the Docker network (never leaves this machine), and if STARTTLS is
+    # advertised, Symfony Mailer auto-upgrades and then rejects the connection
+    # because no certificate can match the name 'host.docker.internal'.
+    postconf -e "smtpd_tls_security_level = none"
     postconf -e "message_size_limit = 26214400"    # 25 MB
-
-    # Reuse the Let's Encrypt certificate if step 04 obtained one
-    if [[ -f "/etc/letsencrypt/live/${CANONICAL_DOMAIN}/fullchain.pem" ]]; then
-        postconf -e "smtpd_tls_cert_file = /etc/letsencrypt/live/${CANONICAL_DOMAIN}/fullchain.pem"
-        postconf -e "smtpd_tls_key_file = /etc/letsencrypt/live/${CANONICAL_DOMAIN}/privkey.pem"
-        log_success "Postfix TLS uses the Let's Encrypt certificate"
-    fi
 
     # ── 3. DKIM key + OpenDKIM configuration ──────────────────────────────
     log_progress "Generating 2048-bit DKIM key (selector: ${DKIM_SELECTOR})"
@@ -1360,6 +1358,47 @@ optimize_production() {
     docker compose exec -T app php artisan optimize     >> "$INSTALL_LOG" 2>&1
 
     log_success "Production cache built"
+}
+
+# ==========================================================================
+# STEP — Whole-project file permissions
+#
+# Runs AFTER every step that writes into the app tree (composer, seeders,
+# production cache) so nothing is left owned by root.  www-data inside the
+# container is UID/GID 1000 (remapped in docker/php/Dockerfile), so a host-
+# side chown to 1000:1000 makes the tree owned by the app user both on the
+# host and inside Docker.
+# ==========================================================================
+
+set_project_permissions() {
+    log_header "SETTING WHOLE-PROJECT FILE PERMISSIONS"
+    cd "$APP_DIR" || return 1
+
+    log_wait "Applying ownership www-data (UID 1000) to $APP_DIR"
+    chown -R 1000:1000 "$APP_DIR" 2>/dev/null || true
+
+    # Baseline: directories 755, files 644.  vendor/ and node_modules/ are
+    # skipped — composer/npm manage their own executable bits and re-chmodding
+    # tens of thousands of files there breaks their .bin/ tools for nothing.
+    log_progress "Applying baseline permissions (directories 755, files 644)"
+    find "$APP_DIR" \( -path "$APP_DIR/node_modules" -o -path "$APP_DIR/vendor" \) -prune \
+        -o -type d -print0 | xargs -0 -r chmod 755 2>/dev/null || true
+    find "$APP_DIR" \( -path "$APP_DIR/node_modules" -o -path "$APP_DIR/vendor" \) -prune \
+        -o -type f -print0 | xargs -0 -r chmod 644 2>/dev/null || true
+
+    # Writable dirs: Laravel framework dirs + public upload dirs
+    log_progress "Applying write permissions (775) to storage, cache and upload dirs"
+    chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
+    for _dir in uploaded uploads profile featured bank-slips; do
+        [ -d "$APP_DIR/public/$_dir" ] && chmod -R 775 "$APP_DIR/public/$_dir"
+    done
+
+    # Restore executable bits stripped by the baseline pass, and lock secrets
+    chmod 755 "$APP_DIR"/*.sh "$APP_DIR/artisan" 2>/dev/null || true
+    chmod 640 "$APP_DIR/.env" 2>/dev/null || true
+    chmod 600 "$APP_DIR/docker-compose.override.yml" 2>/dev/null || true
+
+    log_success "Whole-project permissions set"
 }
 
 # ==========================================================================
@@ -1625,7 +1664,8 @@ main() {
     echo -e "    11. UFW firewall"
     echo -e "    12. Scheduler cron"
     echo -e "    13. Production cache  (config, routes, views)"
-    echo -e "    14. Verification"
+    echo -e "    14. File permissions  (whole project → www-data)"
+    echo -e "    15. Verification"
     echo ""
     echo -e "  ${YELLOW}The IPTV streaming server is installed separately with streamsetup.sh${NC}"
     echo ""
@@ -1649,6 +1689,7 @@ main() {
     run_step "12_firewall"           configure_firewall
     run_step "13_cron"               configure_cron
     run_step "14_optimize"           optimize_production
+    run_step "14b_permissions"       set_project_permissions
     run_step "15_verify"             verify_install
 
     # Remove state file only on full success

@@ -60,7 +60,13 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">{{ __tr('All Subscriptions') }}</h3>
+                            <h3 class="card-title">
+                                {{ __tr('All Subscriptions') }}
+                                <button type="button" class="btn btn-success btn-sm ml-2" data-toggle="modal"
+                                    data-target="#assign-subscription-modal">
+                                    <i class="fas fa-plus"></i> {{ __tr('Assign Subscription') }}
+                                </button>
+                            </h3>
                             <div class="card-tools">
                                 <form method="GET" action="{{ route('admin.subscriptions.list') }}" class="d-flex"
                                     style="gap: 0.5rem;">
@@ -85,6 +91,8 @@
                                             Stripe</option>
                                         <option value="trial" {{ request('method') === 'trial' ? 'selected' : '' }}>Trial
                                         </option>
+                                        <option value="manual" {{ request('method') === 'manual' ? 'selected' : '' }}>
+                                            Manual</option>
                                     </select>
                                     <button type="submit" class="btn btn-primary btn-sm">{{ __tr('Search') }}</button>
                                     @if (request('q') || request('status') || request('method'))
@@ -133,6 +141,8 @@
                                             <td>
                                                 @if ($sub->payment_method === 'stripe')
                                                     <span class="badge badge-info">Stripe</span>
+                                                @elseif ($sub->payment_method === 'manual')
+                                                    <span class="badge badge-primary">Manual</span>
                                                 @else
                                                     <span
                                                         class="badge badge-secondary">{{ ucfirst($sub->payment_method ?? 'Trial') }}</span>
@@ -215,6 +225,61 @@
             </div>
         </div>
     </section>
+
+    {{-- Assign Subscription Modal --}}
+    <div class="modal fade" id="assign-subscription-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('admin.subscriptions.assign') }}">
+                    @csrf
+                    <div class="modal-header">
+                        <h4 class="modal-title h6">
+                            <i class="fas fa-user-plus mr-1"></i> {{ __tr('Assign Subscription to Customer') }}
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="assign-user-id">{{ __tr('Customer') }} <span class="text-danger">*</span></label>
+                            <select name="user_id" id="assign-user-id" class="form-control" required>
+                                <option value="">{{ __tr('Select a customer...') }}</option>
+                                @foreach ($members as $member)
+                                    <option value="{{ $member->id }}">{{ $member->name }} ({{ $member->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assign-plan-id">{{ __tr('Plan') }} <span class="text-danger">*</span></label>
+                            <select name="plan_id" id="assign-plan-id" class="form-control" required>
+                                <option value="">{{ __tr('Select a plan...') }}</option>
+                                @foreach ($plans as $plan)
+                                    <option value="{{ $plan->id }}">
+                                        {{ $plan->title }} — {{ format_amount($plan->price) }}
+                                        ({{ $plan->duration_days }} {{ __tr('days') }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="assign-admin-note">{{ __tr('Note (optional)') }}</label>
+                            <textarea name="admin_note" id="assign-admin-note" class="form-control" rows="2"
+                                maxlength="500" placeholder="{{ __tr('e.g. paid in cash, promotional access...') }}"></textarea>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            {{ __tr('The subscription is activated immediately and the customer is notified by email.') }}
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success">{{ __tr('Assign & Activate') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- Re-provision Confirmation Modal --}}
     <div class="modal fade" id="reprovision-modal">
