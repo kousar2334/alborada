@@ -29,9 +29,17 @@
                 {{-- Center content --}}
                 <div class="hero-center">
                     <h1>{!! p_trans('home_hero_heading', null, 'Unlimited channels, movies,<br>series, and more.') !!}</h1>
+                    @php
+                        // Quote the cheapest plan the visitor can actually buy, so the
+                        // hero never contradicts the pricing table when prices or the
+                        // promotional offer change.
+                        $heroFromPrice = ($plans ?? collect())->min(fn($p) => $p->effective_price);
+                    @endphp
                     <p class="hero-tagline">
-                        {{ p_trans('home_hero_from_label', null, 'Starts at') }}
-                        {{ p_trans('home_hero_from_price', null, '$11.99') }}.
+                        @if ($heroFromPrice)
+                            {{ p_trans('home_hero_from_label', null, 'Starts at') }}
+                            {{ format_amount($heroFromPrice) }}.
+                        @endif
                         {{ p_trans('home_hero_cancel', null, 'Cancel anytime.') }}
                     </p>
                     <p class="hero-cta-hint">
@@ -428,15 +436,16 @@
                             @endforeach
                         </div>
                     @else
+                        {{-- No active plans: link to the pricing page rather than quoting
+                             a placeholder price that would contradict the real plans. --}}
                         <div class="pricing-grid" id="pricingGrid">
                             <div class="price-card">
-                                <div class="plan-badge basic">Starter</div>
-                                <div class="plan-name">1 Device</div>
-                                <div class="plan-price-row">
-                                    <div class="plan-price">$11<span class="plan-price-dec">.99</span></div>
-                                    <div class="plan-period">/ month</div>
+                                <div class="plan-name">
+                                    {{ p_trans('home_pricing_empty_title', null, 'Plans coming soon') }}
                                 </div>
-                                <div class="plan-desc">Perfect for solo viewers who want the full library.</div>
+                                <div class="plan-desc">
+                                    {{ p_trans('home_pricing_empty_desc', null, 'Our subscription plans are being updated. Check the pricing page for the latest packages.') }}
+                                </div>
                                 <div class="plan-divider"></div>
                                 <a href="{{ route('pricing.plans') }}" class="btn btn-outline">View Plans</a>
                             </div>
@@ -569,7 +578,7 @@
                                 <div class="mock-dot amber"></div>
                                 <div class="mock-dot green"></div>
                                 <span
-                                    class="mock-bar-label">dashboard.{{ get_setting('site_domain', 'alborada.tv') }}</span>
+                                    class="mock-bar-label">dashboard.{{ get_setting('site_domain', 'moissanitevisions.com') }}</span>
                             </div>
                             <div class="portal-mock-body">
                                 <div class="mock-stat-row">
@@ -597,7 +606,7 @@
                                     <div>
                                         <div class="mock-m3u-label">M3U Playlist URL</div>
                                         <div class="mock-m3u-url">
-                                            http://stream.{{ get_setting('site_domain', 'alborada.tv') }}/get.php?username=…
+                                            http://stream.{{ get_setting('site_domain', 'moissanitevisions.com') }}/get.php?username=…
                                         </div>
                                     </div>
                                     <button class="mock-copy-btn">Copy</button>

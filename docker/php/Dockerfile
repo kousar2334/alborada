@@ -1,6 +1,9 @@
 FROM php:8.4-fpm
 
 # Install system dependencies and PHP extensions
+# libwebp-dev + `gd --with-webp` are what make imagewebp() exist. Without them GD
+# builds without WebP support, MediaRepository's conversion silently no-ops, and
+# every upload is served in its original (much heavier) format.
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -8,13 +11,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libpng-dev \
     libjpeg-dev \
+    libwebp-dev \
     libfreetype6-dev \
     libicu-dev \
     libxml2-dev \
     zlib1g-dev \
     libssl-dev \
     libcurl4-openssl-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
        gd pdo pdo_mysql zip mbstring bcmath intl xml dom \
        pcntl opcache curl exif \

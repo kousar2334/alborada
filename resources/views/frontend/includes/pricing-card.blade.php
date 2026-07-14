@@ -28,7 +28,7 @@
                 </a>
             @else
                 <button class="cmn-btn-outline1 choose_membership_plan" data-bs-toggle="modal"
-                    data-id="{{ $plan->id }}" data-price="{{ $plan->price }}" data-bs-target="#loginModal">
+                    data-id="{{ $plan->id }}" data-price="{{ $plan->effective_price }}" data-bs-target="#loginModal">
                     {{ __tr('Buy Now') }}
                 </button>
             @endauth

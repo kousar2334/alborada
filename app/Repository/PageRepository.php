@@ -21,6 +21,7 @@ class PageRepository
             $new_page = new Page();
             $new_page->title = $request['title'];
             $new_page->content = $request['content'];
+            $new_page->custom_css = $request['custom_css'];
             $new_page->permalink = $request['permalink'];
             $new_page->meta_title = $request['meta_title'];
             $new_page->meta_description = $request['meta_description'];
@@ -60,6 +61,7 @@ class PageRepository
                 $page = Page::findOrFail($request['id']);
                 $page->title = $request['title'];
                 $page->content = $request['content'];
+                $page->custom_css = $request['custom_css'];
                 $page->permalink = $request['permalink'];
                 $page->meta_title = $request['meta_title'];
                 $page->meta_description = $request['meta_description'];
@@ -75,17 +77,18 @@ class PageRepository
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
-            dd($e);
+            \Log::error('Page update failed: ' . $e->getMessage(), ['exception' => $e]);
             return false;
         } catch (\Error $e) {
             DB::rollBack();
+            \Log::error('Page update failed: ' . $e->getMessage(), ['exception' => $e]);
             return false;
         }
     }
 
     /**
      * Will return page list
-     * 
+     *
      * @param Array $request
      * @return Collections
      */

@@ -13603,3 +13603,17 @@ details[open] .faq-chevron {
         gap: 12px;
     }
 }
+/* ─────────────────── DESIGN-MODE PAGES ───────────────────
+   Pages saved with Design Mode render their own markup edge-to-edge.
+   The canvas only supplies breathing room under the fixed site header —
+   everything inside is controlled by the page's own HTML and Custom CSS. */
+.page-design-canvas {
+    width: 100%;
+    min-height: 40vh;
+    padding-top: 90px;
+}
+
+.page-design-canvas img {
+    max-width: 100%;
+    height: auto;
+}

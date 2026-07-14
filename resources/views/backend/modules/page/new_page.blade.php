@@ -78,6 +78,21 @@
                                     @endif
                                 </div>
 
+                                <!--Custom CSS (design mode only)-->
+                                <div class="form-group design-mode-option d-none">
+                                    <label>{{ __tr('Custom CSS') }}</label>
+                                    <textarea class="form-control page-custom-css" name="custom_css" rows="8"
+                                        placeholder=".my-section { padding: 60px 0; }">{{ old('custom_css') }}</textarea>
+                                    <small class="form-text text-muted">
+                                        {{ __tr('Styles for this page only. Write plain CSS — no <style> tag needed.') }}
+                                    </small>
+                                    @if ($errors->has('custom_css'))
+                                        <div class="error text-danger mb-0 invalid-input">
+                                            {{ $errors->first('custom_css') }}</div>
+                                    @endif
+                                </div>
+                                <!--End Custom CSS-->
+
                                 <!--Seo-->
                                 <div class="form-group">
                                     <label>{{ __tr('Meta Title') }}</label>
@@ -111,6 +126,19 @@
                     <div class="col-lg-3 col-12">
                         <div class="card">
                             <div class="card-body">
+                                <div class="form-group">
+                                    <label>{{ __tr('Design Mode') }}</label>
+                                    <div
+                                        class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
+                                        <input type="checkbox" name="build_with" id="pageDesignModeSwitcher"
+                                            class="custom-control-input" @checked(old('build_with'))>
+                                        <label class="custom-control-label" for="pageDesignModeSwitcher"></label>
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        {{ __tr('Render this page full-width with no breadcrumb, and unlock Custom CSS — design the layout yourself in the content editor (use its Code View button for raw HTML).') }}
+                                    </small>
+                                </div>
+
                                 <div class="form-group">
                                     <label>{{ __tr('Custom Header') }}</label>
                                     <div
@@ -164,6 +192,8 @@
             $('#contentSummernote').summernote({
                 tabsize: 2,
                 height: 250,
+                // codeview lets an admin write their own section markup, which is what
+                // makes design mode useful — without it the page can only hold body copy.
                 toolbar: [
                     ["style", ["style"]],
                     ["font", ["bold", "underline", "clear"]],
@@ -171,14 +201,23 @@
                     ["para", ["ul", "ol", "paragraph"]],
                     ["table", ["table"]],
                     ["insert", ["link", "picture"]],
-                    ["view", ["fullscreen", "help"]],
+                    ["view", ["fullscreen", "codeview", "help"]],
                 ],
+                // Keep the admin's markup intact in code view: Summernote otherwise
+                // strips tags/attributes it does not recognise from a pasted layout.
+                codeviewFilter: false,
+                codeviewIframeFilter: false,
                 callbacks: {
                     onImageUpload: function(images, editor, welEditable, ) {
                         sendFile(images[0], editor, 'contentSummernote');
                     }
                 }
             });
+
+            /*Design mode: reveal the Custom CSS field*/
+            $("#pageDesignModeSwitcher").on('change', function() {
+                $(".design-mode-option").toggleClass('d-none', !$(this).is(':checked'));
+            }).trigger('change');
 
             /*Generate permalink*/
             $(".page-title").change(function(e) {

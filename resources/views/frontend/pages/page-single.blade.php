@@ -13,12 +13,28 @@
     @endif
 @endsection
 
+@section('page-style')
+    @if ($page->custom_css)
+        {{-- Page-scoped styles authored in the admin. `</style` is stripped so the
+             stylesheet cannot close its own tag and inject markup after it. --}}
+        <style>
+            {!! str_ireplace('</style', '', $page->custom_css) !!}
+        </style>
+    @endif
+@endsection
+
 @section('content')
-    {{-- ══════════════════ HERO / BREADCRUMB ══════════════════ --}}
-    @if ($page->has_custom_header == config('settings.general_status.active') && $page->header)
-        {!! $page->header !!}
+    @if ($page->is_design_mode)
+        {{-- ═════════════════ DESIGN MODE ═════════════════
+             The admin owns the layout: their markup renders edge-to-edge, with no
+             breadcrumb header and no narrow column constraining it. --}}
+        <div class="page-design-canvas">
+            {!! $page->translation('content') !!}
+        </div>
     @else
-        <section class="contact-breadcrumb-area">
+        {{-- ═════════════════ EDITOR MODE ═════════════════
+             Standard article layout: breadcrumb header + centred content column. --}}
+        <section class="contact-breadcrumb-area {{ $page->has_custom_header == config('settings.general_status.active') && $page->header ? 'page-header-' . $page->header : '' }}">
             <div class="container">
                 <div class="breadcrumb-content text-center">
                     <h1>{{ $page->translation('title') }}</h1>
@@ -33,20 +49,17 @@
                 </div>
             </div>
         </section>
-    @endif
-    {{-- ══════════════════ END HERO ══════════════════════════ --}}
 
-    {{-- ══════════════════ PAGE CONTENT ══════════════════════ --}}
-    <section class="page-content-section" data-padding-top="60" data-padding-bottom="80">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="page-content-body">
-                        {!! $page->translation('content') !!}
+        <section class="page-content-section" data-padding-top="60" data-padding-bottom="80">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="page-content-body">
+                            {!! $page->translation('content') !!}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-    {{-- ══════════════════ END PAGE CONTENT ═══════════════════ --}}
+        </section>
+    @endif
 @endsection

@@ -13,8 +13,10 @@ class InvoiceService
 {
     public function createForSubscription(UserSubscription $subscription, array $overrides = []): Invoice
     {
-        $plan   = $subscription->plan;
-        $amount = $plan->price ?? 0;
+        $plan = $subscription->plan;
+        // Bill what the customer was actually charged: the subscription amount
+        // already reflects any promotional offer price on the plan.
+        $amount = $subscription->amount ?? $plan?->effective_price ?? 0;
         $tax    = $overrides['tax_amount'] ?? 0;
 
         $invoice = Invoice::create(array_merge([

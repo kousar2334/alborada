@@ -43,6 +43,7 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|max:250',
             'permalink' => 'required|unique:pages,permalink',
+            'custom_css' => 'nullable|string|max:20000',
         ]);
 
         $res = $this->pageRepository->storeNewPage($request, auth()->user()->id);
@@ -73,6 +74,7 @@ class PageController extends Controller
         $request->validate([
             'title' => 'required|max:250',
             'permalink' => 'required|unique:pages,permalink,' . $request['id'],
+            'custom_css' => 'nullable|string|max:20000',
         ]);
         $res = $this->pageRepository->updatePage($request);
         if (!$res) {

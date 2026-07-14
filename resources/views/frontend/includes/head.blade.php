@@ -40,5 +40,7 @@
     <link rel="stylesheet" href="{{ asset('web-assets/frontend/css/all.min.css') }}">
     <link rel="canonical" href="#" />
     @yield('meta')
+    {{-- Per-page styles (design-mode pages ship their own CSS) --}}
+    @yield('page-style')
 
 </head>
