@@ -84,53 +84,81 @@
                                         @endif
                                     </td>
                                     <td>
-                                        {{-- Approve / Reject --}}
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-default">{{ __tr('Action') }}</button>
+                                            <button type="button"
+                                                class="btn btn-sm btn-default dropdown-toggle dropdown-hover dropdown-icon"
+                                                data-toggle="dropdown" aria-expanded="false">
+                                                <span class="sr-only">{{ __tr('Toggle Dropdown') }}</span>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right" role="menu">
+                                                {{-- Approve / Reject / Deactivate --}}
+                                                @if ($reseller->status == 0)
+                                                    <button type="submit" form="reseller-approve-{{ $reseller->id }}"
+                                                        class="dropdown-item text-success"
+                                                        onclick="return confirm('Approve {{ addslashes($reseller->name) }}?')">
+                                                        <i class="fas fa-check mr-2"></i>{{ __tr('Approve') }}
+                                                    </button>
+                                                    <button type="submit" form="reseller-reject-{{ $reseller->id }}"
+                                                        class="dropdown-item text-danger"
+                                                        onclick="return confirm('Reject {{ addslashes($reseller->name) }}?')">
+                                                        <i class="fas fa-times mr-2"></i>{{ __tr('Reject') }}
+                                                    </button>
+                                                @else
+                                                    <button type="submit" form="reseller-reject-{{ $reseller->id }}"
+                                                        class="dropdown-item text-warning"
+                                                        onclick="return confirm('Deactivate {{ addslashes($reseller->name) }}?')">
+                                                        <i class="fas fa-ban mr-2"></i>{{ __tr('Deactivate') }}
+                                                    </button>
+                                                @endif
+                                                <div class="dropdown-divider"></div>
+
+                                                {{-- Top Up --}}
+                                                <button type="button" class="dropdown-item" data-toggle="modal"
+                                                    data-target="#top-up-modal" data-reseller-id="{{ $reseller->id }}"
+                                                    data-reseller-name="{{ $reseller->name }}">
+                                                    <i class="fas fa-coins mr-2"></i>{{ __tr('Top Up') }}
+                                                </button>
+
+                                                {{-- Edit --}}
+                                                <a href="{{ route('admin.resellers.edit', $reseller->id) }}"
+                                                    class="dropdown-item">
+                                                    <i class="fas fa-edit mr-2"></i>{{ __tr('Edit') }}
+                                                </a>
+
+                                                {{-- Logs --}}
+                                                <a href="{{ route('admin.resellers.credit.logs', $reseller->id) }}"
+                                                    class="dropdown-item">
+                                                    <i class="fas fa-history mr-2"></i>{{ __tr('Logs') }}
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+
+                                                {{-- Delete --}}
+                                                <button type="button" class="dropdown-item text-danger"
+                                                    data-toggle="modal" data-target="#delete-reseller-modal"
+                                                    data-reseller-id="{{ $reseller->id }}"
+                                                    data-reseller-name="{{ $reseller->name }}"
+                                                    data-reseller-clients="{{ $reseller->reseller_clients_count }}">
+                                                    <i class="fas fa-trash-alt mr-2"></i>{{ __tr('Delete') }}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Hidden forms submitted by the dropdown items above. Kept outside
+                                             the .dropdown-menu so the markup stays valid and the menu closes
+                                             cleanly on submit. --}}
                                         @if ($reseller->status == 0)
-                                            <form action="{{ route('admin.resellers.approve', $reseller->id) }}"
-                                                method="POST" class="d-inline">
+                                            <form id="reseller-approve-{{ $reseller->id }}"
+                                                action="{{ route('admin.resellers.approve', $reseller->id) }}"
+                                                method="POST" class="d-none">
                                                 @csrf
-                                                <button type="submit" class="btn btn-sm btn-success"
-                                                    onclick="return confirm('Approve {{ addslashes($reseller->name) }}?')">
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('admin.resellers.reject', $reseller->id) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Reject {{ addslashes($reseller->name) }}?')">
-                                                    Reject
-                                                </button>
-                                            </form>
-                                        @else
-                                            <form action="{{ route('admin.resellers.reject', $reseller->id) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-warning btn-sm"
-                                                    onclick="return confirm('Deactivate {{ addslashes($reseller->name) }}?')">
-                                                    Deactivate
-                                                </button>
                                             </form>
                                         @endif
-
-                                        {{-- Top Up --}}
-                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#top-up-modal"
-                                            data-reseller-id="{{ $reseller->id }}"
-                                            data-reseller-name="{{ $reseller->name }}">
-                                            Top Up
-                                        </button>
-
-                                        {{-- Edit --}}
-                                        <a href="{{ route('admin.resellers.edit', $reseller->id) }}"
-                                            class="btn btn-sm btn-primary">
-                                            Edit
-                                        </a>
-
-                                        {{-- Logs --}}
-                                        <a href="{{ route('admin.resellers.credit.logs', $reseller->id) }}"
-                                            class="btn btn-sm btn-default">
-                                            Logs
-                                        </a>
+                                        <form id="reseller-reject-{{ $reseller->id }}"
+                                            action="{{ route('admin.resellers.reject', $reseller->id) }}" method="POST"
+                                            class="d-none">
+                                            @csrf
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -144,6 +172,33 @@
                 @if ($resellers->hasPages())
                     <div class="card-footer">{{ $resellers->withQueryString()->links('pagination::bootstrap-5') }}</div>
                 @endif
+            </div>
+        </div>
+
+        {{-- Delete reseller modal --}}
+        <div class="modal fade" id="delete-reseller-modal">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-content">
+                    <form id="delete-reseller-form" action="" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ __tr('Delete Reseller') }}</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <p class="mb-2">{{ __tr('Are you sure to delete') }}
+                                <strong id="delete-reseller-name"></strong>?</p>
+                            <p class="text-muted mb-0" id="delete-reseller-clients-note">
+                                {{ __tr('Their credit logs will be removed. Client accounts are kept but detached from this reseller.') }}
+                            </p>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-between">
+                            <button type="button" class="btn btn-default"
+                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                            <button type="submit" class="btn btn-danger">{{ __tr('Delete') }}</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -272,6 +327,14 @@
             var btn = $(event.relatedTarget);
             $(this).find('#top-up-reseller-id').val(btn.data('reseller-id'));
             $(this).find('#top-up-reseller-name').text(btn.data('reseller-name'));
+        });
+
+        $('#delete-reseller-modal').on('show.bs.modal', function(event) {
+            var btn = $(event.relatedTarget);
+            var deleteUrl = '{{ route('admin.resellers.delete', ':id') }}'.replace(':id', btn.data('reseller-id'));
+            $(this).find('#delete-reseller-form').attr('action', deleteUrl);
+            $(this).find('#delete-reseller-name').text(btn.data('reseller-name'));
+            $(this).find('#delete-reseller-clients-note').toggle(btn.data('reseller-clients') > 0);
         });
     </script>
 @endsection

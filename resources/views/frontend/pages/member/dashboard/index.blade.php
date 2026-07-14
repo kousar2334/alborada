@@ -9,7 +9,8 @@
     <div class="dashboard-header">
         <div>
             <h1 class="dash-page-title">{{ __tr('Welcome back') }}, {{ auth()->user()->name }}!</h1>
-            <p class="dash-page-subtitle">{{ __tr('Your Moissanite Visions dashboard — manage your streaming service below.') }}
+            <p class="dash-page-subtitle">
+                {{ __tr('Your Moissanite Visions dashboard — manage your streaming service below.') }}
             </p>
         </div>
         @if ($activeSubscription)
@@ -86,7 +87,7 @@
             </div>
             <div class="stat-value">{{ $openTickets }}</div>
             <div class="stat-change">
-                <i class="fas fa-ticket"></i> {{ __tr('support requests') }}
+                <i class="fas fa-ticket-alt"></i> {{ __tr('support requests') }}
             </div>
         </div>
     </div>
@@ -180,7 +181,7 @@
                     <i class="fas fa-wifi"></i> {{ __tr('Report Buffering') }}
                 </a>
                 <a href="{{ route('member.tickets.create') }}" class="action-btn secondary">
-                    <i class="fas fa-ticket"></i> {{ __tr('Open Ticket') }}
+                    <i class="fas fa-ticket-alt"></i> {{ __tr('Open Ticket') }}
                     @if ($openTickets > 0)
                         <span class="msg-unread-badge">{{ $openTickets }}</span>
                     @endif

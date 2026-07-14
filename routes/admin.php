@@ -330,6 +330,7 @@ Route::prefix('admin')->group(function () {
             Route::put('/{id}', [ResellerManagementController::class, 'update'])->name('admin.resellers.update');
             Route::post('/{id}/approve', [ResellerManagementController::class, 'approve'])->name('admin.resellers.approve');
             Route::post('/{id}/reject', [ResellerManagementController::class, 'reject'])->name('admin.resellers.reject');
+            Route::post('/{id}/delete', [ResellerManagementController::class, 'destroy'])->name('admin.resellers.delete');
         });
 
         /**

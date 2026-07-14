@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             MediaContentSeeder::class,
             PricingPlanSeeder::class,
             ChannelSeeder::class,
+            MenuSeeder::class,
         ]);
     }
 }

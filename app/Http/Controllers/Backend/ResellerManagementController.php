@@ -109,6 +109,20 @@ class ResellerManagementController extends Controller
         return back();
     }
 
+    public function destroy(int $id)
+    {
+        $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);
+
+        // DB constraints handle the related data: clients keep their accounts
+        // (users.reseller_id is set NULL on delete) and the reseller's credit
+        // logs are removed (cascade).
+        $name = $reseller->name;
+        $reseller->delete();
+
+        toastNotification('success', __tr('Reseller deleted: ') . $name);
+        return redirect()->route('admin.resellers.index');
+    }
+
     public function topUpCredits(Request $request)
     {
         $request->validate([
