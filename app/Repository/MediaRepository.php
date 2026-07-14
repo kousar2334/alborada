@@ -57,6 +57,9 @@ class MediaRepository
                     ];
                 }
 
+                [$path, $extension, $file_original_name, $file_size] =
+                    self::convertUploadToWebp($path, $extension, $file_original_name, $file_size);
+
                 $media = new Media();
                 $media->title = $file_name_with_out_extension;
                 $media->file_name = $file_original_name;
@@ -82,6 +85,62 @@ class MediaRepository
                 'success' => false,
                 'message' => $e->getMessage(),
             ];
+        }
+    }
+
+    /**
+     * Convert an uploaded jpg/jpeg/png to WebP so pages load faster and
+     * storage stays small. Returns the (possibly updated) [path, extension,
+     * file name, size]; on unsupported types or any conversion failure the
+     * original file is kept untouched. GIFs are skipped because GD would
+     * drop animation frames; SVG/WebP/videos are left as-is.
+     */
+    private static function convertUploadToWebp(string $path, string $extension, string $fileName, int $fileSize): array
+    {
+        $original = [$path, $extension, $fileName, $fileSize];
+
+        if (!in_array(strtolower($extension), ['jpg', 'jpeg', 'png']) || !function_exists('imagewebp')) {
+            return $original;
+        }
+
+        try {
+            $absolute = public_path($path);
+            if (!is_file($absolute)) {
+                return $original;
+            }
+
+            $image = match (strtolower($extension)) {
+                'png'   => @imagecreatefrompng($absolute),
+                default => @imagecreatefromjpeg($absolute),
+            };
+            if ($image === false) {
+                return $original;
+            }
+
+            // Preserve PNG transparency in the WebP output.
+            imagepalettetotruecolor($image);
+            imagealphablending($image, true);
+            imagesavealpha($image, true);
+
+            $webpAbsolute = preg_replace('/\.[^.]+$/', '.webp', $absolute);
+            $saved = @imagewebp($image, $webpAbsolute, 82);
+            imagedestroy($image);
+
+            if (!$saved || !is_file($webpAbsolute)) {
+                return $original;
+            }
+
+            @unlink($absolute);
+
+            return [
+                preg_replace('/\.[^.]+$/', '.webp', $path),
+                'webp',
+                preg_replace('/\.[^.]+$/', '.webp', $fileName),
+                filesize($webpAbsolute),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('WebP conversion skipped: ' . $e->getMessage());
+            return $original;
         }
     }
 
@@ -137,6 +196,9 @@ class MediaRepository
         $disk = 'public';
         $destination_folder = "uploads/" . date("Y") . "/" . date("M");
         $path = $file->store($destination_folder, $disk);
+
+        [$path, $extension, $file_original_name, $file_size] =
+            self::convertUploadToWebp($path, $extension, $file_original_name, $file_size);
 
         $media = new Media();
         $media->title = $file_name_with_out_extension;

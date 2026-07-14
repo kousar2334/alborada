@@ -5,7 +5,7 @@
 @endsection
 
 @section('meta')
-    <title>{{ get_setting('site_name', 'Moissanite Radiance') }} |
+    <title>{{ get_setting('site_name', 'Moissanite Visions') }} |
         {{ p_trans('home_meta_tagline', null, 'Premium Streaming Service') }}</title>
     <meta name="description"
         content="{{ p_trans('home_meta_desc', null, get_setting('site_meta_description', 'Premium IPTV service with 40K+ channels and 150K+ VOD titles.')) }}">
@@ -75,7 +75,7 @@
                     <div class="sec-label">{{ p_trans('home_movies_label', null, 'Movies') }}</div>
                     <div class="sec-head">
                         <h2>{{ p_trans('home_movies_heading', null, 'Featured Movies') }}</h2>
-                        <p>{{ p_trans('home_movies_desc', null, 'Browse top films instantly available on demand through your ' . get_setting('site_name', 'Moissanite Radiance') . ' subscription.') }}
+                        <p>{{ p_trans('home_movies_desc', null, 'Browse top films instantly available on demand through your ' . get_setting('site_name', 'Moissanite Visions') . ' subscription.') }}
                         </p>
                     </div>
                     <div class="fc-slider-wrapper">
@@ -160,7 +160,7 @@
                     <div class="about-grid">
                         <div class="about-left">
                             <div class="sec-label sec-label-start">
-                                {{ p_trans('home_about_label', null, 'About ' . get_setting('site_name', 'Moissanite Radiance')) }}
+                                {{ p_trans('home_about_label', null, 'About ' . get_setting('site_name', 'Moissanite Visions')) }}
                             </div>
                             <h2 class="about-heading">
                                 {{ p_trans('home_about_heading', null, 'The streaming service built for serious viewers') }}
@@ -298,7 +298,7 @@
             <section id="features">
                 <div class="wrap">
                     <div class="sec-label">
-                        {{ p_trans('home_feat_label', null, 'Why ' . get_setting('site_name', 'Moissanite Radiance')) }}</div>
+                        {{ p_trans('home_feat_label', null, 'Why ' . get_setting('site_name', 'Moissanite Visions')) }}</div>
                     <div class="sec-head">
                         <h2>{{ p_trans('home_feat_heading', null, 'Everything your streaming setup needs') }}</h2>
                         <p>{{ p_trans('home_feat_desc', null, 'Professional delivery, robust infrastructure, and dedicated support — built for viewers who don\'t compromise.') }}
@@ -364,8 +364,9 @@
                             @foreach ($plans as $plan)
                                 @php
                                     $isFeatured = $loop->iteration === 2 || $plans->count() === 1;
-                                    $priceWhole = floor($plan->price);
-                                    $priceDec = '.' . str_pad((int) (($plan->price - $priceWhole) * 100), 2, '0');
+                                    $displayPrice = $plan->effective_price;
+                                    $priceWhole = floor($displayPrice);
+                                    $priceDec = '.' . str_pad((int) (($displayPrice - $priceWhole) * 100), 2, '0');
                                     $btnClass = $isFeatured
                                         ? 'btn-green'
                                         : ($loop->last
@@ -387,7 +388,15 @@
                                     @endif
                                     <div class="plan-name">{{ $plan->max_connections ?? 1 }}
                                         {{ ($plan->max_connections ?? 1) > 1 ? 'Devices' : 'Device' }}</div>
+                                    @if ($plan->has_offer)
+                                        <div class="plan-offer-badge">
+                                            🔥 {{ p_trans('home_pricing_offer_badge', null, 'Limited Time Offer') }}
+                                        </div>
+                                    @endif
                                     <div class="plan-price-row">
+                                        @if ($plan->has_offer)
+                                            <div class="plan-price-old">${{ number_format($plan->price, 2) }}</div>
+                                        @endif
                                         <div class="plan-price">${{ $priceWhole }}<span
                                                 class="plan-price-dec">{{ $priceDec }}</span></div>
                                         <div class="plan-period">/ {{ $plan->duration_days }} days</div>
@@ -646,7 +655,7 @@
                     <div class="sec-label">{{ p_trans('home_devices_label', null, 'Compatibility') }}</div>
                     <div class="sec-head">
                         <h2>{{ p_trans('home_devices_heading', null, 'Works on any device') }}</h2>
-                        <p>{{ p_trans('home_devices_desc', null, get_setting('site_name', 'Moissanite Radiance') . ' runs on every major platform — from 65-inch smart TVs to pocket-sized phones.') }}
+                        <p>{{ p_trans('home_devices_desc', null, get_setting('site_name', 'Moissanite Visions') . ' runs on every major platform — from 65-inch smart TVs to pocket-sized phones.') }}
                         </p>
                     </div>
                     <div class="devices-grid">
@@ -726,7 +735,7 @@
             <section id="why">
                 <div class="wrap">
                     <div class="sec-label">
-                        {{ p_trans('home_why_label', null, 'Why ' . get_setting('site_name', 'Moissanite Radiance')) }}</div>
+                        {{ p_trans('home_why_label', null, 'Why ' . get_setting('site_name', 'Moissanite Visions')) }}</div>
                     <div class="sec-head centered">
                         <h2>{{ p_trans('home_why_heading', null, 'Why thousands choose us') }}</h2>
                         <p>{{ p_trans('home_why_desc', null, 'We built the service we always wanted — reliable, flexible, and packed with content you actually watch.') }}
@@ -996,7 +1005,7 @@
                         <div class="cta-inner">
                             <div class="sec-label sec-label-center mb-3">
                                 {{ p_trans('home_cta_label', null, 'Get Started Today') }}</div>
-                            <h2>{{ p_trans('home_cta_heading', null, 'Ready to experience ' . get_setting('site_name', 'Moissanite Radiance') . '?') }}
+                            <h2>{{ p_trans('home_cta_heading', null, 'Ready to experience ' . get_setting('site_name', 'Moissanite Visions') . '?') }}
                             </h2>
                             <p>{{ p_trans('home_cta_desc', null, 'Join thousands of viewers who switched to the most reliable IPTV service available. Instant activation. No contracts.') }}
                             </p>

@@ -19,7 +19,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h2 style="margin:0;">{{ get_setting('site_name', 'Moissanite Radiance') }}</h2>
+        <h2 style="margin:0;">{{ get_setting('site_name', 'Moissanite Visions') }}</h2>
         <p style="margin:5px 0 0;opacity:.7;">Invoice</p>
     </div>
     <div class="body">
@@ -47,7 +47,7 @@
         <p>Need help? <a href="{{ route('member.tickets.create') }}">Contact support</a>.</p>
     </div>
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Radiance') }}. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Visions') }}. All rights reserved.</p>
     </div>
 </div>
 </body>

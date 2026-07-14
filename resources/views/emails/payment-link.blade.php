@@ -16,7 +16,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>{{ get_setting('site_name', 'Moissanite Radiance') }}</h1>
+        <h1>{{ get_setting('site_name', 'Moissanite Visions') }}</h1>
         <p style="margin:0;opacity:.8;">Secure Payment Link</p>
     </div>
     <div class="body">
@@ -39,7 +39,7 @@
         <p>Need help? <a href="{{ route('member.tickets.create') }}">Contact support</a>.</p>
     </div>
     <div class="footer">
-        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Radiance') }}. All rights reserved.</p>
+        <p>&copy; {{ date('Y') }} {{ get_setting('site_name', 'Moissanite Visions') }}. All rights reserved.</p>
     </div>
 </div>
 </body>

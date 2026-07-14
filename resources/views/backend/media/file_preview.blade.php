@@ -17,8 +17,20 @@
         </div>
         <div class="single-media-info p-2">
             <div class="media-form">
-                <p>{{ __tr('Name') }}</p>
-                <span>{{ $files[0]->title }}</span>
+                <p class="mb-1">{{ __tr('Name') }}</p>
+                <input type="text" class="form-control form-control-sm media-title-input"
+                    value="{{ $files[0]->title }}" placeholder="{{ __tr('Enter title') }}">
+            </div>
+            <div class="media-form">
+                <p class="mb-1">{{ __tr('Alt Text') }}</p>
+                <input type="text" class="form-control form-control-sm media-alt-input"
+                    value="{{ $files[0]->alt }}" placeholder="{{ __tr('Describe the image for SEO & accessibility') }}">
+            </div>
+            <div class="media-form">
+                <button type="button" class="btn btn-sm btn-primary save-media-details-btn"
+                    data-id="{{ $files[0]->id }}">
+                    <i class="fas fa-save mr-1"></i>{{ __tr('Save Details') }}
+                </button>
             </div>
             <div class="media-form">
                 <p class="mb-1">{{ __tr('Full URL') }}</p>

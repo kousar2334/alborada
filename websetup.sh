@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# Moissanite Radiance — WEB SERVER Setup
+# Moissanite Visions — WEB SERVER Setup
 # Laravel 12 IPTV Platform web panel + phpMyAdmin + Postfix mail server
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
@@ -39,7 +39,7 @@ STATE_FILE="/root/.alborada_web_install_state"
 CREDENTIALS_FILE="/root/.alborada_credentials"
 DNS_RECORDS_FILE="/root/.alborada_dns_records"
 
-APP_DISPLAY_NAME="Moissanite Radiance"
+APP_DISPLAY_NAME="Moissanite Visions"
 APP_DIR="/var/www/alborada"
 
 DB_HOST="db"                    # Docker Compose service name
@@ -126,7 +126,7 @@ generate_credentials() {
 }
 
 save_credentials() {
-    printf '# Moissanite Radiance Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
+    printf '# Moissanite Visions Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
         "$(date)" "$MYSQL_ROOT_PASSWORD" "$DB_PASSWORD" "$ADMIN_PASSWORD" \
         > "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
@@ -144,7 +144,7 @@ load_credentials() {
 
 save_state() {
     {
-        echo "# Moissanite Radiance Web Install State — $(date)"
+        echo "# Moissanite Visions Web Install State — $(date)"
         echo "DOMAIN=$DOMAIN"
         echo "CANONICAL_DOMAIN=$CANONICAL_DOMAIN"
         echo "WWW_DOMAIN=$WWW_DOMAIN"
@@ -1044,7 +1044,8 @@ setup_laravel() {
     log_success "Migrations complete"
 
     # ── 9f. Seed: permissions + languages + media content ───────────────
-    # DatabaseSeeder calls: PermissionSeeder, LanguageSeeder, MediaContentSeeder
+    # DatabaseSeeder calls: PermissionSeeder, LanguageSeeder, MediaContentSeeder,
+    # PricingPlanSeeder (4 plans with launch offer prices) and ChannelSeeder.
     # It does NOT call UserSeeder (which has hardcoded credentials).
     # We create the admin user manually below with generated credentials.
     log_wait "Seeding database (permissions, languages, media content)"

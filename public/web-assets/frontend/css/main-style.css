@@ -2072,6 +2072,27 @@ header.header-style-01.sticky-bar .header-bg {
     padding-left: 4px;
 }
 
+/* Adjacent buttons must never touch — covers plain inline sequences that
+   are not inside a flex container with its own gap. */
+.btn + .btn,
+.cmn-btn + .cmn-btn,
+.cmn-btn + .btn,
+.btn + .cmn-btn,
+.cmn-btn-outline1 + .cmn-btn-outline1 {
+    margin-left: 8px;
+}
+
+.footer-links-icons li a i {
+    margin-right: 6px;
+    color: var(--primary-color);
+    width: 16px;
+    text-align: center;
+}
+
+.footer-logo-img {
+    max-height: 50px;
+}
+
 .footer-padding {
     padding-top: 100px;
     padding-bottom: 75px;
@@ -11218,6 +11239,31 @@ section {
     align-items: baseline;
     gap: 4px;
     margin: 20px 0 8px;
+    flex-wrap: wrap;
+}
+
+.plan-price-old {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.4rem;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-right: 6px;
+    line-height: 1;
+}
+
+.plan-offer-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    color: #fff;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-top: 10px;
+    align-self: flex-start;
 }
 
 .plan-price {

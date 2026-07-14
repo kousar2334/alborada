@@ -45,6 +45,11 @@
                             placeholder="Search name/email..." value="{{ request('q') }}">
                         <button class="btn btn-sm btn-default" type="submit">Search</button>
                     </form>
+
+                    <button class="btn btn-success btn-sm text-white ml-2" data-toggle="modal"
+                        data-target="#add-reseller-modal">
+                        <i class="fas fa-plus mr-1"></i>{{ __tr('Add Reseller') }}
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-bordered table-hover mb-0">
@@ -142,6 +147,87 @@
             </div>
         </div>
 
+        {{-- Add reseller modal --}}
+        <div class="modal fade" id="add-reseller-modal">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form action="{{ route('admin.resellers.store') }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ __tr('Add New Reseller') }}</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            @if ($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0 pl-3">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            <div class="form-row">
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Name') }} *</label>
+                                    <input type="text" name="name" class="form-control" value="{{ old('name') }}"
+                                        placeholder="{{ __tr('Enter name') }}" required>
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Email') }} *</label>
+                                    <input type="email" name="email" class="form-control" value="{{ old('email') }}"
+                                        placeholder="{{ __tr('Enter email') }}" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Password') }} *</label>
+                                    <input type="password" name="password" class="form-control"
+                                        placeholder="{{ __tr('Enter password') }}" required>
+                                </div>
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Confirm Password') }} *</label>
+                                    <input type="password" name="password_confirmation" class="form-control"
+                                        placeholder="{{ __tr('Confirm password') }}" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Company Name') }}</label>
+                                    <input type="text" name="company_name" class="form-control"
+                                        value="{{ old('company_name') }}" placeholder="{{ __tr('Optional') }}">
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Markup %') }}</label>
+                                    <input type="number" name="markup_percentage" class="form-control" min="0"
+                                        max="100" step="0.01" value="{{ old('markup_percentage', 0) }}">
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Initial Credits ($)') }}</label>
+                                    <input type="number" name="credits" class="form-control" min="0" step="0.01"
+                                        value="{{ old('credits', 0) }}">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-lg-6">
+                                    <label class="black font-14">{{ __tr('Status') }}</label>
+                                    <select name="status" class="form-control">
+                                        <option value="1">{{ __tr('Active') }}</option>
+                                        <option value="0">{{ __tr('Pending') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default"
+                                data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                            <button type="submit" class="btn btn-success">{{ __tr('Create Reseller') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         {{-- Top-up modal --}}
         <div class="modal fade" id="top-up-modal">
             <div class="modal-dialog modal-sm">
@@ -177,6 +263,11 @@
 @endsection
 @section('page-script')
     <script>
+        @if ($errors->any())
+            // Validation failed on reseller creation — reopen the modal so the errors are visible
+            $('#add-reseller-modal').modal('show');
+        @endif
+
         $('#top-up-modal').on('show.bs.modal', function(event) {
             var btn = $(event.relatedTarget);
             $(this).find('#top-up-reseller-id').val(btn.data('reseller-id'));

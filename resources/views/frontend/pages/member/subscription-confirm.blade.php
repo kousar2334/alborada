@@ -60,7 +60,7 @@
 
                 <div class="sc-total-row">
                     <span class="sc-total-label">{{ __tr('Total Due') }}</span>
-                    <span class="sc-total-value">{{ format_amount($plan->price) }}</span>
+                    <span class="sc-total-value">{{ format_amount($plan->effective_price) }}</span>
                 </div>
 
                 <div class="sc-secure-note">
@@ -118,7 +118,7 @@
                         <button id="sc-pay-btn" class="sc-pay-btn" type="button">
                             <span id="sc-pay-btn-text">
                                 <i class="fas fa-lock sc-btn-lock"></i>
-                                {{ __tr('Pay') }} {{ format_amount($plan->price) }}
+                                {{ __tr('Pay') }} {{ format_amount($plan->effective_price) }}
                             </span>
                             <span id="sc-pay-btn-loading" class="sc-btn-loading sc-hidden">
                                 <i class="fas fa-spinner fa-spin"></i> {{ __tr('Processing...') }}

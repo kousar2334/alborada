@@ -81,7 +81,7 @@
                                             @foreach ($members as $key => $member)
                                                 <tr>
                                                     <td>
-                                                        {{ $member->uid }}
+                                                        {{ $member->id }}
                                                     </td>
                                                     <td>
                                                         <img src="{{ asset(getFilePath($member->image, true)) }}"
@@ -163,8 +163,8 @@
     </section>
 
     <!--New member Modal-->
-    <div id="new-member-modal" class="new-member-modal modal fade show" aria-modal="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div id="new-member-modal" class="new-member-modal modal fade" aria-modal="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -237,7 +237,7 @@
     </div>
     <!--End member modal-->
     <!--Delete Modal-->
-    <div id="delete-modal" class="delete-modal modal fade show" aria-modal="true">
+    <div id="delete-modal" class="delete-modal modal fade" aria-modal="true">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -263,7 +263,7 @@
     </div>
     <!--Delete Modal-->
     <!--Reset password modal Modal-->
-    <div id="reset-password-modal" class="reset-password-modal modal fade show" aria-modal="true">
+    <div id="reset-password-modal" class="reset-password-modal modal fade" aria-modal="true">
         <div class="modal-dialog modal-md ">
             <div class="modal-content">
                 <div class="modal-header">
@@ -298,7 +298,7 @@
     </div>
     <!--Reset password modal-->
     <!--Edit member Modal-->
-    <div id="edit-member-modal" class="edit-member-modal modal fade show" aria-modal="true">
+    <div id="edit-member-modal" class="edit-member-modal modal fade" aria-modal="true">
         <div class="modal-dialog modal-md">
             <div class="modal-content">
                 <div class="modal-content">
@@ -469,7 +469,7 @@
                             toastr.success('{{ __tr('Member Created successfully') }}');
                             location.reload();
                         } else {
-                            toastr.error('{{ __tr('Member Create Failed') }}');
+                            toastr.error(response.message || '{{ __tr('Member Create Failed') }}');
                         }
                     },
                     error: function(response) {

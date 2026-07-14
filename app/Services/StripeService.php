@@ -28,7 +28,7 @@ class StripeService
         $customerId = $this->createOrRetrieveCustomer($user);
 
         $intent = $this->stripe->paymentIntents->create([
-            'amount'      => (int) ($plan->price * 100), // cents
+            'amount'      => (int) ($plan->effective_price * 100), // cents
             'currency'    => strtolower(get_setting('stripe_currency', 'usd')),
             'customer'    => $customerId,
             'description' => $plan->title . ' Subscription',
@@ -93,7 +93,7 @@ class StripeService
             }
 
             $intent = $this->stripe->paymentIntents->create([
-                'amount'               => (int) ($plan->price * 100),
+                'amount'               => (int) ($plan->effective_price * 100),
                 'currency'             => strtolower(get_setting('stripe_currency', 'usd')),
                 'customer'             => $customerId,
                 'confirm'              => true,

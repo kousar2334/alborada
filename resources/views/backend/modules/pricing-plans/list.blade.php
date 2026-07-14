@@ -32,6 +32,7 @@
                                         <th>{{ __tr('Title') }}</th>
                                         <th>{{ __tr('Duration') }}</th>
                                         <th>{{ __tr('Price') }}</th>
+                                        <th>{{ __tr('Offer Price') }}</th>
                                         <th>{{ __tr('Connections') }}</th>
                                         <th>{{ __tr('Quality') }}</th>
                                         <th>{{ __tr('Catch-up') }}</th>
@@ -48,6 +49,13 @@
                                             <td>{{ $plan->title }}</td>
                                             <td>{{ $plan->duration_days }} {{ __tr('days') }}</td>
                                             <td>{{ $plan->price }}</td>
+                                            <td>
+                                                @if ($plan->has_offer)
+                                                    <span class="badge badge-success">{{ $plan->offer_price }}</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
                                             <td>{{ $plan->max_connections }}</td>
                                             <td><span class="badge badge-info">{{ $plan->streaming_quality }}</span></td>
                                             <td>{{ $plan->catchup_days }} {{ __tr('days') }}</td>
@@ -96,7 +104,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="11">
+                                            <td colspan="12">
                                                 <div class="text-center">{{ __tr('No item found') }}</div>
                                             </td>
                                         </tr>
@@ -140,10 +148,16 @@
                                     <input type="number" name="duration_days" class="form-control" min="1"
                                         value="30" placeholder="{{ __tr('Enter duration in days') }}">
                                 </div>
-                                <div class="form-group col-lg-6">
-                                    <label class="black font-14">{{ __tr('Price') }} *</label>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Regular Price') }} *</label>
                                     <input type="number" name="price" class="form-control" min="0" step="0.01"
                                         value="0" placeholder="{{ __tr('Enter price') }}">
+                                </div>
+                                <div class="form-group col-lg-3">
+                                    <label class="black font-14">{{ __tr('Offer Price') }}</label>
+                                    <input type="number" name="offer_price" class="form-control" min="0"
+                                        step="0.01" placeholder="{{ __tr('Optional promo price') }}">
+                                    <small class="text-muted">{{ __tr('Shown as a limited-time offer; leave empty for no offer') }}</small>
                                 </div>
                             </div>
 

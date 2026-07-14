@@ -22,7 +22,7 @@ class SubscriptionExpiryReminderMail extends Mailable
     public function envelope(): Envelope
     {
         $daysLeft = now()->diffInDays($this->subscription->expires_at);
-        return new Envelope(subject: 'Your subscription expires in ' . $daysLeft . ' days — ' . get_setting('site_name', 'Moissanite Radiance'));
+        return new Envelope(subject: 'Your subscription expires in ' . $daysLeft . ' days — ' . get_setting('site_name', 'Moissanite Visions'));
     }
 
     public function content(): Content

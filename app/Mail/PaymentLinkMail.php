@@ -22,7 +22,7 @@ class PaymentLinkMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Your payment link for ' . $this->plan->title . ' — ' . get_setting('site_name', 'Moissanite Radiance'));
+        return new Envelope(subject: 'Your payment link for ' . $this->plan->title . ' — ' . get_setting('site_name', 'Moissanite Visions'));
     }
 
     public function content(): Content

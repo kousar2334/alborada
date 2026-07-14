@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             LanguageSeeder::class,
             MediaContentSeeder::class,
+            PricingPlanSeeder::class,
+            ChannelSeeder::class,
         ]);
     }
 }

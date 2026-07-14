@@ -323,6 +323,7 @@ Route::prefix('admin')->group(function () {
          */
         Route::prefix('resellers')->group(function () {
             Route::get('/', [ResellerManagementController::class, 'index'])->name('admin.resellers.index');
+            Route::post('/store', [ResellerManagementController::class, 'store'])->name('admin.resellers.store');
             Route::post('/top-up', [ResellerManagementController::class, 'topUpCredits'])->name('admin.resellers.top.up');
             Route::get('/{id}/logs', [ResellerManagementController::class, 'creditLogs'])->name('admin.resellers.credit.logs');
             Route::get('/{id}/edit', [ResellerManagementController::class, 'edit'])->name('admin.resellers.edit');
@@ -366,6 +367,8 @@ Route::prefix('admin')->group(function () {
         Route::post('/media-items-list', [MediaController::class, 'mediaList'])->name('media.file.list')
             ->middleware('can:Manage Media');
         Route::post('/selected-media-details', [MediaController::class, 'selectedMediaDetails'])->name('media.selected.file.details')
+            ->middleware('can:Manage Media');
+        Route::post('/media/update-details', [MediaController::class, 'updateMediaDetails'])->name('admin.media.update.details')
             ->middleware('can:Manage Media');
 
         // ── App Downloader Codes ──────────────────────────────────────────────

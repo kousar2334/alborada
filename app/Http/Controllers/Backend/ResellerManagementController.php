@@ -31,6 +31,36 @@ class ResellerManagementController extends Controller
         return view('backend.modules.resellers.index', compact('resellers', 'pendingCount'));
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name'              => 'required|string|max:255',
+            'email'             => 'required|email|max:255|unique:users,email',
+            'password'          => 'required|confirmed|min:6|max:250',
+            'company_name'      => 'nullable|string|max:255',
+            'markup_percentage' => 'nullable|numeric|min:0|max:100',
+            'credits'           => 'nullable|numeric|min:0',
+            'status'            => 'required|in:0,1',
+        ]);
+
+        $reseller = User::create([
+            'name'              => $request->name,
+            'email'             => $request->email,
+            'password'          => \Illuminate\Support\Facades\Hash::make($request->password),
+            'company_name'      => $request->company_name,
+            'markup_percentage' => $request->markup_percentage ?? 0,
+            'type'              => config('settings.user_type.reseller', 3),
+            'status'            => $request->status,
+        ]);
+
+        if ((float) $request->credits > 0) {
+            $reseller->addCredits((float) $request->credits, 'Initial credits on account creation');
+        }
+
+        toastNotification('success', __tr('Reseller created successfully'));
+        return redirect()->route('admin.resellers.index');
+    }
+
     public function edit(int $id)
     {
         $reseller = User::where('type', config('settings.user_type.reseller', 3))->findOrFail($id);

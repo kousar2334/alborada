@@ -87,6 +87,29 @@ class MediaController extends Controller
         }
     }
     /**
+     * Will update media title and alt text
+     */
+    public function updateMediaDetails(Request $request): JsonResponse
+    {
+        $request->validate([
+            'id'    => 'required|integer|exists:media,id',
+            'title' => 'nullable|string|max:250',
+            'alt'   => 'nullable|string|max:250',
+        ]);
+
+        try {
+            $media = Media::findOrFail($request['id']);
+            $media->title = $request['title'] ?? $media->title;
+            $media->alt = $request['alt'];
+            $media->save();
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false], 500);
+        }
+    }
+
+    /**
      * Will delete a media
      */
     public function deleteMedia(Request $request): RedirectResponse

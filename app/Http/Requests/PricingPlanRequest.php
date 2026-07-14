@@ -19,6 +19,7 @@ class PricingPlanRequest extends FormRequest
             'title'                      => 'required|string|max:250',
             'duration_days'              => $isTranslation ? 'sometimes' : 'required|integer|min:1',
             'price'                      => $isTranslation ? 'sometimes' : 'required|numeric|min:0',
+            'offer_price'                => 'nullable|numeric|min:0|lt:price',
             'status'                     => $isTranslation ? 'sometimes' : 'required|in:0,1',
             'max_connections'            => $isTranslation ? 'sometimes' : 'required|integer|min:1|max:99',
             'streaming_quality'          => $isTranslation ? 'sometimes' : 'required|in:SD,HD,FHD,4K',
@@ -38,6 +39,7 @@ class PricingPlanRequest extends FormRequest
             'duration_days.min' => __tr('Duration must be at least 1 day'),
             'price.required' => __tr('Price is required'),
             'price.numeric' => __tr('Price must be a number'),
+            'offer_price.lt' => __tr('Offer price must be lower than the regular price'),
         ];
     }
 }

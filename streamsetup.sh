@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# Moissanite Radiance — STREAMING SERVER Setup
+# Moissanite Visions — STREAMING SERVER Setup
 # XUI.ONE 1.5.13 IPTV Streaming Panel (dedicated VPS)
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS ONLY (XUI.ONE requirement — fresh install)
@@ -36,7 +36,7 @@ LOG_MAX_BYTES=10485760          # 10 MB — rotate when exceeded
 STATE_FILE="/root/.alborada_stream_install_state"
 CREDENTIALS_FILE="/root/.alborada_stream_credentials"
 
-APP_DISPLAY_NAME="Moissanite Radiance"
+APP_DISPLAY_NAME="Moissanite Visions"
 
 IPTV_PANEL_PORT=8080            # XUI.ONE admin panel
 XUI_CLIENT_PORT=2086            # customer streaming port (Xtream Codes API)
@@ -116,7 +116,7 @@ generate_credentials() {
 }
 
 save_credentials() {
-    printf '# Moissanite Radiance Streaming Server Credentials — %s\n# XUI.ONE Database\nXUI_DB_NAME=xui_one\nXUI_DB_USER=xui_user\nXUI_DB_PASS=%s\n' \
+    printf '# Moissanite Visions Streaming Server Credentials — %s\n# XUI.ONE Database\nXUI_DB_NAME=xui_one\nXUI_DB_USER=xui_user\nXUI_DB_PASS=%s\n' \
         "$(date)" "$XUI_DB_PASS" \
         > "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
@@ -134,7 +134,7 @@ load_credentials() {
 
 save_state() {
     {
-        echo "# Moissanite Radiance Streaming Install State — $(date)"
+        echo "# Moissanite Visions Streaming Install State — $(date)"
         echo "DOMAIN=$DOMAIN"
         echo "CANONICAL_DOMAIN=$CANONICAL_DOMAIN"
         for step in "${!COMPLETED_STEPS[@]}"; do

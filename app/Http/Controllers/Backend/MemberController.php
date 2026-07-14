@@ -63,16 +63,19 @@ class MemberController extends Controller
         try {
             DB::beginTransaction();
             $member = User::findOrFail($request['id']);
-            if ($member->user_type == config('settings.user_type.member')) {
+            if ($member->type == config('settings.user_type.member')) {
                 $member->delete();
                 DB::commit();
             } else {
-                abort(404);
+                DB::rollBack();
+                toastNotification('error', 'User is not a member', 'Error');
+                return redirect()->back();
             }
             toastNotification('success', 'Member deleted successfully', 'Success');
             return redirect()->back();
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Member delete failed: ' . $e->getMessage(), ['exception' => $e]);
             toastNotification('error', 'Delete Failed', 'Error');
             return redirect()->back();
         }
@@ -154,6 +157,7 @@ class MemberController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Member update failed: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'success' => false
             ]);
@@ -182,8 +186,13 @@ class MemberController extends Controller
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+            // Surface the real cause: silent failures here left admins with an
+            // unexplained "Member Create Failed" (e.g. when a migration is
+            // pending in production and an INSERT column doesn't exist yet).
+            \Log::error('Member create failed: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json([
-                'success' => false
+                'success' => false,
+                'message' => 'Member could not be saved — check storage/logs/laravel.log for the reason',
             ]);
         }
     }

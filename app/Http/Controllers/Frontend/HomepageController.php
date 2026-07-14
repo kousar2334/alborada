@@ -25,13 +25,13 @@ class HomepageController extends Controller
         $movies = FeaturedContent::where('is_active', true)
             ->where('type', 'movie')
             ->orderBy('sort_order')
-            ->take(8)
+            ->take(14)
             ->get();
 
         $series = FeaturedContent::where('is_active', true)
             ->where('type', 'series')
             ->orderBy('sort_order')
-            ->take(8)
+            ->take(14)
             ->get();
 
         $sportEvents = FeaturedContent::where('is_active', true)

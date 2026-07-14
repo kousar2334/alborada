@@ -476,6 +476,21 @@
         }
     });
 
+    // Restore scrolling after a modal closes. Bootstrap removes body.modal-open
+    // whenever ANY modal hides, which breaks two cases here:
+    //  1. The media picker closes while the form modal that opened it is still
+    //     open — the remaining modal can no longer scroll.
+    //  2. A leftover backdrop/lock keeps the page itself from scrolling after
+    //     an image is picked ("can't scroll down until reopening the page").
+    $(document).on('hidden.bs.modal', '.modal', function() {
+        if ($('.modal.show').length) {
+            $('body').addClass('modal-open');
+        } else {
+            $('body').removeClass('modal-open').css('padding-right', '');
+            $('.modal-backdrop').remove();
+        }
+    });
+
     // Reset toolbar state when media modal opens
     $(document).on('show.bs.modal', '#mediaManagerModal', function() {
         media_search_query = '';
@@ -486,6 +501,34 @@
         $('.media-filter-pill').removeClass('active');
         $('.media-filter-pill[data-type="all"]').addClass('active');
         $('#multi-select-btn').removeClass('active');
+    });
+
+    // Save media title/alt from the preview sidebar (delegated — content is AJAX-injected)
+    $(document).on('click', '.save-media-details-btn', function() {
+        var $btn = $(this);
+        var $panel = $btn.closest('.single-media-details');
+        $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+            },
+            type: "POST",
+            url: '{{ route('admin.media.update.details') }}',
+            data: {
+                id: $btn.data('id'),
+                title: $panel.find('.media-title-input').val(),
+                alt: $panel.find('.media-alt-input').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('Media details updated', 'Saved');
+                } else {
+                    toastr.error('Update failed', 'Error!');
+                }
+            },
+            error: function() {
+                toastr.error('Update failed', 'Error!');
+            }
+        });
     });
 
     // Copy URL button in media preview sidebar (delegated — content is AJAX-injected)

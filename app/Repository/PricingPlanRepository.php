@@ -33,6 +33,7 @@ class PricingPlanRepository
             $plan->title = $data['title'];
             $plan->duration_days = $data['duration_days'];
             $plan->price = $data['price'];
+            $plan->offer_price = $data['offer_price'] ?? null;
             $plan->status = $data['status'];
             $plan->max_connections = $data['max_connections'] ?? 1;
             $plan->streaming_quality = $data['streaming_quality'] ?? 'HD';
@@ -74,6 +75,7 @@ class PricingPlanRepository
                 $plan->title = $request['title'];
                 $plan->duration_days = $request['duration_days'];
                 $plan->price = $request['price'];
+                $plan->offer_price = ($request['offer_price'] ?? '') !== '' ? $request['offer_price'] : null;
                 $plan->status = $request['status'];
                 $plan->max_connections = $request['max_connections'] ?? 1;
                 $plan->streaming_quality = $request['streaming_quality'] ?? 'HD';

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================================
-# Moissanite Radiance — Automated VPS Setup
+# Moissanite Visions — Automated VPS Setup
 # Laravel 12 IPTV Platform + XUI Xtream Streaming Server
 # ==========================================================================
 # Compatible : Ubuntu 22.04 LTS / 24.04 LTS (fresh install)
@@ -33,7 +33,7 @@ LOG_MAX_BYTES=10485760          # 10 MB — rotate when exceeded
 STATE_FILE="/root/.alborada_install_state"
 CREDENTIALS_FILE="/root/.alborada_credentials"
 
-APP_DISPLAY_NAME="Moissanite Radiance"
+APP_DISPLAY_NAME="Moissanite Visions"
 APP_DIR="/var/www/alborada"
 
 DB_HOST="db"                    # Docker Compose service name
@@ -139,7 +139,7 @@ generate_credentials() {
 }
 
 save_credentials() {
-    printf '# Moissanite Radiance Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
+    printf '# Moissanite Visions Credentials — %s\nMYSQL_ROOT_PASSWORD=%s\nDB_PASSWORD=%s\nADMIN_PASSWORD=%s\n' \
         "$(date)" "$MYSQL_ROOT_PASSWORD" "$DB_PASSWORD" "$ADMIN_PASSWORD" \
         > "$CREDENTIALS_FILE"
     chmod 600 "$CREDENTIALS_FILE"
@@ -157,7 +157,7 @@ load_credentials() {
 
 save_state() {
     {
-        echo "# Moissanite Radiance Install State — $(date)"
+        echo "# Moissanite Visions Install State — $(date)"
         echo "DOMAIN=$DOMAIN"
         echo "CANONICAL_DOMAIN=$CANONICAL_DOMAIN"
         echo "WWW_DOMAIN=$WWW_DOMAIN"

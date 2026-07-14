@@ -35,10 +35,16 @@
                 <input type="number" name="duration_days" class="form-control" min="1"
                     value="{{ $plan->duration_days }}" placeholder="{{ __tr('Enter duration in days') }}">
             </div>
-            <div class="form-group col-lg-6">
-                <label class="black font-14">{{ __tr('Price') }} *</label>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Regular Price') }} *</label>
                 <input type="number" name="price" class="form-control" min="0" step="0.01"
                     value="{{ $plan->price }}" placeholder="{{ __tr('Enter price') }}">
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Offer Price') }}</label>
+                <input type="number" name="offer_price" class="form-control" min="0" step="0.01"
+                    value="{{ $plan->offer_price }}" placeholder="{{ __tr('Optional promo price') }}">
+                <small class="text-muted">{{ __tr('Leave empty for no offer') }}</small>
             </div>
         </div>
 

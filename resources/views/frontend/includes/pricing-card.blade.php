@@ -1,6 +1,13 @@
 <div class="single-price mb-24 wow fadeInLeft" data-wow-delay="0.{{ $loop->iteration ?? 1 }}s">
     <h4 class="price">{{ $plan->translation('title') }}</h4>
-    <span class="price">{{ format_amount($plan->price) }}
+    @if ($plan->has_offer)
+        <div class="plan-offer-badge">🔥 {{ __tr('Limited Time Offer') }}</div>
+    @endif
+    <span class="price">
+        @if ($plan->has_offer)
+            <span class="plan-price-old">{{ format_amount($plan->price) }}</span>
+        @endif
+        {{ format_amount($plan->effective_price) }}
         <span class="sub-tittle">{{ $plan->duration_days }} {{ __tr('days') }}</span>
     </span>
     <div class="btn-wrapper">

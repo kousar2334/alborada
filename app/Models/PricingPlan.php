@@ -14,6 +14,7 @@ class PricingPlan extends Model
         'title',
         'duration_days',
         'price',
+        'offer_price',
         'status',
         'max_connections',
         'streaming_quality',
@@ -26,9 +27,29 @@ class PricingPlan extends Model
 
     protected $casts = [
         'price'             => 'float',
+        'offer_price'       => 'float',
         'dvr_enabled'       => 'boolean',
         'is_trial'          => 'boolean',
     ];
+
+    /**
+     * True when a promotional offer price lower than the regular price is set.
+     */
+    public function getHasOfferAttribute(): bool
+    {
+        return $this->offer_price !== null
+            && $this->offer_price > 0
+            && $this->offer_price < $this->price;
+    }
+
+    /**
+     * The price the customer actually pays — the offer price when a valid
+     * promotion is set, otherwise the regular price.
+     */
+    public function getEffectivePriceAttribute(): float
+    {
+        return $this->has_offer ? $this->offer_price : $this->price;
+    }
 
     public function pricing_plan_translations(): HasMany
     {
