@@ -16,7 +16,8 @@
                                 <h3 class="footer-site-name mb-3">{{ get_setting('site_name') }}</h3>
                             @endif
 
-                            <p class="footer-slogan mb-3">{{ get_setting('site_tagline', 'Where every Stream sparkles') }}</p>
+                            <p class="footer-slogan mb-3">
+                                {{ get_setting('site_tagline', 'Where every Stream sparkles') }}</p>
 
                             @if (get_setting('footer_address') || get_setting('footer_phone_number') || get_setting('footer_hotline'))
                                 <ul class="footer-contact-list">
@@ -70,45 +71,6 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
-
-
-
-                    {{-- Quick Links --}}
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h6 class="footer-tittle">{{ __tr('Quick Links') }}</h6>
-                        <ul class="footer-links footer-links-icons">
-                            <li><a href="{{ route('home') }}"><i class="las la-home"></i> {{ __tr('Home') }}</a></li>
-                            <li><a href="{{ route('pricing.plans') }}"><i class="las la-tags"></i>
-                                    {{ __tr('Pricing Plans') }}</a></li>
-                            <li><a href="{{ route('frontend.blog.list') }}"><i class="las la-newspaper"></i>
-                                    {{ __tr('Blog') }}</a></li>
-                            <li><a href="{{ route('contact') }}"><i class="las la-envelope"></i>
-                                    {{ __tr('Contact Us') }}</a></li>
-                            <li><a href="{{ route('member.tickets.index') }}"><i class="las la-headset"></i>
-                                    {{ __tr('Support') }}</a></li>
-                            <li><a href="{{ route('member.setup.guide') }}"><i class="las la-book"></i>
-                                    {{ __tr('Documentation') }}</a></li>
-                        </ul>
-                    </div>
-
-                    {{-- Portals --}}
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h6 class="footer-tittle">{{ __tr('Portals') }}</h6>
-                        <ul class="footer-links footer-links-icons">
-                            <li><a href="{{ route('member.login') }}"><i class="las la-user"></i>
-                                    {{ __tr('Member Login') }}</a></li>
-                            <li><a href="{{ route('member.register') }}"><i class="las la-user-plus"></i>
-                                    {{ __tr('Create Account') }}</a></li>
-                            <li><a href="{{ route('reseller.register') }}"><i class="las la-briefcase"></i>
-                                    {{ __tr('Become a Reseller') }}</a></li>
-                            <li><a href="{{ route('reseller.login') }}"><i class="las la-store"></i>
-                                    {{ __tr('Reseller Login') }}</a></li>
-                            <li><a href="{{ route('admin.auth.login') }}"><i class="las la-user-shield"></i>
-                                    {{ __tr('Admin Login') }}</a></li>
-                            <li><a href="{{ route('member.download.app') }}"><i class="las la-download"></i>
-                                    {{ __tr('Download App') }}</a></li>
-                        </ul>
                     </div>
 
                     {{-- Footer Menu — each parent with children = its own column --}}
