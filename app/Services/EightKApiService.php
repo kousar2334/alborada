@@ -39,6 +39,43 @@ class EightKApiService implements IptvProvider
         return $this->apiUrl !== '' && $this->apiKey !== '';
     }
 
+    /**
+     * Verify connectivity and authentication using the reseller endpoint.
+     * Optional overrides let the admin test values before saving them.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(?string $url = null, ?string $key = null): array
+    {
+        $apiUrl = ($url !== null && $url !== '') ? $url : $this->apiUrl;
+        $apiKey = ($key !== null && $key !== '') ? $key : $this->apiKey;
+
+        if ($apiUrl === '' || $apiKey === '') {
+            return ['ok' => false, 'message' => 'Enter the 8K CMS API URL and Developer API Key first.'];
+        }
+
+        try {
+            $response = Http::timeout(10)->get($apiUrl, ['action' => 'reseller', 'api_key' => $apiKey]);
+            $json = $response->json() ?? [];
+
+            if (($json['status'] ?? '') === 'true') {
+                return [
+                    'ok'      => true,
+                    'message' => 'Connected. Reseller "' . ($json['username'] ?? '?')
+                        . '", credits: ' . ($json['credits'] ?? '?') . '.',
+                ];
+            }
+
+            return [
+                'ok'      => false,
+                'message' => $json['message'] ?? $json['error']
+                    ?? 'Reached the API but the key was rejected or the response was unexpected.',
+            ];
+        } catch (\Exception $e) {
+            return ['ok' => false, 'message' => 'Could not reach the 8K API: ' . $e->getMessage()];
+        }
+    }
+
     public function createAccount(UserSubscription $subscription): array
     {
         $plan    = $subscription->plan;

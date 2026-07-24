@@ -33,6 +33,41 @@ class XtreamCodesService implements IptvProvider
         return $this->baseUrl !== '' && $this->adminUsername !== '';
     }
 
+    /**
+     * Verify the panel is reachable and responding. Optional overrides let the
+     * admin test values before saving them. (The Xtream reseller API has no
+     * dedicated ping action, so this confirms connectivity + a valid HTTP
+     * response — which also surfaces DNS/firewall/timeout problems.)
+     *
+     * @return array{ok: bool, message: string}
+     */
+    public function testConnection(?string $baseUrl = null, ?string $username = null, ?string $password = null): array
+    {
+        $base = rtrim(($baseUrl !== null && $baseUrl !== '') ? $baseUrl : $this->baseUrl, '/');
+        $user = ($username !== null && $username !== '') ? $username : $this->adminUsername;
+        $pass = ($password !== null && $password !== '') ? $password : $this->adminPassword;
+
+        if ($base === '') {
+            return ['ok' => false, 'message' => 'Enter the Xtream Server Base URL first.'];
+        }
+
+        try {
+            $response = Http::timeout(10)->post($base . '/api.php', [
+                'username' => $user,
+                'password' => $pass,
+                'action'   => 'get_user_info',
+            ]);
+
+            if ($response->successful()) {
+                return ['ok' => true, 'message' => 'Server reachable and responding (HTTP ' . $response->status() . ').'];
+            }
+
+            return ['ok' => false, 'message' => 'Server responded with HTTP ' . $response->status() . '.'];
+        } catch (\Exception $e) {
+            return ['ok' => false, 'message' => 'Could not reach the Xtream server: ' . $e->getMessage()];
+        }
+    }
+
     public function createAccount(UserSubscription $subscription): array
     {
         $user = $subscription->user;

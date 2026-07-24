@@ -198,6 +198,32 @@ class SettingController extends Controller
         return back();
     }
 
+    /**
+     * AJAX: test connectivity/auth for the active provider using the values the
+     * admin currently has in the form (so it works before saving).
+     */
+    public function testIptvConnection(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $provider = $request->input('provider');
+
+        if ($provider === '8k') {
+            $result = app(\App\Services\EightKApiService::class)->testConnection(
+                $request->input('iptv_api_url'),
+                $request->input('iptv_api_key')
+            );
+        } elseif ($provider === 'xtream') {
+            $result = app(\App\Services\XtreamCodesService::class)->testConnection(
+                $request->input('xtream_base_url'),
+                $request->input('xtream_admin_username'),
+                $request->input('xtream_admin_password')
+            );
+        } else {
+            $result = ['ok' => false, 'message' => __tr('Unknown provider.')];
+        }
+
+        return response()->json($result);
+    }
+
     public function chatWidget()
     {
         return view('backend.modules.settings.chat-widget');

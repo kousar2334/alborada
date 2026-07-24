@@ -64,11 +64,18 @@
                             <input type="text" name="xtream_admin_username" class="form-control"
                                 value="{{ get_setting('xtream_admin_username') }}" placeholder="admin">
                         </div>
-                        <div class="form-group mb-0">
+                        <div class="form-group">
                             <label>{{ __tr('Admin Password') }}</label>
                             <input type="password" name="xtream_admin_password" class="form-control"
                                 value="{{ get_setting('xtream_admin_password') }}" placeholder="••••••••"
                                 autocomplete="new-password">
+                        </div>
+                        <div class="mb-0">
+                            <button type="button" class="btn btn-outline-secondary btn-sm iptv-test-btn"
+                                data-provider="xtream">
+                                <i class="fas fa-plug mr-1"></i>{{ __tr('Test Connection') }}
+                            </button>
+                            <div class="iptv-test-result small mt-2" data-provider="xtream"></div>
                         </div>
                     </div>
                 </div>
@@ -93,10 +100,17 @@
                                 value="{{ get_setting('iptv_api_key') }}" placeholder="••••••••"
                                 autocomplete="new-password">
                         </div>
-                        <div class="form-group mb-0">
+                        <div class="form-group">
                             <small class="form-text text-muted">
                                 {{ __tr('After saving, sync the package list so it can be mapped to your pricing plans.') }}
                             </small>
+                        </div>
+                        <div class="mb-0">
+                            <button type="button" class="btn btn-outline-secondary btn-sm iptv-test-btn"
+                                data-provider="8k">
+                                <i class="fas fa-plug mr-1"></i>{{ __tr('Test Connection') }}
+                            </button>
+                            <div class="iptv-test-result small mt-2" data-provider="8k"></div>
                         </div>
                     </div>
                 </div>
@@ -209,6 +223,58 @@
 
             select.addEventListener('change', syncPanels);
             syncPanels();
+        })();
+    </script>
+
+    {{-- Test Connection for each provider (uses the values currently in the form) --}}
+    <script>
+        (function () {
+            var val = function (name) {
+                var el = document.querySelector('[name="' + name + '"]');
+                return el ? el.value : '';
+            };
+
+            document.querySelectorAll('.iptv-test-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var provider = btn.getAttribute('data-provider');
+                    var result = document.querySelector('.iptv-test-result[data-provider="' + provider + '"]');
+
+                    var payload = { provider: provider };
+                    if (provider === 'xtream') {
+                        payload.xtream_base_url = val('xtream_base_url');
+                        payload.xtream_admin_username = val('xtream_admin_username');
+                        payload.xtream_admin_password = val('xtream_admin_password');
+                    } else {
+                        payload.iptv_api_url = val('iptv_api_url');
+                        payload.iptv_api_key = val('iptv_api_key');
+                    }
+
+                    btn.disabled = true;
+                    result.className = 'iptv-test-result small mt-2 text-muted';
+                    result.textContent = '{{ __tr('Testing…') }}';
+
+                    fetch('{{ route('admin.system.settings.iptv.test') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            result.className = 'iptv-test-result small mt-2 ' + (data.ok ? 'text-success' : 'text-danger');
+                            result.innerHTML = (data.ok ? '<i class="fas fa-check-circle mr-1"></i>' : '<i class="fas fa-times-circle mr-1"></i>') +
+                                (data.message || (data.ok ? 'OK' : 'Failed'));
+                        })
+                        .catch(function () {
+                            result.className = 'iptv-test-result small mt-2 text-danger';
+                            result.textContent = '{{ __tr('Request failed. Check the browser console.') }}';
+                        })
+                        .finally(function () { btn.disabled = false; });
+                });
+            });
         })();
     </script>
 @endsection
