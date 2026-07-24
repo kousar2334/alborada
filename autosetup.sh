@@ -379,18 +379,34 @@ install_system_packages() {
     log_success "Essential system packages installed"
 
     # ── Node.js 20 LTS ─────────────────────────────────────────
+    ensure_node || return 1
+}
+
+# Ensure Node.js (>= $NODE_VERSION) and npm are installed and on PATH.
+# Idempotent and self-healing: safe to call from any step. Returns non-zero
+# (instead of silently continuing) when the install genuinely fails, so a step
+# is never marked complete without a working npm.
+ensure_node() {
     local installed_major=0
     command -v node &>/dev/null && \
         installed_major=$(node --version 2>/dev/null | cut -d. -f1 | tr -d 'v' || echo 0)
 
-    if [[ $installed_major -ge $NODE_VERSION ]]; then
+    if [[ $installed_major -ge $NODE_VERSION ]] && command -v npm &>/dev/null; then
         log_info "Node.js already installed: $(node --version)  npm: $(npm --version)"
-    else
-        log_wait "Installing Node.js ${NODE_VERSION} LTS via NodeSource"
-        curl -fsSL "https://deb.nodesource.com/setup_${NODE_VERSION}.x" | bash - >> "$INSTALL_LOG" 2>&1
-        apt-get install -y nodejs >> "$INSTALL_LOG" 2>&1
-        log_success "Node.js $(node --version) installed, npm $(npm --version)"
+        return 0
     fi
+
+    log_wait "Installing Node.js ${NODE_VERSION} LTS via NodeSource"
+    curl -fsSL "https://deb.nodesource.com/setup_${NODE_VERSION}.x" | bash - >> "$INSTALL_LOG" 2>&1
+    apt-get install -y nodejs >> "$INSTALL_LOG" 2>&1
+
+    if ! command -v npm &>/dev/null || ! command -v node &>/dev/null; then
+        log_error "Node.js/npm installation failed — see $INSTALL_LOG"
+        log_error "  Try manually: curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | sudo -E bash - && sudo apt-get install -y nodejs"
+        return 1
+    fi
+
+    log_success "Node.js $(node --version) installed, npm $(npm --version)"
 }
 
 # ==========================================================================
@@ -589,6 +605,11 @@ install_ssl() {
 build_frontend() {
     log_header "BUILDING FRONTEND ASSETS (VITE + TAILWIND)"
     cd "$APP_DIR" || return 1
+
+    # Self-heal: on a resumed run, step 01 may be marked complete while Node/npm
+    # is actually missing (e.g. an earlier NodeSource install failed). Ensure a
+    # working npm before building rather than dying with "npm: command not found".
+    ensure_node || return 1
 
     log_wait "Installing npm dependencies"
     if ! npm ci --prefer-offline >> "$INSTALL_LOG" 2>&1; then
