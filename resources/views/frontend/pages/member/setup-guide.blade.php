@@ -165,7 +165,7 @@
                                     <div class="sg-ic-row">
                                         <span class="sg-ic-label">URL</span>
                                         <samp
-                                            class="sg-ic-val">{{ rtrim(get_setting('xtream_base_url', ''), '/') }}</samp>
+                                            class="sg-ic-val">{{ $credentials['server_url'] ?? '' }}</samp>
                                     </div>
                                 </div>
                             </div>
@@ -212,7 +212,7 @@
                                     <div class="sg-ic-row">
                                         <span class="sg-ic-label">Server URL</span>
                                         <samp
-                                            class="sg-ic-val">{{ rtrim(get_setting('xtream_base_url', ''), '/') }}</samp>
+                                            class="sg-ic-val">{{ $credentials['server_url'] ?? '' }}</samp>
                                     </div>
                                     <div class="sg-ic-row">
                                         <span class="sg-ic-label">Username</span>
@@ -270,7 +270,7 @@
                                     <div class="sg-ic-row">
                                         <span class="sg-ic-label">Server</span>
                                         <samp
-                                            class="sg-ic-val">{{ rtrim(get_setting('xtream_base_url', ''), '/') }}</samp>
+                                            class="sg-ic-val">{{ $credentials['server_url'] ?? '' }}</samp>
                                     </div>
                                     <div class="sg-ic-row">
                                         <span class="sg-ic-label">Username</span>

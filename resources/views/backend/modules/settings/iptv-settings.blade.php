@@ -18,7 +18,7 @@
                     <div class="col-lg-6 form-group mb-lg-0">
                         <label>{{ __tr('Active Streaming Provider') }}</label>
                         @php($activeProvider = get_setting('active_iptv_provider', 'xtream'))
-                        <select name="active_iptv_provider" class="form-control">
+                        <select name="active_iptv_provider" id="active_iptv_provider" class="form-control">
                             <option value="none" {{ $activeProvider === 'none' ? 'selected' : '' }}>
                                 {{ __tr('None (disabled)') }}</option>
                             <option value="xtream" {{ $activeProvider === 'xtream' ? 'selected' : '' }}>
@@ -44,7 +44,7 @@
         <div class="row">
 
             {{-- Xtream Codes --}}
-            <div class="col-lg-6 mb-4">
+            <div id="iptv-card-xtream" @class(['col-lg-6 mb-4', 'd-none' => $activeProvider !== 'xtream'])>
                 <div class="card h-100">
                     <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-tv mr-2 text-primary"></i>{{ __tr('Xtream Codes API') }}</h6>
@@ -73,7 +73,7 @@
             </div>
 
             {{-- 8K CMS --}}
-            <div class="col-lg-6 mb-4">
+            <div id="iptv-card-8k" @class(['col-lg-6 mb-4', 'd-none' => $activeProvider !== '8k'])>
                 <div class="card h-100">
                     <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-broadcast-tower mr-2 text-info"></i>{{ __tr('8K CMS API') }}</h6>
@@ -163,7 +163,8 @@
     </form>
 
     {{-- 8K package sync (separate form — posts to a different endpoint) --}}
-    <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST" class="mt-3">
+    <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST"
+        id="iptv-sync-8k" @class(['mt-3', 'd-none' => $activeProvider !== '8k'])>
         @csrf
         <div class="d-flex align-items-center justify-content-between flex-wrap">
             <small class="text-muted mb-2 mb-md-0">
@@ -175,4 +176,29 @@
             </button>
         </div>
     </form>
+
+    {{-- Show only the active provider's configuration card --}}
+    <script>
+        (function () {
+            var select = document.getElementById('active_iptv_provider');
+            if (!select) return;
+
+            var panels = {
+                xtream: [document.getElementById('iptv-card-xtream')],
+                '8k': [document.getElementById('iptv-card-8k'), document.getElementById('iptv-sync-8k')]
+            };
+
+            function syncPanels() {
+                var active = select.value;
+                Object.keys(panels).forEach(function (provider) {
+                    panels[provider].forEach(function (el) {
+                        if (el) el.classList.toggle('d-none', provider !== active);
+                    });
+                });
+            }
+
+            select.addEventListener('change', syncPanels);
+            syncPanels();
+        })();
+    </script>
 @endsection

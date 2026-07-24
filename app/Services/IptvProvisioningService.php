@@ -219,8 +219,30 @@ class IptvProvisioningService
             'password'    => $subscription->iptv_password ?? '',
             'mac'         => $subscription->iptv_mac ?? '',
             'm3u_url'     => $subscription->iptv_m3u_url ?? '',
+            'server_url'  => $this->serverUrlFromM3U($subscription->iptv_m3u_url ?? ''),
             'device_type' => $subscription->iptv_device_type ?? 'm3u',
         ];
+    }
+
+    /**
+     * The base "Server URL" (scheme://host[:port]) that Xtream-login apps
+     * (IPTV Smarters, TiviMate, XCIPTV) expect, derived from the account's
+     * stored M3U URL. Works for both providers: Xtream lines carry the panel
+     * host, 8K lines carry 8K's own streaming domain.
+     */
+    private function serverUrlFromM3U(string $m3uUrl): string
+    {
+        if ($m3uUrl === '') {
+            return '';
+        }
+
+        $parts = parse_url($m3uUrl);
+        if (empty($parts['scheme']) || empty($parts['host'])) {
+            return '';
+        }
+
+        return $parts['scheme'] . '://' . $parts['host']
+            . (isset($parts['port']) ? ':' . $parts['port'] : '');
     }
 
     /**
