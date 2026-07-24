@@ -5,7 +5,7 @@
     optional WHMCS billing sync.'))
 
 @section('settings-content')
-    <form action="{{ route('admin.system.settings.iptv.update') }}" method="POST">
+    <form action="{{ route('admin.system.settings.iptv.update') }}" method="POST" id="iptv-settings-form">
         @csrf
 
         {{-- Master provider selection --}}
@@ -157,27 +157,35 @@
 
         </div>
 
-        <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save mr-1"></i>{{ __tr('Save IPTV Settings') }}
-            </button>
-        </div>
     </form>
 
-    {{-- 8K package sync (separate form — posts to a different endpoint) --}}
-    <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST"
-        id="iptv-sync-8k" @class(['mt-3', 'd-none' => $activeProvider !== '8k'])>
-        @csrf
-        <div class="d-flex align-items-center justify-content-between flex-wrap">
-            <small class="text-muted mb-2 mb-md-0">
-                {{ __tr('Packages synced from 8K CMS:') }}
-                <strong>{{ \App\Models\IptvPackage::count() }}</strong>
-            </small>
-            <button type="submit" class="btn btn-outline-info">
-                <i class="fas fa-sync mr-1"></i>{{ __tr('Sync Packages from 8K') }}
-            </button>
-        </div>
-    </form>
+    {{-- Action bar: secondary action (sync, 8K only) on the left,
+         primary Save on the right. Save lives outside the form and submits it
+         via the form="" attribute so both buttons share one row.
+         Extra bottom spacing keeps the buttons clear of the fixed footer. --}}
+    <div class="d-flex flex-wrap align-items-center mt-2 mb-5 pb-5">
+
+        {{-- 8K package sync (separate form — posts to a different endpoint).
+             d-none is toggled on the <form> itself, which has no d-flex, so the
+             hide is not overridden by a display-flex utility. --}}
+        <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST"
+            id="iptv-sync-8k" @class(['mb-2 mb-md-0', 'd-none' => $activeProvider !== '8k'])>
+            @csrf
+            <div class="d-flex align-items-center flex-wrap">
+                <button type="submit" class="btn btn-outline-info mr-3 mb-2 mb-md-0">
+                    <i class="fas fa-sync mr-1"></i>{{ __tr('Sync Packages from 8K') }}
+                </button>
+                <small class="text-muted">
+                    {{ __tr('Packages synced:') }}
+                    <strong>{{ \App\Models\IptvPackage::count() }}</strong>
+                </small>
+            </div>
+        </form>
+
+        <button type="submit" form="iptv-settings-form" class="btn btn-primary ml-auto">
+            <i class="fas fa-save mr-1"></i>{{ __tr('Save IPTV Settings') }}
+        </button>
+    </div>
 
     {{-- Show only the active provider's configuration card --}}
     <script>
