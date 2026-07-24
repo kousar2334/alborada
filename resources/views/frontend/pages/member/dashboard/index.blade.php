@@ -93,7 +93,8 @@
     </div>
 
     {{-- ── Credentials Card ── --}}
-    @if ($activeSubscription && $activeSubscription->xtream_username)
+    @if ($activeSubscription && ($activeSubscription->iptv_username || $activeSubscription->iptv_mac))
+        @php($isMag = $activeSubscription->iptv_device_type === 'mag')
         <div class="dashboard-card cred-card">
             <div class="card-header">
                 <h3 class="card-title">
@@ -105,40 +106,54 @@
             </div>
             <div class="cred-card-body">
                 <div class="cred-grid">
-                    <div class="cred-field">
-                        <div class="cred-label">{{ __tr('Username') }}</div>
-                        <div class="cred-value-row">
-                            <code id="cred-user" class="cred-code">{{ $activeSubscription->xtream_username }}</code>
-                            <button onclick="copyToClipboard('cred-user',this)" class="copy-btn"
-                                title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
-                        </div>
-                    </div>
-                    <div class="cred-field">
-                        <div class="cred-label">{{ __tr('Password') }}</div>
-                        <div class="cred-value-row">
-                            <code id="cred-pass" class="cred-code">{{ $activeSubscription->xtream_password }}</code>
-                            <button onclick="copyToClipboard('cred-pass',this)" class="copy-btn"
-                                title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
-                        </div>
-                    </div>
-                    @if ($xtreamBaseUrl)
+                    @if ($isMag)
                         <div class="cred-field">
-                            <div class="cred-label">{{ __tr('Server URL') }}</div>
+                            <div class="cred-label">{{ __tr('MAC Address') }}</div>
                             <div class="cred-value-row">
-                                <code id="cred-url" class="cred-code">{{ $xtreamBaseUrl }}</code>
-                                <button onclick="copyToClipboard('cred-url',this)" class="copy-btn"
+                                <code id="cred-mac" class="cred-code">{{ $activeSubscription->iptv_mac }}</code>
+                                <button onclick="copyToClipboard('cred-mac',this)" class="copy-btn"
+                                    title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
+                        @if ($activeSubscription->iptv_m3u_url)
+                            <div class="cred-field">
+                                <div class="cred-label">{{ __tr('Portal URL') }}</div>
+                                <div class="cred-value-row">
+                                    <code id="cred-portal"
+                                        class="cred-code cred-code-xs">{{ $activeSubscription->iptv_m3u_url }}</code>
+                                    <button onclick="copyToClipboard('cred-portal',this)" class="copy-btn"
+                                        title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        <div class="cred-field">
+                            <div class="cred-label">{{ __tr('Username') }}</div>
+                            <div class="cred-value-row">
+                                <code id="cred-user" class="cred-code">{{ $activeSubscription->iptv_username }}</code>
+                                <button onclick="copyToClipboard('cred-user',this)" class="copy-btn"
                                     title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
                         <div class="cred-field">
-                            <div class="cred-label">{{ __tr('M3U Playlist URL') }}</div>
+                            <div class="cred-label">{{ __tr('Password') }}</div>
                             <div class="cred-value-row">
-                                <code id="cred-m3u"
-                                    class="cred-code cred-code-xs">{{ $xtreamBaseUrl }}/get.php?username={{ $activeSubscription->xtream_username }}&password={{ $activeSubscription->xtream_password }}&type=m3u_plus</code>
-                                <button onclick="copyToClipboard('cred-m3u',this)" class="copy-btn"
+                                <code id="cred-pass" class="cred-code">{{ $activeSubscription->iptv_password }}</code>
+                                <button onclick="copyToClipboard('cred-pass',this)" class="copy-btn"
                                     title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>
+                        @if ($activeSubscription->iptv_m3u_url)
+                            <div class="cred-field">
+                                <div class="cred-label">{{ __tr('M3U Playlist URL') }}</div>
+                                <div class="cred-value-row">
+                                    <code id="cred-m3u"
+                                        class="cred-code cred-code-xs">{{ $activeSubscription->iptv_m3u_url }}</code>
+                                    <button onclick="copyToClipboard('cred-m3u',this)" class="copy-btn"
+                                        title="{{ __tr('Copy') }}"><i class="fas fa-copy"></i></button>
+                                </div>
+                            </div>
+                        @endif
                     @endif
                 </div>
                 @if ($activeSubscription?->plan?->catchup_days)

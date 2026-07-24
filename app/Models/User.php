@@ -36,6 +36,8 @@ class User extends Authenticatable
         'markup_percentage',
         'xtream_username',
         'xtream_password',
+        'iptv_username',
+        'iptv_password',
         'whmcs_client_id',
         'stripe_customer_id',
     ];

@@ -28,6 +28,10 @@ class PricingPlanRequest extends FormRequest
             'is_trial'                   => 'nullable|in:0,1',
             'trial_days'                 => 'nullable|integer|min:1',
             'sort_order'                 => 'nullable|integer|min:0',
+            'iptv_package_id'            => 'nullable|string|max:191',
+            'iptv_sub_months'            => 'nullable|in:1,3,6,12',
+            'iptv_device_type'           => 'nullable|in:m3u,mag',
+            'iptv_country'               => 'nullable|string|max:10',
         ];
     }
 

@@ -182,6 +182,10 @@ class SubscriptionController extends Controller
 
         $subscription = UserSubscription::with('plan', 'user')->findOrFail($request->id);
 
+        if (!get_setting('iptv_provisioning_enabled', 0)) {
+            return back()->with('error', __tr('IPTV provisioning is disabled in settings.'));
+        }
+
         dispatch(new ProvisionSubscriptionJob($subscription));
 
         return back()->with('success', __tr('Provisioning job dispatched for subscription #') . $subscription->id);

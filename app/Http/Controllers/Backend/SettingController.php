@@ -137,14 +137,21 @@ class SettingController extends Controller
     public function iptvSettingsUpdate(Request $request): RedirectResponse
     {
         $settings = [
+            'active_iptv_provider'      => $request->input('active_iptv_provider', 'none'),
+            // Xtream Codes
             'xtream_base_url'           => $request->input('xtream_base_url', ''),
             'xtream_admin_username'     => $request->input('xtream_admin_username', ''),
             'xtream_admin_password'     => $request->input('xtream_admin_password', ''),
+            // 8K CMS
+            'iptv_api_url'              => $request->input('iptv_api_url', 'https://8k.cms-only.ru/api/api.php'),
+            'iptv_api_key'              => $request->input('iptv_api_key', ''),
+            // WHMCS
             'whmcs_api_url'             => $request->input('whmcs_api_url', ''),
             'whmcs_api_identifier'      => $request->input('whmcs_api_identifier', ''),
             'whmcs_api_secret'          => $request->input('whmcs_api_secret', ''),
             'whmcs_product_id'          => $request->input('whmcs_product_id', 0),
             'whmcs_webhook_secret'      => $request->input('whmcs_webhook_secret', ''),
+            // Toggles
             'iptv_provisioning_enabled' => $request->input('iptv_provisioning_enabled', 0),
             'whmcs_sync_enabled'        => $request->input('whmcs_sync_enabled', 0),
         ];
@@ -154,6 +161,40 @@ class SettingController extends Controller
         }
 
         toastNotification('success', __tr('IPTV settings updated successfully'));
+        return back();
+    }
+
+    /**
+     * Pull the package (bouquet) list from the 8K CMS API and upsert it into the
+     * iptv_packages table so pricing plans can be mapped to a package id.
+     */
+    public function syncIptvPackages(\App\Services\EightKApiService $api): RedirectResponse
+    {
+        if (!$api->isConfigured()) {
+            toastNotification('error', __tr('Set the 8K CMS API URL and key first.'));
+            return back();
+        }
+
+        $packages = $api->getBouquets();
+
+        if (empty($packages)) {
+            toastNotification('error', __tr('No packages returned. Check the API key.'));
+            return back();
+        }
+
+        $count = 0;
+        foreach ($packages as $package) {
+            if (empty($package['id'])) {
+                continue;
+            }
+            \App\Models\IptvPackage::updateOrCreate(
+                ['package_id' => (string) $package['id']],
+                ['name' => (string) ($package['name'] ?? $package['id'])]
+            );
+            $count++;
+        }
+
+        toastNotification('success', __tr('Synced :count packages.', ['count' => $count]));
         return back();
     }
 

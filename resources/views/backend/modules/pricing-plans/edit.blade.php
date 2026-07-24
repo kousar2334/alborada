@@ -75,6 +75,42 @@
 
         <div class="form-row">
             <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Provider Package') }}</label>
+                <select name="iptv_package_id" class="form-control">
+                    <option value="">{{ __tr('— None —') }}</option>
+                    @foreach ($packages as $package)
+                        <option value="{{ $package->package_id }}"
+                            {{ (string) $plan->iptv_package_id === (string) $package->package_id ? 'selected' : '' }}>
+                            {{ $package->name }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">{{ __tr('Used by 8K CMS') }}</small>
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('IPTV Duration (Months)') }}</label>
+                <select name="iptv_sub_months" class="form-control">
+                    @foreach ([1, 3, 6, 12] as $m)
+                        <option value="{{ $m }}" {{ (int) $plan->iptv_sub_months === $m ? 'selected' : '' }}>
+                            {{ $m }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Device Type') }}</label>
+                <select name="iptv_device_type" class="form-control">
+                    <option value="m3u" {{ $plan->iptv_device_type === 'm3u' ? 'selected' : '' }}>M3U</option>
+                    <option value="mag" {{ $plan->iptv_device_type === 'mag' ? 'selected' : '' }}>MAG</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3">
+                <label class="black font-14">{{ __tr('Country') }}</label>
+                <input type="text" name="iptv_country" class="form-control"
+                    value="{{ $plan->iptv_country ?? 'ALL' }}" placeholder="ALL">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-lg-3">
                 <label class="black font-14">{{ __tr('DVR Enabled') }}</label>
                 <select name="dvr_enabled" class="form-control">
                     <option value="0" {{ !$plan->dvr_enabled ? 'selected' : '' }}>{{ __tr('No') }}</option>

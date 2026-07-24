@@ -230,16 +230,13 @@ class MemberAuthController extends Controller
             ->take(6)
             ->get();
 
-        $xtreamBaseUrl = rtrim(get_setting('xtream_base_url', ''), '/');
-
         return view('frontend.pages.member.dashboard.index', compact(
             'activeSubscription',
             'daysRemaining',
             'openTickets',
             'recentInvoices',
             'downloaderCodes',
-            'featuredContent',
-            'xtreamBaseUrl'
+            'featuredContent'
         ));
     }
 

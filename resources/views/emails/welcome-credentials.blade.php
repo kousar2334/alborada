@@ -14,6 +14,7 @@
         .credential-label { font-size: 12px; color: #6c757d; text-transform: uppercase; letter-spacing: 1px; }
         .credential-value { font-size: 16px; font-weight: bold; color: #212529; font-family: monospace; word-break: break-all; }
         .url-box { background: #e8f5e9; border-left: 4px solid #28a745; padding: 10px 15px; margin: 8px 0; border-radius: 0 4px 4px 0; }
+        .url-code { word-break: break-all; }
         .btn { display: inline-block; background: #e50914; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 10px 0; }
         .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #6c757d; font-size: 12px; }
     </style>
@@ -28,6 +29,12 @@
         <p>Your <strong>{{ $subscription->plan->title ?? 'IPTV' }}</strong> subscription is now active. Here are your credentials:</p>
 
         <div class="credentials-box">
+            @if(($credentials['device_type'] ?? 'm3u') === 'mag')
+            <div class="credential-item">
+                <div class="credential-label">MAC Address</div>
+                <div class="credential-value">{{ $credentials['mac'] }}</div>
+            </div>
+            @else
             <div class="credential-item">
                 <div class="credential-label">Username</div>
                 <div class="credential-value">{{ $credentials['username'] }}</div>
@@ -36,14 +43,12 @@
                 <div class="credential-label">Password</div>
                 <div class="credential-value">{{ $credentials['password'] }}</div>
             </div>
+            @endif
         </div>
 
-        @if($credentials['m3u_url'])
-        <p><strong>Your M3U Playlist URL:</strong></p>
-        <div class="url-box"><code style="word-break:break-all;">{{ $credentials['m3u_url'] }}</code></div>
-
-        <p><strong>Your EPG (Guide) URL:</strong></p>
-        <div class="url-box"><code style="word-break:break-all;">{{ $credentials['epg_url'] }}</code></div>
+        @if(!empty($credentials['m3u_url']))
+        <p><strong>{{ ($credentials['device_type'] ?? 'm3u') === 'mag' ? 'Your Portal URL:' : 'Your M3U Playlist URL:' }}</strong></p>
+        <div class="url-box"><code class="url-code">{{ $credentials['m3u_url'] }}</code></div>
         @endif
 
         <p>Your subscription is valid until <strong>{{ $subscription->expires_at?->format('M d, Y') }}</strong>.</p>

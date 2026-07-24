@@ -71,16 +71,6 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="sg-cred-field sg-cred-full">
-                            <label class="sg-field-label">{{ __tr('EPG / Guide URL') }}</label>
-                            <div class="sg-cred-box">
-                                <span id="cred-epg"
-                                    class="sg-cred-value sg-cred-wrap">{{ $credentials['epg_url'] }}</span>
-                                <button class="sg-copy-btn" onclick="sgCopy('cred-epg', this)" title="{{ __tr('Copy') }}">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
                     @endif
                 </div>
             </div>
@@ -328,13 +318,6 @@
                             <span class="sg-step-num">3</span>
                             <div class="sg-step-body">In <strong>Kodi</strong>: install the <em>PVR IPTV Simple Client</em>
                                 addon and paste the M3U URL in settings.</div>
-                        </li>
-                        <li class="sg-step">
-                            <span class="sg-step-num">4</span>
-                            <div class="sg-step-body">
-                                For EPG / TV Guide, use:
-                                <samp class="sg-url-block">{{ $credentials['epg_url'] ?? '' }}</samp>
-                            </div>
                         </li>
                     </ol>
                 </div>

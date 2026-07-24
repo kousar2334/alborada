@@ -1292,12 +1292,32 @@ configure_firewall() {
     ufw --force reset >> "$INSTALL_LOG" 2>&1
     ufw default deny incoming
     ufw default allow outgoing
+
+    # ── Allow Docker container egress (CRITICAL) ─────────────────────────────
+    # Outbound traffic from containers (Stripe, 8K CMS, Let's Encrypt, SMTP, …)
+    # is ROUTED through the host and traverses the netfilter FORWARD chain — NOT
+    # the OUTPUT chain that "ufw default allow outgoing" governs. UFW ships with
+    # DEFAULT_FORWARD_POLICY="DROP", which silently drops every packet a
+    # container sends to the internet. The symptom is calls to api.stripe.com
+    # timing out (curl errno 28 "Connection timed out") even though the host
+    # itself has working internet. Set the forward policy to ACCEPT before
+    # enabling UFW; Docker's own DOCKER-USER rules still isolate the containers.
+    sed -i 's/^DEFAULT_FORWARD_POLICY=.*/DEFAULT_FORWARD_POLICY="ACCEPT"/' /etc/default/ufw
+    log_info "  DEFAULT_FORWARD_POLICY set to ACCEPT (Docker container egress)"
+
     ufw allow ssh
     ufw allow 'Nginx Full'
     # Postfix: reachable only from Docker containers (app/worker → host :25).
     # Port 25 is NOT open to the internet — this box cannot be used as a relay.
     ufw allow from 172.16.0.0/12 to any port 25 proto tcp comment 'Postfix relay from Docker' >> "$INSTALL_LOG" 2>&1
     ufw --force enable
+
+    # Re-apply Docker's iptables/NAT rules. `ufw reset` + `ufw enable` rebuild
+    # the netfilter ruleset and can wipe the FORWARD/MASQUERADE chains Docker
+    # installed at boot, which also breaks container egress. Restarting the
+    # daemon re-inserts them on top of the freshly-enabled UFW ruleset.
+    systemctl restart docker >> "$INSTALL_LOG" 2>&1 || true
+    log_info "  Docker restarted to restore NAT rules after UFW enable"
 
     log_success "Firewall enabled"
     log_info   "  Open ports:"

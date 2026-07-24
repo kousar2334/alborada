@@ -22,7 +22,7 @@ class SetupGuideController extends Controller
         $credentials = null;
 
         if ($subscription) {
-            $credentials = $this->provisioning->generateCredentials($user);
+            $credentials = $this->provisioning->generateCredentials($subscription);
         }
 
         return view('frontend.pages.member.setup-guide', compact('subscription', 'credentials'));

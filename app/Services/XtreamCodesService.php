@@ -2,9 +2,13 @@
 
 namespace App\Services;
 
+use App\Contracts\IptvProvider;
+use App\Models\UserSubscription;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
-class XtreamCodesService
+class XtreamCodesService implements IptvProvider
 {
     protected string $baseUrl;
     protected string $adminUsername;
@@ -16,6 +20,104 @@ class XtreamCodesService
         $this->adminUsername = (string) get_setting('xtream_admin_username', '');
         $this->adminPassword = (string) get_setting('xtream_admin_password', '');
     }
+
+    // ── IptvProvider interface ────────────────────────────────────────────────
+
+    public function key(): string
+    {
+        return 'xtream';
+    }
+
+    public function isConfigured(): bool
+    {
+        return $this->baseUrl !== '' && $this->adminUsername !== '';
+    }
+
+    public function createAccount(UserSubscription $subscription): array
+    {
+        $user = $subscription->user;
+        $plan = $subscription->plan;
+
+        $username = $subscription->iptv_username ?: ('alb_' . $user->id . '_' . strtolower(Str::random(4)));
+        $password = $subscription->iptv_password ?: Str::random(12);
+
+        $expDate = $subscription->expires_at
+            ? $subscription->expires_at->timestamp
+            : now()->addDays($plan->duration_days ?? 30)->timestamp;
+
+        $result = $this->createLine([
+            'username'               => $username,
+            'password'               => $password,
+            'max_connections'        => $plan->max_connections ?? 1,
+            'allowed_output_formats' => ['ts', 'm3u8'],
+            'is_trial'               => $plan->is_trial ? '1' : '0',
+            'exp_date'               => $expDate,
+        ]);
+
+        $lineId = $result['user_info']['id'] ?? $result['id'] ?? null;
+
+        return [
+            'user_id'     => $lineId,
+            'username'    => $username,
+            'password'    => $password,
+            'mac'         => null,
+            'm3u_url'     => $this->getM3UUrl($username, $password),
+            'device_type' => 'm3u',
+        ];
+    }
+
+    public function renew(UserSubscription $subscription, int $months): bool
+    {
+        if (!$subscription->iptv_username) {
+            return false;
+        }
+
+        return $this->updateLine($subscription->iptv_username, [
+            'exp_date' => $subscription->expires_at?->timestamp,
+        ]);
+    }
+
+    public function enable(UserSubscription $subscription): bool
+    {
+        return $subscription->iptv_username
+            ? $this->unbanLine($subscription->iptv_username)
+            : false;
+    }
+
+    public function disable(UserSubscription $subscription): bool
+    {
+        return $subscription->iptv_username
+            ? $this->banLine($subscription->iptv_username)
+            : false;
+    }
+
+    public function fetchInfo(UserSubscription $subscription): array
+    {
+        if (!$subscription->iptv_username) {
+            return [];
+        }
+
+        $info = $this->getLineInfo($subscription->iptv_username);
+        if (empty($info)) {
+            return [];
+        }
+
+        return [
+            'active'     => ($info['user_info']['active'] ?? 1) == 1,
+            'expires_at' => isset($info['user_info']['exp_date'])
+                ? Carbon::createFromTimestamp($info['user_info']['exp_date'])
+                : null,
+        ];
+    }
+
+    public function deleteAccount(UserSubscription $subscription): bool
+    {
+        return $subscription->iptv_username
+            ? $this->deleteLine($subscription->iptv_username)
+            : true;
+    }
+
+    // ── Low-level Xtream Codes reseller API ───────────────────────────────────
 
     public function createLine(array $params): array
     {

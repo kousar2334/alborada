@@ -96,6 +96,15 @@
                     <div class="sc-pay-body">
                         <div id="sc-stripe-error" class="sc-stripe-error sc-hidden"></div>
 
+                        @if ($plan->iptv_device_type === 'mag')
+                            <div class="sc-field-group">
+                                <label class="sc-field-label" for="sc-mac-address">{{ __tr('MAG Device MAC Address') }}</label>
+                                <input type="text" id="sc-mac-address" class="form-control"
+                                    placeholder="00:1A:79:XX:XX:XX" maxlength="17">
+                                <span class="sc-field-hint">{{ __tr('Required for MAG boxes. Format: 00:1A:79:XX:XX:XX') }}</span>
+                            </div>
+                        @endif
+
                         <div class="sc-field-group">
                             <label class="sc-field-label">{{ __tr('Card Number') }}</label>
                             <div class="sc-card-number-wrap">
@@ -148,6 +157,14 @@
                         <form action="{{ route('membership.bank.submit') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <input type="hidden" name="membership_id" value="{{ $plan->id }}">
+
+                            @if ($plan->iptv_device_type === 'mag')
+                                <div class="sc-field-group">
+                                    <label class="sc-field-label" for="bank_mac_address">{{ __tr('MAG Device MAC Address') }}</label>
+                                    <input type="text" id="bank_mac_address" name="mac_address" class="form-control"
+                                        placeholder="00:1A:79:XX:XX:XX" maxlength="17" required>
+                                </div>
+                            @endif
 
                             <div class="sc-field-group">
                                 <label class="sc-field-label" for="bank_transaction_number">{{ __tr('Transfer Reference / Transaction Number') }}</label>
@@ -257,6 +274,14 @@
                 }
 
                 document.getElementById('sc-pay-btn').addEventListener('click', function() {
+                    var macInput = document.getElementById('sc-mac-address');
+                    var macAddress = macInput ? macInput.value.trim() : '';
+
+                    if (macInput && macAddress === '') {
+                        showError('{{ __tr('Please enter the MAG device MAC address.') }}');
+                        return;
+                    }
+
                     setLoading(true);
 
                     fetch('{{ route('membership.stripe.initiate') }}', {
@@ -267,7 +292,8 @@
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({
-                                membership_id: {{ $plan->id }}
+                                membership_id: {{ $plan->id }},
+                                mac_address: macAddress
                             })
                         })
                         .then(function(res) {

@@ -23,6 +23,10 @@ class PricingPlan extends Model
         'is_trial',
         'trial_days',
         'sort_order',
+        'iptv_package_id',
+        'iptv_sub_months',
+        'iptv_device_type',
+        'iptv_country',
     ];
 
     protected $casts = [
@@ -49,6 +53,21 @@ class PricingPlan extends Model
     public function getEffectivePriceAttribute(): float
     {
         return $this->has_offer ? $this->offer_price : $this->price;
+    }
+
+    /**
+     * Subscription length in months for providers that bill in months
+     * (8K accepts 1/3/6/12). Falls back to deriving it from duration_days.
+     */
+    public function iptvMonths(): int
+    {
+        $months = (int) ($this->iptv_sub_months ?? 0);
+        if (in_array($months, [1, 3, 6, 12], true)) {
+            return $months;
+        }
+
+        $derived = (int) round(($this->duration_days ?? 30) / 30);
+        return max(1, $derived);
     }
 
     public function pricing_plan_translations(): HasMany

@@ -14,7 +14,8 @@ class PricingPlanController extends Controller
     public function index(Request $request)
     {
         $plans = $this->repo->planList($request);
-        return view('backend.modules.pricing-plans.list', compact('plans'));
+        $packages = \App\Models\IptvPackage::orderBy('name')->get();
+        return view('backend.modules.pricing-plans.list', compact('plans', 'packages'));
     }
 
     public function store(PricingPlanRequest $request)
@@ -34,7 +35,8 @@ class PricingPlanController extends Controller
 
         $plan = $this->repo->planDetails((int) $request->id);
         $lang = $request->lang ?? defaultLangCode();
-        $html = view('backend.modules.pricing-plans.edit', compact('plan', 'lang'))->render();
+        $packages = \App\Models\IptvPackage::orderBy('name')->get();
+        $html = view('backend.modules.pricing-plans.edit', compact('plan', 'lang', 'packages'))->render();
 
         return response()->json(['success' => true, 'html' => $html]);
     }

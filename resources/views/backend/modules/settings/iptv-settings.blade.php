@@ -1,26 +1,53 @@
 @extends('backend.layouts.settings_layout')
 
 @section('settings-title', __tr('IPTV Settings'))
-@section('settings-description', __tr('Configure Xtream Codes API and WHMCS integration for automatic IPTV
-    provisioning.'))
+@section('settings-description', __tr('Choose and configure your IPTV provider (Xtream Codes or 8K CMS) and the
+    optional WHMCS billing sync.'))
 
 @section('settings-content')
     <form action="{{ route('admin.system.settings.iptv.update') }}" method="POST">
         @csrf
-        <div class="row">
 
-            {{-- Xtream Codes --}}
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h6 class="mb-0"><i class="fas fa-tv mr-2 text-primary"></i>{{ __tr('Xtream Codes API') }}</h6>
+        {{-- Master provider selection --}}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-sliders-h mr-2 text-primary"></i>{{ __tr('Provisioning') }}</h6>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-lg-6 form-group mb-lg-0">
+                        <label>{{ __tr('Active Streaming Provider') }}</label>
+                        @php($activeProvider = get_setting('active_iptv_provider', 'xtream'))
+                        <select name="active_iptv_provider" class="form-control">
+                            <option value="none" {{ $activeProvider === 'none' ? 'selected' : '' }}>
+                                {{ __tr('None (disabled)') }}</option>
+                            <option value="xtream" {{ $activeProvider === 'xtream' ? 'selected' : '' }}>
+                                {{ __tr('Xtream Codes API') }}</option>
+                            <option value="8k" {{ $activeProvider === '8k' ? 'selected' : '' }}>
+                                {{ __tr('8K CMS API') }}</option>
+                        </select>
+                        <small class="text-muted">{{ __tr('Only one provider is used at a time.') }}</small>
+                    </div>
+                    <div class="col-lg-6 form-group mb-0">
                         <div class="custom-control custom-switch">
                             <input type="checkbox" class="custom-control-input" id="iptv_provisioning_enabled"
                                 name="iptv_provisioning_enabled" value="1"
                                 {{ get_setting('iptv_provisioning_enabled', 0) ? 'checked' : '' }}>
                             <label class="custom-control-label"
-                                for="iptv_provisioning_enabled">{{ __tr('Auto-Provision') }}</label>
+                                for="iptv_provisioning_enabled">{{ __tr('Auto-provision accounts after payment') }}</label>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            {{-- Xtream Codes --}}
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-tv mr-2 text-primary"></i>{{ __tr('Xtream Codes API') }}</h6>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
@@ -40,6 +67,34 @@
                             <input type="password" name="xtream_admin_password" class="form-control"
                                 value="{{ get_setting('xtream_admin_password') }}" placeholder="••••••••"
                                 autocomplete="new-password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 8K CMS --}}
+            <div class="col-lg-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-broadcast-tower mr-2 text-info"></i>{{ __tr('8K CMS API') }}</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>{{ __tr('8K CMS API URL') }}</label>
+                            <input type="url" name="iptv_api_url" class="form-control"
+                                value="{{ get_setting('iptv_api_url', 'https://8k.cms-only.ru/api/api.php') }}"
+                                placeholder="https://8k.cms-only.ru/api/api.php">
+                        </div>
+                        <div class="form-group">
+                            <label>{{ __tr('Developer API Key') }}</label>
+                            <input type="password" name="iptv_api_key" class="form-control"
+                                value="{{ get_setting('iptv_api_key') }}" placeholder="••••••••"
+                                autocomplete="new-password">
+                        </div>
+                        <div class="form-group mb-0">
+                            <small class="form-text text-muted">
+                                {{ __tr('After saving, sync the package list so it can be mapped to your pricing plans.') }}
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -103,6 +158,20 @@
         <div class="d-flex justify-content-end">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save mr-1"></i>{{ __tr('Save IPTV Settings') }}
+            </button>
+        </div>
+    </form>
+
+    {{-- 8K package sync (separate form — posts to a different endpoint) --}}
+    <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST" class="mt-3">
+        @csrf
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <small class="text-muted mb-2 mb-md-0">
+                {{ __tr('Packages synced from 8K CMS:') }}
+                <strong>{{ \App\Models\IptvPackage::count() }}</strong>
+            </small>
+            <button type="submit" class="btn btn-outline-info">
+                <i class="fas fa-sync mr-1"></i>{{ __tr('Sync Packages from 8K') }}
             </button>
         </div>
     </form>

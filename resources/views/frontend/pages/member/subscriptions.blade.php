@@ -39,17 +39,24 @@
                     </div>
                 </div>
             </div>
-            @if($activeSubscription->xtream_username)
+            @if($activeSubscription->iptv_username || $activeSubscription->iptv_mac)
             <div class="mt-3 pt-3 sub-banner-divider">
                 <div class="row">
+                    @if($activeSubscription->iptv_device_type === 'mag')
+                    <div class="col-md-6 mb-2">
+                        <small class="text-uppercase sub-banner-meta">MAC Address</small><br>
+                        <code class="sub-banner-code">{{ $activeSubscription->iptv_mac }}</code>
+                    </div>
+                    @else
                     <div class="col-md-6 mb-2">
                         <small class="text-uppercase sub-banner-meta">Username</small><br>
-                        <code class="sub-banner-code">{{ $activeSubscription->xtream_username }}</code>
+                        <code class="sub-banner-code">{{ $activeSubscription->iptv_username }}</code>
                     </div>
                     <div class="col-md-6 mb-2">
                         <small class="text-uppercase sub-banner-meta">Password</small><br>
-                        <code class="sub-banner-code">{{ $activeSubscription->xtream_password }}</code>
+                        <code class="sub-banner-code">{{ $activeSubscription->iptv_password }}</code>
                     </div>
+                    @endif
                 </div>
                 <a href="{{ route('member.setup.guide') }}" class="cmn-btn cmn-btn-sm mt-2">
                     <i class="fas fa-tv mr-1"></i> {{ __tr('Setup Guide') }}

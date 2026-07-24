@@ -2,74 +2,80 @@
 
 namespace App\Services;
 
+use App\Contracts\IptvProvider;
 use App\Mail\WelcomeWithCredentialsMail;
 use App\Models\User;
 use App\Models\UserSubscription;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 
 class IptvProvisioningService
 {
     public function __construct(
-        protected XtreamCodesService $xtream,
+        protected IptvProvider $provider,
         protected WhmcsService $whmcs,
         protected InvoiceService $invoices,
     ) {}
 
+    /**
+     * Whether WHMCS billing sync should run. Both configured AND enabled — the
+     * `whmcs_sync_enabled` toggle must fully disable every WHMCS side effect.
+     */
+    protected function whmcsEnabled(): bool
+    {
+        return $this->whmcs->isConfigured() && (bool) get_setting('whmcs_sync_enabled', 0);
+    }
+
     public function provision(UserSubscription $subscription): bool
     {
-        // Idempotency guard: if this subscription already has a provisioned line,
-        // don't create a duplicate on the panel. The Stripe webhook and the
-        // browser-return path can both fire for the same payment.
-        if ($subscription->xtream_line_id) {
+        // No active streaming provider — nothing to provision.
+        if (get_setting('active_iptv_provider', 'xtream') === 'none' || !$this->provider->isConfigured()) {
+            return false;
+        }
+
+        // Idempotency guard: if this subscription already has a provisioned
+        // account, don't create a duplicate on the panel. The Stripe webhook and
+        // the browser-return path can both fire for the same payment.
+        if ($subscription->iptv_user_id) {
             return true;
         }
 
         $user = $subscription->user;
-        $plan = $subscription->plan;
 
         try {
-            // Generate Xtream credentials if not already set
-            $username = $subscription->xtream_username ?? ('alb_' . $user->id . '_' . strtolower(Str::random(4)));
-            $password = $subscription->xtream_password ?? Str::random(12);
+            $account = $this->provider->createAccount($subscription);
 
-            $expDate = $subscription->expires_at
-                ? $subscription->expires_at->timestamp
-                : now()->addDays($plan->duration_days)->timestamp;
+            if (empty($account)) {
+                \Log::error('IPTV provisioning returned no account for subscription ' . $subscription->id);
+                return false;
+            }
 
-            $lineData = $this->xtream->createLine([
-                'username'               => $username,
-                'password'               => $password,
-                'max_connections'        => $plan->max_connections ?? 1,
-                'allowed_output_formats' => ['ts', 'm3u8'],
-                'is_trial'               => $plan->is_trial ? '1' : '0',
-                'exp_date'               => $expDate,
-            ]);
-
-            $lineId = $lineData['user_info']['id'] ?? $lineData['id'] ?? null;
-
-            // Store credentials on subscription and user
+            // Store the normalised account on the subscription and mirror the
+            // credentials onto the user record.
             $subscription->update([
-                'xtream_username' => $username,
-                'xtream_password' => $password,
-                'xtream_line_id'  => $lineId,
+                'iptv_provider'    => $this->provider->key(),
+                'iptv_user_id'     => $account['user_id'] ?? null,
+                'iptv_username'    => $account['username'] ?? null,
+                'iptv_password'    => $account['password'] ?? null,
+                'iptv_mac'         => $account['mac'] ?? $subscription->iptv_mac,
+                'iptv_m3u_url'     => $account['m3u_url'] ?? null,
+                'iptv_device_type' => $account['device_type'] ?? 'm3u',
             ]);
 
             $user->update([
-                'xtream_username' => $username,
-                'xtream_password' => $password,
+                'iptv_username' => $account['username'] ?? null,
+                'iptv_password' => $account['password'] ?? null,
             ]);
 
             // Generate the paid invoice / receipt and email it to the customer.
             $this->generateInvoice($subscription);
 
             // WHMCS sync
-            if ($this->whmcs->isConfigured() && get_setting('whmcs_sync_enabled', 0)) {
+            if ($this->whmcsEnabled()) {
                 $this->syncToWhmcs($user, $subscription);
             }
 
             // Send welcome email with credentials
-            $credentials = $this->generateCredentials($user);
+            $credentials = $this->generateCredentials($subscription->fresh());
             Mail::to($user->email)->queue(new WelcomeWithCredentialsMail($user, $subscription, $credentials));
 
             return true;
@@ -87,11 +93,11 @@ class IptvProvisioningService
     public function delete(UserSubscription $subscription): bool
     {
         try {
-            if ($subscription->xtream_username) {
-                $this->xtream->deleteLine($subscription->xtream_username);
+            if ($subscription->iptv_user_id || $subscription->iptv_username) {
+                $this->provider->deleteAccount($subscription);
             }
 
-            if ($this->whmcs->isConfigured() && $subscription->whmcs_service_id) {
+            if ($this->whmcsEnabled() && $subscription->whmcs_service_id) {
                 $this->whmcs->terminateService((int) $subscription->whmcs_service_id);
             }
 
@@ -125,14 +131,14 @@ class IptvProvisioningService
 
     public function suspend(UserSubscription $subscription): bool
     {
-        if (!$subscription->xtream_username) {
+        if (!$subscription->iptv_user_id && !$subscription->iptv_username) {
             return true;
         }
 
         try {
-            $this->xtream->banLine($subscription->xtream_username);
+            $this->provider->disable($subscription);
 
-            if ($this->whmcs->isConfigured()) {
+            if ($this->whmcsEnabled()) {
                 if ($subscription->whmcs_service_id) {
                     $this->whmcs->suspendService((int) $subscription->whmcs_service_id, 'Subscription suspended');
                 } elseif ($subscription->user->whmcs_client_id) {
@@ -148,17 +154,15 @@ class IptvProvisioningService
 
     public function reactivate(UserSubscription $subscription): bool
     {
-        if (!$subscription->xtream_username) {
+        if (!$subscription->iptv_user_id && !$subscription->iptv_username) {
             return $this->provision($subscription);
         }
 
         try {
-            $this->xtream->unbanLine($subscription->xtream_username);
-            $this->xtream->updateLine($subscription->xtream_username, [
-                'exp_date' => $subscription->expires_at?->timestamp,
-            ]);
+            $this->provider->enable($subscription);
+            $this->provider->renew($subscription, $subscription->plan?->iptvMonths() ?? 1);
 
-            if ($this->whmcs->isConfigured()) {
+            if ($this->whmcsEnabled()) {
                 if ($subscription->whmcs_service_id) {
                     $this->whmcs->unsuspendService((int) $subscription->whmcs_service_id);
                 } elseif ($subscription->user->whmcs_client_id) {
@@ -168,6 +172,28 @@ class IptvProvisioningService
 
             return true;
         } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Extend an existing streaming account after a renewal payment. Provisions
+     * from scratch if the subscription was never set up on a panel.
+     */
+    public function renew(UserSubscription $subscription): bool
+    {
+        if (get_setting('active_iptv_provider', 'xtream') === 'none' || !$this->provider->isConfigured()) {
+            return false;
+        }
+
+        if (!$subscription->iptv_user_id && !$subscription->iptv_username) {
+            return $this->provision($subscription);
+        }
+
+        try {
+            return $this->provider->renew($subscription, $subscription->plan?->iptvMonths() ?? 1);
+        } catch (\Exception $e) {
+            \Log::error('IPTV renew failed for subscription ' . $subscription->id . ': ' . $e->getMessage());
             return false;
         }
     }
@@ -182,17 +208,18 @@ class IptvProvisioningService
         return $this->suspend($subscription);
     }
 
-    public function generateCredentials(User $user): array
+    /**
+     * Normalised credentials for display / email, read from the stored
+     * provider-agnostic fields on the subscription.
+     */
+    public function generateCredentials(UserSubscription $subscription): array
     {
         return [
-            'username' => $user->xtream_username ?? '',
-            'password' => $user->xtream_password ?? '',
-            'm3u_url'  => $user->xtream_username
-                ? $this->xtream->getM3UUrl($user->xtream_username, $user->xtream_password)
-                : '',
-            'epg_url'  => $user->xtream_username
-                ? $this->xtream->getEpgUrl($user->xtream_username, $user->xtream_password)
-                : '',
+            'username'    => $subscription->iptv_username ?? '',
+            'password'    => $subscription->iptv_password ?? '',
+            'mac'         => $subscription->iptv_mac ?? '',
+            'm3u_url'     => $subscription->iptv_m3u_url ?? '',
+            'device_type' => $subscription->iptv_device_type ?? 'm3u',
         ];
     }
 

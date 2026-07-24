@@ -57,7 +57,7 @@ class WhmcsWebhookController extends Controller
                         'expires_at' => $subscription->expires_at
                             ?? now()->addDays($subscription->plan->duration_days ?? 30),
                     ]);
-                    if (get_setting('iptv_provisioning_enabled', 0) && empty($subscription->xtream_username)) {
+                    if (get_setting('iptv_provisioning_enabled', 0) && empty($subscription->iptv_user_id)) {
                         dispatch(new \App\Jobs\ProvisionSubscriptionJob($subscription));
                     }
                 }

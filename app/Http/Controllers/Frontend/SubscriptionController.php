@@ -15,6 +15,26 @@ use Illuminate\Support\Str;
 class SubscriptionController extends Controller
 {
     /**
+     * MAG plans require a MAC address at checkout; M3U plans do not.
+     * Returns the validated MAC (or null for non-MAG plans).
+     */
+    private function macForPlan(Request $request, PricingPlan $plan): ?string
+    {
+        if ($plan->iptv_device_type !== 'mag') {
+            return null;
+        }
+
+        $data = $request->validate([
+            'mac_address' => ['required', 'string', 'regex:/^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/'],
+        ], [
+            'mac_address.required' => __tr('A MAG device MAC address is required for this plan.'),
+            'mac_address.regex'    => __tr('Enter a valid MAC address (e.g. 00:1A:79:12:34:56).'),
+        ]);
+
+        return strtoupper($data['mac_address']);
+    }
+
+    /**
      * Show the subscription confirmation / payment method selection page.
      */
     public function confirm(int $planId)
@@ -87,6 +107,8 @@ class SubscriptionController extends Controller
             return back()->with('error', __tr('You already have an active subscription.'));
         }
 
+        $mac = $this->macForPlan($request, $plan);
+
         try {
             DB::beginTransaction();
 
@@ -101,6 +123,8 @@ class SubscriptionController extends Controller
                 'status'                  => 'pending',
                 'bank_transaction_number' => $request->bank_transaction_number,
                 'bank_slip'               => $slipPath,
+                'iptv_mac'                => $mac,
+                'iptv_device_type'        => $plan->iptv_device_type ?? 'm3u',
             ]);
 
             DB::commit();
@@ -146,14 +170,16 @@ class SubscriptionController extends Controller
             DB::beginTransaction();
 
             UserSubscription::create([
-                'user_id'        => $user->id,
-                'plan_id'        => $plan->id,
-                'transaction_id' => 'TRIAL-' . strtoupper(Str::random(12)),
-                'amount'         => 0,
-                'payment_method' => 'trial',
-                'status'         => 'active',
-                'starts_at'      => now(),
-                'expires_at'     => now()->addDays($plan->duration_days),
+                'user_id'          => $user->id,
+                'plan_id'          => $plan->id,
+                'transaction_id'   => 'TRIAL-' . strtoupper(Str::random(12)),
+                'amount'           => 0,
+                'payment_method'   => 'trial',
+                'status'           => 'active',
+                'starts_at'        => now(),
+                'expires_at'       => now()->addDays($plan->duration_days),
+                'iptv_mac'         => $request->input('mac_address'),
+                'iptv_device_type' => $plan->iptv_device_type ?? 'm3u',
             ]);
 
             DB::commit();
@@ -204,6 +230,12 @@ class SubscriptionController extends Controller
         }
 
         try {
+            $mac = $this->macForPlan($request, $plan);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => $e->validator->errors()->first()], 422);
+        }
+
+        try {
             $stripe = new StripeService();
             $intentData = $stripe->createPaymentIntent($plan, $user);
 
@@ -217,6 +249,8 @@ class SubscriptionController extends Controller
                 'payment_method'           => 'stripe',
                 'status'                   => 'pending',
                 'stripe_payment_intent_id' => $intentData['payment_intent_id'],
+                'iptv_mac'                 => $mac,
+                'iptv_device_type'         => $plan->iptv_device_type ?? 'm3u',
             ]);
 
             return response()->json([
@@ -267,8 +301,8 @@ class SubscriptionController extends Controller
 
                 // Provision here too — the browser may return before the webhook
                 // fires. ProvisionSubscriptionJob is idempotent (guards on an
-                // existing xtream_line_id), so webhook + return won't double-create.
-                if (get_setting('iptv_provisioning_enabled', 0) && empty($subscription->xtream_username)) {
+                // existing iptv_user_id), so webhook + return won't double-create.
+                if (get_setting('iptv_provisioning_enabled', 0) && empty($subscription->iptv_user_id)) {
                     dispatch(new \App\Jobs\ProvisionSubscriptionJob($subscription));
                 }
 

@@ -355,6 +355,7 @@ Route::prefix('admin')->group(function () {
          */
         Route::get('/system/settings/iptv', [SettingController::class, 'iptvSettings'])->name('admin.system.settings.iptv');
         Route::post('/system/settings/iptv/update', [SettingController::class, 'iptvSettingsUpdate'])->name('admin.system.settings.iptv.update');
+        Route::post('/system/settings/iptv/sync-packages', [SettingController::class, 'syncIptvPackages'])->name('admin.system.settings.iptv.sync-packages');
 
         /**
          * Media Management (shared picker — requires at least media view access)

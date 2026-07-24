@@ -2,52 +2,58 @@
 
 namespace App\Jobs;
 
+use App\Contracts\IptvProvider;
 use App\Models\UserSubscription;
-use App\Services\XtreamCodesService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Reconcile local subscriptions with the active IPTV provider: re-enable lines
+ * that were banned upstream while still valid, and push our expiry when it
+ * drifts. Provider-agnostic — resolves whichever provider is currently active.
+ */
 class SyncXtreamStatusJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(XtreamCodesService $xtream): void
+    public function handle(IptvProvider $provider): void
     {
-        if (!get_setting('iptv_provisioning_enabled', 0)) {
+        if (!get_setting('iptv_provisioning_enabled', 0) || get_setting('active_iptv_provider', 'xtream') === 'none') {
+            return;
+        }
+
+        if (!$provider->isConfigured()) {
             return;
         }
 
         $subscriptions = UserSubscription::with('plan')
             ->where('status', 'active')
-            ->whereNotNull('xtream_username')
+            ->whereNotNull('iptv_username')
             ->get();
 
         foreach ($subscriptions as $subscription) {
             try {
-                $info = $xtream->getLineInfo($subscription->xtream_username);
+                $info = $provider->fetchInfo($subscription);
 
                 if (empty($info)) {
                     continue;
                 }
 
-                $xtreamActive = ($info['user_info']['active'] ?? 1) == 1;
-                $xtreamExpiry = isset($info['user_info']['exp_date'])
-                    ? \Carbon\Carbon::createFromTimestamp($info['user_info']['exp_date'])
-                    : null;
+                $remoteActive = $info['active'] ?? true;
+                $remoteExpiry = $info['expires_at'] ?? null;
 
-                // If Xtream says the line is banned but we think it's active — re-activate
-                if (!$xtreamActive && $subscription->expires_at?->isFuture()) {
-                    $xtream->unbanLine($subscription->xtream_username);
+                // Provider says the line is disabled but we think it's active — re-enable.
+                if (!$remoteActive && $subscription->expires_at?->isFuture()) {
+                    $provider->enable($subscription);
                 }
 
-                // If Xtream expiry drifted from our record — update Xtream
-                if ($xtreamExpiry && $subscription->expires_at && abs($xtreamExpiry->diffInHours($subscription->expires_at)) > 1) {
-                    $xtream->updateLine($subscription->xtream_username, [
-                        'exp_date' => $subscription->expires_at->timestamp,
-                    ]);
+                // Provider expiry drifted from our record — push a renewal.
+                if ($remoteExpiry && $subscription->expires_at
+                    && abs($remoteExpiry->diffInHours($subscription->expires_at)) > 1) {
+                    $provider->renew($subscription, $subscription->plan?->iptvMonths() ?? 1);
                 }
             } catch (\Exception $e) {
                 // Skip this subscription on error; try again next cycle

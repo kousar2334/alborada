@@ -42,6 +42,10 @@ class PricingPlanRepository
             $plan->is_trial = $data['is_trial'] ?? 0;
             $plan->trial_days = $data['trial_days'] ?? null;
             $plan->sort_order = $data['sort_order'] ?? 0;
+            $plan->iptv_package_id = ($data['iptv_package_id'] ?? '') !== '' ? $data['iptv_package_id'] : null;
+            $plan->iptv_sub_months = $data['iptv_sub_months'] ?? 1;
+            $plan->iptv_device_type = $data['iptv_device_type'] ?? 'm3u';
+            $plan->iptv_country = $data['iptv_country'] ?? 'ALL';
             $plan->save();
 
             DB::commit();
@@ -84,6 +88,10 @@ class PricingPlanRepository
                 $plan->is_trial = $request['is_trial'] ?? 0;
                 $plan->trial_days = $request['trial_days'] ?? null;
                 $plan->sort_order = $request['sort_order'] ?? 0;
+                $plan->iptv_package_id = ($request['iptv_package_id'] ?? '') !== '' ? $request['iptv_package_id'] : null;
+                $plan->iptv_sub_months = $request['iptv_sub_months'] ?? 1;
+                $plan->iptv_device_type = $request['iptv_device_type'] ?? 'm3u';
+                $plan->iptv_country = $request['iptv_country'] ?? 'ALL';
                 $plan->save();
             }
 
