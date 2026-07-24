@@ -14,8 +14,8 @@
                 <h6 class="mb-0"><i class="fas fa-sliders-h mr-2 text-primary"></i>{{ __tr('Provisioning') }}</h6>
             </div>
             <div class="card-body">
-                <div class="row align-items-end">
-                    <div class="col-lg-6 form-group mb-lg-0">
+                <div class="row">
+                    <div class="col-lg-6 form-group mb-3 mb-lg-0">
                         <label>{{ __tr('Active Streaming Provider') }}</label>
                         @php($activeProvider = get_setting('active_iptv_provider', 'xtream'))
                         <select name="active_iptv_provider" id="active_iptv_provider" class="form-control">
@@ -29,13 +29,15 @@
                         <small class="text-muted">{{ __tr('Only one provider is used at a time.') }}</small>
                     </div>
                     <div class="col-lg-6 form-group mb-0">
-                        <div class="custom-control custom-switch">
+                        <label>{{ __tr('Auto-Provisioning') }}</label>
+                        <div class="custom-control custom-switch mt-2">
                             <input type="checkbox" class="custom-control-input" id="iptv_provisioning_enabled"
                                 name="iptv_provisioning_enabled" value="1"
                                 {{ get_setting('iptv_provisioning_enabled', 0) ? 'checked' : '' }}>
                             <label class="custom-control-label"
                                 for="iptv_provisioning_enabled">{{ __tr('Auto-provision accounts after payment') }}</label>
                         </div>
+                        <small class="text-muted">{{ __tr('Create the streaming account automatically once a payment succeeds.') }}</small>
                     </div>
                 </div>
             </div>
@@ -45,7 +47,7 @@
 
             {{-- Xtream Codes --}}
             <div id="iptv-card-xtream" @class(['col-lg-6 mb-4', 'd-none' => $activeProvider !== 'xtream'])>
-                <div class="card h-100">
+                <div class="card">
                     <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-tv mr-2 text-primary"></i>{{ __tr('Xtream Codes API') }}</h6>
                     </div>
@@ -74,7 +76,7 @@
 
             {{-- 8K CMS --}}
             <div id="iptv-card-8k" @class(['col-lg-6 mb-4', 'd-none' => $activeProvider !== '8k'])>
-                <div class="card h-100">
+                <div class="card">
                     <div class="card-header">
                         <h6 class="mb-0"><i class="fas fa-broadcast-tower mr-2 text-info"></i>{{ __tr('8K CMS API') }}</h6>
                     </div>
