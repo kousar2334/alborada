@@ -310,6 +310,7 @@ class EightKApiService implements IptvProvider
         return is_array($response) ? $response : [];
     }
 
+
     private function logRequest(string $endpoint, array $request, array $response, int $status, int $duration): void
     {
         try {
