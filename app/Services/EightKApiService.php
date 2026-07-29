@@ -292,8 +292,6 @@ class EightKApiService implements IptvProvider
                 'api_key' => $this->apiKey,
             ]));
 
-            dd($result->body());
-
             $statusCode = $result->status();
             $response   = $result->json() ?? [];
         } catch (\Exception $e) {
