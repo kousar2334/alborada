@@ -1,7 +1,8 @@
 @extends('backend.layouts.settings_layout')
 
 @section('settings-title', __tr('IPTV Settings'))
-@section('settings-description', __tr('Choose and configure your IPTV provider (Xtream Codes or 8K CMS) and the
+@section('settings-description',
+    __tr('Choose and configure your IPTV provider (Xtream Codes or 8K CMS) and the
     optional WHMCS billing sync.'))
 
 @section('settings-content')
@@ -37,7 +38,8 @@
                             <label class="custom-control-label"
                                 for="iptv_provisioning_enabled">{{ __tr('Auto-provision accounts after payment') }}</label>
                         </div>
-                        <small class="text-muted">{{ __tr('Create the streaming account automatically once a payment succeeds.') }}</small>
+                        <small
+                            class="text-muted">{{ __tr('Create the streaming account automatically once a payment succeeds.') }}</small>
                     </div>
                 </div>
             </div>
@@ -85,7 +87,8 @@
             <div id="iptv-card-8k" @class(['col-lg-6 mb-4', 'd-none' => $activeProvider !== '8k'])>
                 <div class="card">
                     <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-broadcast-tower mr-2 text-info"></i>{{ __tr('8K CMS API') }}</h6>
+                        <h6 class="mb-0"><i class="fas fa-broadcast-tower mr-2 text-info"></i>{{ __tr('8K CMS API') }}
+                        </h6>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
@@ -126,7 +129,8 @@
                             <input type="checkbox" class="custom-control-input" id="whmcs_sync_enabled"
                                 name="whmcs_sync_enabled" value="1"
                                 {{ get_setting('whmcs_sync_enabled', 0) ? 'checked' : '' }}>
-                            <label class="custom-control-label" for="whmcs_sync_enabled">{{ __tr('Sync Enabled') }}</label>
+                            <label class="custom-control-label"
+                                for="whmcs_sync_enabled">{{ __tr('Sync Enabled') }}</label>
                         </div>
                     </div>
                     <div class="card-body">
@@ -152,7 +156,8 @@
                             <input type="number" name="whmcs_product_id" class="form-control" min="0"
                                 value="{{ get_setting('whmcs_product_id', 0) }}"
                                 placeholder="{{ __tr('WHMCS product/service ID to order') }}">
-                            <small class="form-text text-muted">{{ __tr('The WHMCS product an order is placed against when provisioning. Leave 0 to only sync the client record.') }}</small>
+                            <small
+                                class="form-text text-muted">{{ __tr('The WHMCS product an order is placed against when provisioning. Leave 0 to only sync the client record.') }}</small>
                         </div>
                         <div class="form-group mb-0">
                             <label>{{ __tr('Inbound Webhook Secret') }}</label>
@@ -172,18 +177,9 @@
         </div>
 
     </form>
-
-    {{-- Action bar: secondary action (sync, 8K only) on the left,
-         primary Save on the right. Save lives outside the form and submits it
-         via the form="" attribute so both buttons share one row.
-         Extra bottom spacing keeps the buttons clear of the fixed footer. --}}
     <div class="d-flex flex-wrap align-items-center mt-2 mb-5 pb-5">
-
-        {{-- 8K package sync (separate form — posts to a different endpoint).
-             d-none is toggled on the <form> itself, which has no d-flex, so the
-             hide is not overridden by a display-flex utility. --}}
-        <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST"
-            id="iptv-sync-8k" @class(['mb-2 mb-md-0', 'd-none' => $activeProvider !== '8k'])>
+        <form action="{{ route('admin.system.settings.iptv.sync-packages') }}" method="POST" id="iptv-sync-8k"
+            @class(['mb-2 mb-md-0', 'd-none' => $activeProvider !== '8k'])>
             @csrf
             <div class="d-flex align-items-center flex-wrap">
                 <button type="submit" class="btn btn-outline-info mr-3 mb-2 mb-md-0">
@@ -203,7 +199,7 @@
 
     {{-- Show only the active provider's configuration card --}}
     <script>
-        (function () {
+        (function() {
             var select = document.getElementById('active_iptv_provider');
             if (!select) return;
 
@@ -214,8 +210,8 @@
 
             function syncPanels() {
                 var active = select.value;
-                Object.keys(panels).forEach(function (provider) {
-                    panels[provider].forEach(function (el) {
+                Object.keys(panels).forEach(function(provider) {
+                    panels[provider].forEach(function(el) {
                         if (el) el.classList.toggle('d-none', provider !== active);
                     });
                 });
@@ -228,18 +224,21 @@
 
     {{-- Test Connection for each provider (uses the values currently in the form) --}}
     <script>
-        (function () {
-            var val = function (name) {
+        (function() {
+            var val = function(name) {
                 var el = document.querySelector('[name="' + name + '"]');
                 return el ? el.value : '';
             };
 
-            document.querySelectorAll('.iptv-test-btn').forEach(function (btn) {
-                btn.addEventListener('click', function () {
+            document.querySelectorAll('.iptv-test-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
                     var provider = btn.getAttribute('data-provider');
-                    var result = document.querySelector('.iptv-test-result[data-provider="' + provider + '"]');
+                    var result = document.querySelector('.iptv-test-result[data-provider="' + provider +
+                        '"]');
 
-                    var payload = { provider: provider };
+                    var payload = {
+                        provider: provider
+                    };
                     if (provider === 'xtream') {
                         payload.xtream_base_url = val('xtream_base_url');
                         payload.xtream_admin_username = val('xtream_admin_username');
@@ -254,25 +253,33 @@
                     result.textContent = '{{ __tr('Testing…') }}';
 
                     fetch('{{ route('admin.system.settings.iptv.test') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    })
-                        .then(function (r) { return r.json(); })
-                        .then(function (data) {
-                            result.className = 'iptv-test-result small mt-2 ' + (data.ok ? 'text-success' : 'text-danger');
-                            result.innerHTML = (data.ok ? '<i class="fas fa-check-circle mr-1"></i>' : '<i class="fas fa-times-circle mr-1"></i>') +
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        })
+                        .then(function(r) {
+                            return r.json();
+                        })
+                        .then(function(data) {
+                            result.className = 'iptv-test-result small mt-2 ' + (data.ok ?
+                                'text-success' : 'text-danger');
+                            result.innerHTML = (data.ok ?
+                                    '<i class="fas fa-check-circle mr-1"></i>' :
+                                    '<i class="fas fa-times-circle mr-1"></i>') +
                                 (data.message || (data.ok ? 'OK' : 'Failed'));
                         })
-                        .catch(function () {
+                        .catch(function() {
                             result.className = 'iptv-test-result small mt-2 text-danger';
-                            result.textContent = '{{ __tr('Request failed. Check the browser console.') }}';
+                            result.textContent =
+                                '{{ __tr('Request failed. Check the browser console.') }}';
                         })
-                        .finally(function () { btn.disabled = false; });
+                        .finally(function() {
+                            btn.disabled = false;
+                        });
                 });
             });
         })();
