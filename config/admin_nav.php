@@ -24,6 +24,12 @@ return [
         'active_routes' => ['admin.subscriptions.list'],
     ],
     [
+        'label'        => 'Renewals',
+        'route'        => 'admin.subscriptions.renewals',
+        'icon'         => 'fas fa-redo-alt',
+        'active_routes' => ['admin.subscriptions.renewals'],
+    ],
+    [
         'label'        => 'Pricing Plans',
         'route'        => 'admin.pricing.plans.list',
         'icon'         => 'fas fa-tags',

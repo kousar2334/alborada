@@ -129,6 +129,10 @@ Route::prefix('admin')->group(function () {
             Route::post('delete', [SubscriptionController::class, 'delete'])->name('admin.subscriptions.delete');
             Route::post('send-payment-link', [SubscriptionController::class, 'sendPaymentLink'])->name('admin.subscriptions.send.payment.link');
             Route::post('reprovision', [SubscriptionController::class, 'reprovision'])->name('admin.subscriptions.reprovision');
+            Route::post('renew', [SubscriptionController::class, 'renew'])->name('admin.subscriptions.renew');
+            Route::get('renewals', [SubscriptionController::class, 'renewals'])->name('admin.subscriptions.renewals');
+            Route::post('renewals/approve', [SubscriptionController::class, 'approveRenewal'])->name('admin.subscriptions.renewals.approve');
+            Route::post('renewals/reject', [SubscriptionController::class, 'rejectRenewal'])->name('admin.subscriptions.renewals.reject');
         });
 
         /**
@@ -288,6 +292,7 @@ Route::prefix('admin')->group(function () {
 
         Route::get('/payment-settings', [PaymentSettingsController::class, 'index'])->name('admin.payment.settings');
         Route::post('/payment-settings/update', [PaymentSettingsController::class, 'update'])->name('admin.payment.settings.update');
+        Route::post('/payment-settings/test-stripe', [PaymentSettingsController::class, 'testStripeConnection'])->name('admin.payment.settings.test.stripe');
 
         Route::get('/contact-messages', MissingModuleController::class)->name('admin.contact.us.message.list');
         Route::post('/contact-messages/reply', MissingModuleController::class)->name('admin.contact.us.message.reply');

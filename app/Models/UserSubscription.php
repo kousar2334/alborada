@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
 class UserSubscription extends Model
@@ -24,6 +25,7 @@ class UserSubscription extends Model
         'ssl_val_id',
         'stripe_payment_intent_id',
         'stripe_charge_id',
+        'stripe_mode',
         'xtream_username',
         'xtream_password',
         'xtream_line_id',
@@ -38,7 +40,6 @@ class UserSubscription extends Model
         'whmcs_order_id',
         'whmcs_service_id',
         'whmcs_invoice_id',
-        'auto_renew',
         'renewal_reminder_sent',
         'expiry_alert_sent',
         'admin_note',
@@ -50,7 +51,6 @@ class UserSubscription extends Model
         'amount'                 => 'float',
         'starts_at'              => 'datetime',
         'expires_at'             => 'datetime',
-        'auto_renew'             => 'boolean',
         'renewal_reminder_sent'  => 'boolean',
         'expiry_alert_sent'      => 'boolean',
     ];
@@ -63,6 +63,11 @@ class UserSubscription extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(PricingPlan::class, 'plan_id');
+    }
+
+    public function renewals(): HasMany
+    {
+        return $this->hasMany(SubscriptionRenewal::class, 'subscription_id')->latest();
     }
 
     public function scopeActive(Builder $query): Builder

@@ -11,8 +11,16 @@ use Illuminate\Support\Facades\Storage;
 
 class InvoiceService
 {
-    public function createForSubscription(UserSubscription $subscription, array $overrides = []): Invoice
-    {
+    /**
+     * @param  bool  $attachToSubscription  Point the subscription's `invoice_id` at
+     *         this invoice. Pass false for renewal receipts so the original
+     *         purchase receipt stays linked.
+     */
+    public function createForSubscription(
+        UserSubscription $subscription,
+        array $overrides = [],
+        bool $attachToSubscription = true
+    ): Invoice {
         $plan = $subscription->plan;
         // Bill what the customer was actually charged: the subscription amount
         // already reflects any promotional offer price on the plan.
@@ -30,7 +38,9 @@ class InvoiceService
             'paid_at'         => now(),
         ], $overrides));
 
-        $subscription->update(['invoice_id' => $invoice->id]);
+        if ($attachToSubscription) {
+            $subscription->update(['invoice_id' => $invoice->id]);
+        }
 
         return $invoice;
     }

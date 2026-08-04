@@ -31,7 +31,6 @@
                             <th>Plan</th>
                             <th>Expires At</th>
                             <th>Days Left</th>
-                            <th>Auto-Renew</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -51,18 +50,12 @@
                                 </span>
                             </td>
                             <td>
-                                @if($sub->auto_renew)
-                                    <span class="badge badge-success">Yes</span>
-                                @else
-                                    <span class="badge badge-secondary">No</span>
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('admin.subscriptions.show', $sub->id) }}" class="btn btn-xs btn-outline-primary">View</a>
+                                <a href="{{ route('admin.subscriptions.list', ['q' => $sub->user->email ?? '']) }}"
+                                    class="btn btn-xs btn-outline-primary">Renew</a>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" class="text-center text-muted py-4">No subscriptions expiring in this period.</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-4">No subscriptions expiring in this period.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

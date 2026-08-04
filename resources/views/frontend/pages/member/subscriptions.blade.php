@@ -7,7 +7,12 @@
     <div class="my-listings-header">
         <h1>{{ __tr('My Subscriptions') }}</h1>
         <div class="btn-wrapper">
-            <a href="{{ route('pricing.plans') }}" class="cmn-btn">
+            @if ($renewableSubscription)
+                <a href="{{ route('subscription.renew', $renewableSubscription->id) }}" class="cmn-btn">
+                    <i class="fas fa-redo-alt"></i> {{ __tr('Renew Now') }}
+                </a>
+            @endif
+            <a href="{{ route('pricing.plans') }}" class="cmn-btn btn-outline">
                 {{ __tr('Upgrade Plan') }}
             </a>
         </div>
@@ -61,6 +66,9 @@
                 <a href="{{ route('member.setup.guide') }}" class="cmn-btn cmn-btn-sm mt-2">
                     <i class="fas fa-tv mr-1"></i> {{ __tr('Setup Guide') }}
                 </a>
+                <a href="{{ route('subscription.renew', $activeSubscription->id) }}" class="cmn-btn cmn-btn-sm mt-2">
+                    <i class="fas fa-redo-alt mr-1"></i> {{ __tr('Renew') }}
+                </a>
             </div>
             @endif
         </div>
@@ -70,8 +78,16 @@
             <div>
                 <strong class="sub-warning-title">{{ __tr('No active subscription') }}</strong>
                 <p class="sub-warning-text">
-                    <a href="{{ route('pricing.plans') }}" class="sub-warning-link">{{ __tr('Choose a plan') }}</a>
-                    {{ __tr('to unlock posting limits and premium features.') }}
+                    @if ($renewableSubscription)
+                        <a href="{{ route('subscription.renew', $renewableSubscription->id) }}"
+                            class="sub-warning-link">{{ __tr('Renew your') }}
+                            {{ $renewableSubscription->plan->title ?? '' }} {{ __tr('plan') }}</a>
+                        {{ __tr('to restore your streaming access, or') }}
+                        <a href="{{ route('pricing.plans') }}" class="sub-warning-link">{{ __tr('choose another plan') }}</a>.
+                    @else
+                        <a href="{{ route('pricing.plans') }}" class="sub-warning-link">{{ __tr('Choose a plan') }}</a>
+                        {{ __tr('to unlock posting limits and premium features.') }}
+                    @endif
                 </p>
             </div>
         </div>
@@ -151,4 +167,59 @@
             </div>
         @endif
     </div>
+
+    {{-- Renewal History --}}
+    @if ($renewals->count())
+        <div class="dashboard-card p-0 mt-4">
+            <div class="card-header">
+                <h3 class="card-title">{{ __tr('Renewals') }}</h3>
+            </div>
+            <div class="sub-table-wrap">
+                <table class="sub-table">
+                    <thead>
+                        <tr>
+                            <th>{{ __tr('Date') }}</th>
+                            <th>{{ __tr('Plan') }}</th>
+                            <th>{{ __tr('Reference') }}</th>
+                            <th>{{ __tr('Amount') }}</th>
+                            <th>{{ __tr('Method') }}</th>
+                            <th>{{ __tr('Status') }}</th>
+                            <th>{{ __tr('Extended To') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($renewals as $renewal)
+                            <tr>
+                                <td class="td-date">{{ $renewal->created_at->format('M d, Y') }}</td>
+                                <td class="td-plan">{{ $renewal->plan->title ?? 'N/A' }}</td>
+                                <td class="td-txn">{{ $renewal->transaction_id }}</td>
+                                <td class="td-amount">
+                                    @if ($renewal->amount > 0)
+                                        {{ format_amount($renewal->amount) }}
+                                    @else
+                                        <span class="sub-free-badge">{{ __tr('Free') }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($renewal->payment_method === 'stripe')
+                                        <span class="sub-method-badge sub-method-stripe">Stripe</span>
+                                    @elseif ($renewal->payment_method === 'bank_transfer')
+                                        <span class="sub-method-badge sub-method-trial">{{ __tr('Bank Transfer') }}</span>
+                                    @else
+                                        <span class="sub-method-badge sub-method-credits">{{ __tr('Manual') }}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="sub-status-badge sub-status-{{ $renewal->status === 'paid' ? 'active' : $renewal->status }}">
+                                        {{ $renewal->status }}
+                                    </span>
+                                </td>
+                                <td class="td-date">{{ $renewal->new_expires_at?->format('M d, Y') ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 @endsection

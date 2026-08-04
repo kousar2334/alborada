@@ -56,6 +56,20 @@
                 </div>
             </div>
 
+            @if (!empty($stats['pending_renewals']))
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-redo-alt mr-2"></i>
+                    <span class="flex-grow-1">
+                        <strong>{{ $stats['pending_renewals'] }}</strong>
+                        {{ __tr('renewal payment(s) are awaiting your review.') }}
+                    </span>
+                    <a href="{{ route('admin.subscriptions.renewals', ['status' => 'pending']) }}"
+                        class="btn btn-sm btn-warning">
+                        {{ __tr('Review Renewals') }}
+                    </a>
+                </div>
+            @endif
+
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -66,6 +80,9 @@
                                     data-target="#assign-subscription-modal">
                                     <i class="fas fa-plus"></i> {{ __tr('Assign Subscription') }}
                                 </button>
+                                <a href="{{ route('admin.subscriptions.renewals') }}" class="btn btn-info btn-sm ml-1">
+                                    <i class="fas fa-redo-alt"></i> {{ __tr('Renewal History') }}
+                                </a>
                             </h3>
                             <div class="card-tools">
                                 <form method="GET" action="{{ route('admin.subscriptions.list') }}" class="d-flex"
@@ -190,7 +207,20 @@
                                                 @endif
                                             </td>
                                             <td>{{ $sub->created_at->format('M d, Y') }}</td>
-                                            <td class="text-right" style="white-space: nowrap;">
+                                            <td class="text-right text-nowrap">
+                                                @if (in_array($sub->status, ['active', 'expired'], true) && $sub->plan)
+                                                    <button class="btn btn-warning btn-sm renew-item"
+                                                        data-id="{{ $sub->id }}"
+                                                        data-user="{{ $sub->user->name ?? '' }}"
+                                                        data-plan="{{ $sub->plan->title }}"
+                                                        data-price="{{ number_format($sub->plan->effective_price, 2, '.', '') }}"
+                                                        data-days="{{ $sub->plan->duration_days }}"
+                                                        data-expires="{{ $sub->expires_at?->format('M d, Y') ?? '—' }}"
+                                                        data-new-expires="{{ ($sub->expires_at && $sub->expires_at->isFuture() ? $sub->expires_at->copy() : now())->addDays($sub->plan->duration_days)->format('M d, Y') }}"
+                                                        title="{{ __tr('Renew subscription') }}">
+                                                        <i class="fas fa-redo-alt"></i>
+                                                    </button>
+                                                @endif
                                                 @if ($sub->status === 'active' && get_setting('iptv_provisioning_enabled', 0))
                                                     <button class="btn btn-info btn-sm reprovision-item"
                                                         data-id="{{ $sub->id }}"
@@ -281,6 +311,80 @@
         </div>
     </div>
 
+    {{-- Manual Renew Modal --}}
+    <div class="modal fade" id="renew-subscription-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{{ route('admin.subscriptions.renew') }}">
+                    @csrf
+                    <input type="hidden" id="renew-id" name="id">
+                    <div class="modal-header">
+                        <h4 class="modal-title h6">
+                            <i class="fas fa-redo-alt mr-1"></i> {{ __tr('Renew Subscription') }}
+                        </h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-sm mb-3">
+                            <tbody>
+                                <tr>
+                                    <th class="text-muted">{{ __tr('Customer') }}</th>
+                                    <td id="renew-user"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">{{ __tr('Plan') }}</th>
+                                    <td><span id="renew-plan"></span>
+                                        <small class="text-muted">(<span id="renew-days"></span>
+                                            {{ __tr('days') }})</small>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">{{ __tr('Expires now') }}</th>
+                                    <td id="renew-current-expiry"></td>
+                                </tr>
+                                <tr>
+                                    <th class="text-muted">{{ __tr('New expiry') }}</th>
+                                    <td><strong class="text-success" id="renew-new-expiry"></strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="form-group">
+                            <label for="renew-payment-method">{{ __tr('Payment recorded as') }}</label>
+                            <select name="payment_method" id="renew-payment-method" class="form-control">
+                                <option value="manual">{{ __tr('Manual / offline (cash, credit, comp)') }}</option>
+                                <option value="bank_transfer">{{ __tr('Bank transfer') }}</option>
+                                <option value="stripe">{{ __tr('Stripe (already charged)') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="renew-amount">{{ __tr('Amount') }}</label>
+                            <input type="number" step="0.01" min="0" name="amount" id="renew-amount"
+                                class="form-control">
+                            <small class="text-muted">{{ __tr('Defaults to the plan price. Set 0 for a free extension — no invoice is issued.') }}</small>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="renew-admin-note">{{ __tr('Note (optional)') }}</label>
+                            <textarea name="admin_note" id="renew-admin-note" class="form-control" rows="2" maxlength="500"
+                                placeholder="{{ __tr('e.g. paid in cash at the shop') }}"></textarea>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            {{ __tr('No card is charged here. The period and the streaming account are extended immediately and the customer is emailed.') }}
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __tr('Cancel') }}</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-redo-alt mr-1"></i>{{ __tr('Renew Now') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Re-provision Confirmation Modal --}}
     <div class="modal fade" id="reprovision-modal">
         <div class="modal-dialog modal-sm">
@@ -346,6 +450,19 @@
                 $('#reprovision-id').val($(this).data('id'));
                 $('#reprovision-user').text($(this).data('user'));
                 $('#reprovision-modal').modal('show');
+            });
+
+            $('.renew-item').on('click', function() {
+                var btn = $(this);
+                $('#renew-id').val(btn.data('id'));
+                $('#renew-user').text(btn.data('user'));
+                $('#renew-plan').text(btn.data('plan'));
+                $('#renew-days').text(btn.data('days'));
+                $('#renew-current-expiry').text(btn.data('expires'));
+                $('#renew-new-expiry').text(btn.data('new-expires'));
+                $('#renew-amount').val(btn.data('price'));
+                $('#renew-admin-note').val('');
+                $('#renew-subscription-modal').modal('show');
             });
 
         })(jQuery);

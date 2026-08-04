@@ -1,29 +1,54 @@
 @extends('frontend.layouts.dashboard')
 @section('dash-meta')
-    <title>{{ __tr('Confirm Subscription') }} - {{ get_setting('site_name') }}</title>
+    <title>{{ __tr('Renew Subscription') }} - {{ get_setting('site_name') }}</title>
     @if ($stripeEnabled)
         <script src="https://js.stripe.com/v3/"></script>
     @endif
 @endsection
 
+@php
+    // Renewing early keeps the unused time: the new period starts at the current
+    // expiry when it is still in the future.
+    $renewFrom = $subscription->expires_at && $subscription->expires_at->isFuture()
+        ? $subscription->expires_at->copy()
+        : now();
+    $newExpiry = $renewFrom->copy()->addDays($plan->duration_days);
+    $hasLapsed = !$subscription->expires_at || $subscription->expires_at->isPast();
+@endphp
+
 @section('dashboard-content')
     <div class="my-listings-header">
-        <h1>{{ __tr('Confirm Subscription') }}</h1>
+        <h1>{{ __tr('Renew Subscription') }}</h1>
         <div class="btn-wrapper">
-            <a href="{{ route('pricing.plans') }}" class="cmn-btn btn-outline">
-                <i class="fas fa-arrow-left"></i> {{ __tr('Back to Plans') }}
+            <a href="{{ route('member.subscriptions') }}" class="cmn-btn btn-outline">
+                <i class="fas fa-arrow-left"></i> {{ __tr('Back') }}
             </a>
         </div>
     </div>
 
+    @if ($pendingRenewal)
+        <div class="sub-warning-banner">
+            <i class="fas fa-clock sub-warning-icon"></i>
+            <div>
+                <strong class="sub-warning-title">{{ __tr('A renewal payment is awaiting review') }}</strong>
+                <p class="sub-warning-text">
+                    {{ __tr('You submitted a bank transfer on') }}
+                    {{ $pendingRenewal->created_at->format('M d, Y') }}
+                    ({{ __tr('reference') }} {{ $pendingRenewal->bank_transaction_number }}).
+                    {{ __tr('We will extend your subscription as soon as it is confirmed — there is no need to pay again.') }}
+                </p>
+            </div>
+        </div>
+    @endif
+
     <div class="sc-layout">
 
-        {{-- Order Summary --}}
+        {{-- Renewal summary --}}
         <div class="sc-sidebar">
             <div class="dashboard-card sc-order-card">
                 <div class="sc-order-header">
-                    <span class="sc-order-badge"><i class="fas fa-receipt"></i></span>
-                    <h3 class="sc-summary-title">{{ __tr('Order Summary') }}</h3>
+                    <span class="sc-order-badge"><i class="fas fa-redo-alt"></i></span>
+                    <h3 class="sc-summary-title">{{ __tr('Renewal Summary') }}</h3>
                 </div>
 
                 <div class="sc-summary-row">
@@ -31,37 +56,35 @@
                     <strong class="sc-summary-value">{{ $plan->translation('title') }}</strong>
                 </div>
                 <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Duration') }}</span>
+                    <span class="sc-summary-label">{{ __tr('Adds') }}</span>
                     <strong class="sc-summary-value">{{ $plan->duration_days }} {{ __tr('days') }}</strong>
+                </div>
+                <div class="sc-summary-row">
+                    <span class="sc-summary-label">{{ __tr('Expires now') }}</span>
+                    <strong class="sc-summary-value">
+                        {{ $subscription->expires_at?->format('M d, Y') ?? '—' }}
+                    </strong>
+                </div>
+                <div class="sc-summary-row">
+                    <span class="sc-summary-label">{{ __tr('New expiry') }}</span>
+                    <strong class="sc-summary-value sc-renew-new-expiry">{{ $newExpiry->format('M d, Y') }}</strong>
                 </div>
                 <div class="sc-summary-row">
                     <span class="sc-summary-label">{{ __tr('Connections') }}</span>
                     <strong class="sc-summary-value">{{ $plan->max_connections }}</strong>
-                </div>
-                <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Quality') }}</span>
-                    <strong class="sc-summary-value">{{ $plan->streaming_quality }}</strong>
-                </div>
-                <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('Catch-up TV') }}</span>
-                    <strong class="sc-summary-value">
-                        @if ($plan->catchup_days > 0)
-                            {{ $plan->catchup_days }} {{ __tr('days') }}
-                        @else
-                            {{ __tr('Not included') }}
-                        @endif
-                    </strong>
-                </div>
-                <div class="sc-summary-row">
-                    <span class="sc-summary-label">{{ __tr('DVR') }}</span>
-                    <strong
-                        class="sc-summary-value">{{ $plan->dvr_enabled ? __tr('Included') : __tr('Not included') }}</strong>
                 </div>
 
                 <div class="sc-total-row">
                     <span class="sc-total-label">{{ __tr('Total Due') }}</span>
                     <span class="sc-total-value">{{ format_amount($plan->effective_price) }}</span>
                 </div>
+
+                @if (!$hasLapsed)
+                    <p class="sc-renew-note">
+                        <i class="fas fa-info-circle"></i>
+                        {{ __tr('Renewing early does not waste time — the new period is added on top of your current expiry date.') }}
+                    </p>
+                @endif
 
                 <div class="sc-secure-note">
                     <i class="fas fa-shield-alt sc-secure-icon"></i>
@@ -70,10 +93,10 @@
             </div>
         </div>
 
-        {{-- Payment Section --}}
+        {{-- Payment --}}
         <div class="sc-main">
 
-            @if ($stripeEnabled && $stripeTestMode)
+            @if ($stripeTestMode && $stripeEnabled)
                 <div class="sc-test-mode-notice">
                     <i class="fas fa-flask"></i>
                     <span>{{ __tr('Card payments are running in test mode. Use a Stripe test card — no real payment is taken.') }}</span>
@@ -82,11 +105,10 @@
 
             @if (!$stripeEnabled && !$bankTransferEnabled)
                 <div class="sc-empty-state">
-                    <div class="sc-empty-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
+                    <div class="sc-empty-icon"><i class="fas fa-credit-card"></i></div>
                     <h4 class="sc-empty-title">{{ __tr('No Payment Method Available') }}</h4>
-                    <p class="sc-empty-text">{{ __tr('Please contact the administrator to enable a payment method.') }}</p>
+                    <p class="sc-empty-text">{{ __tr('Please contact the administrator to enable a payment method.') }}
+                    </p>
                 </div>
             @endif
 
@@ -95,22 +117,13 @@
                     <div class="sc-pay-header">
                         <span class="sc-pay-icon"><i class="fab fa-stripe-s"></i></span>
                         <div>
-                            <h4 class="sc-pay-title">{{ __tr('Pay with Card') }}</h4>
+                            <h4 class="sc-pay-title">{{ __tr('Renew with Card') }}</h4>
                             <p class="sc-pay-sub">{{ __tr('Your card details are processed securely by Stripe.') }}</p>
                         </div>
                     </div>
 
                     <div class="sc-pay-body">
                         <div id="sc-stripe-error" class="sc-stripe-error sc-hidden"></div>
-
-                        @if ($plan->iptv_device_type === 'mag')
-                            <div class="sc-field-group">
-                                <label class="sc-field-label" for="sc-mac-address">{{ __tr('MAG Device MAC Address') }}</label>
-                                <input type="text" id="sc-mac-address" class="form-control"
-                                    placeholder="00:1A:79:XX:XX:XX" maxlength="17">
-                                <span class="sc-field-hint">{{ __tr('Required for MAG boxes. Format: 00:1A:79:XX:XX:XX') }}</span>
-                            </div>
-                        @endif
 
                         <div class="sc-field-group">
                             <label class="sc-field-label">{{ __tr('Card Number') }}</label>
@@ -144,13 +157,15 @@
                 </div>
             @endif
 
-            @if ($bankTransferEnabled)
+            @if ($bankTransferEnabled && !$pendingRenewal)
                 <div class="dashboard-card sc-pay-card sc-bank-card">
                     <div class="sc-pay-header">
                         <span class="sc-pay-icon"><i class="fas fa-university"></i></span>
                         <div>
-                            <h4 class="sc-pay-title">{{ __tr('Pay by Bank Transfer') }}</h4>
-                            <p class="sc-pay-sub">{{ __tr('Transfer the total, then submit your reference and receipt below.') }}</p>
+                            <h4 class="sc-pay-title">{{ __tr('Renew by Bank Transfer') }}</h4>
+                            <p class="sc-pay-sub">
+                                {{ __tr('Transfer the total, then submit your reference and receipt. We extend your subscription once it is confirmed.') }}
+                            </p>
                         </div>
                     </div>
 
@@ -161,26 +176,21 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('membership.bank.submit') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('membership.renew.bank.submit') }}" method="POST"
+                            enctype="multipart/form-data">
                             @csrf
-                            <input type="hidden" name="membership_id" value="{{ $plan->id }}">
-
-                            @if ($plan->iptv_device_type === 'mag')
-                                <div class="sc-field-group">
-                                    <label class="sc-field-label" for="bank_mac_address">{{ __tr('MAG Device MAC Address') }}</label>
-                                    <input type="text" id="bank_mac_address" name="mac_address" class="form-control"
-                                        placeholder="00:1A:79:XX:XX:XX" maxlength="17" required>
-                                </div>
-                            @endif
+                            <input type="hidden" name="subscription_id" value="{{ $subscription->id }}">
 
                             <div class="sc-field-group">
-                                <label class="sc-field-label" for="bank_transaction_number">{{ __tr('Transfer Reference / Transaction Number') }}</label>
+                                <label class="sc-field-label"
+                                    for="bank_transaction_number">{{ __tr('Transfer Reference / Transaction Number') }}</label>
                                 <input type="text" id="bank_transaction_number" name="bank_transaction_number"
                                     class="form-control" required maxlength="191">
                             </div>
 
                             <div class="sc-field-group">
-                                <label class="sc-field-label" for="bank_slip">{{ __tr('Upload Payment Slip') }} <span class="sc-field-hint">({{ __tr('JPG, PNG or PDF, max 5MB') }})</span></label>
+                                <label class="sc-field-label" for="bank_slip">{{ __tr('Upload Payment Slip') }}
+                                    <span class="sc-field-hint">({{ __tr('JPG, PNG or PDF, max 5MB') }})</span></label>
                                 <input type="file" id="bank_slip" name="bank_slip" class="form-control"
                                     accept=".jpg,.jpeg,.png,.pdf" required>
                             </div>
@@ -263,11 +273,7 @@
                 function updateBrand(brand) {
                     var icon = document.getElementById('sc-brand-icon');
                     var cls = brandIconMap[brand];
-                    if (cls) {
-                        icon.className = 'sc-brand-icon ' + cls;
-                    } else {
-                        icon.className = 'sc-brand-icon sc-hidden';
-                    }
+                    icon.className = cls ? 'sc-brand-icon ' + cls : 'sc-brand-icon sc-hidden';
                 }
 
                 function handleError(event) {
@@ -281,17 +287,9 @@
                 }
 
                 document.getElementById('sc-pay-btn').addEventListener('click', function() {
-                    var macInput = document.getElementById('sc-mac-address');
-                    var macAddress = macInput ? macInput.value.trim() : '';
-
-                    if (macInput && macAddress === '') {
-                        showError('{{ __tr('Please enter the MAG device MAC address.') }}');
-                        return;
-                    }
-
                     setLoading(true);
 
-                    fetch('{{ route('membership.stripe.initiate') }}', {
+                    fetch('{{ route('membership.renew.stripe.initiate') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -299,8 +297,7 @@
                                 'Accept': 'application/json'
                             },
                             body: JSON.stringify({
-                                membership_id: {{ $plan->id }},
-                                mac_address: macAddress
+                                subscription_id: {{ $subscription->id }}
                             })
                         })
                         .then(function(res) {
@@ -325,7 +322,7 @@
                                 setLoading(false);
                             } else if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
                                 window.location.href =
-                                    '{{ route('membership.stripe.success') }}?payment_intent=' +
+                                    '{{ route('membership.renew.stripe.success') }}?payment_intent=' +
                                     result.paymentIntent.id;
                             }
                         })

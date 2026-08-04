@@ -96,6 +96,13 @@ Route::group(['middleware' => ['auth', 'member']], function () {
     Route::get('/membership/stripe/success', [SubscriptionController::class, 'stripeSuccess'])->name('membership.stripe.success');
     Route::post('/membership/bank-transfer', [SubscriptionController::class, 'bankTransfer'])->name('membership.bank.submit');
 
+    // Manual renewal — the customer pays for the next period themselves.
+    Route::get('/membership/renew/{subscriptionId}', [SubscriptionController::class, 'renewConfirm'])
+        ->whereNumber('subscriptionId')->name('subscription.renew');
+    Route::post('/membership/renew/stripe/initiate', [SubscriptionController::class, 'initiateStripeRenewal'])->name('membership.renew.stripe.initiate');
+    Route::get('/membership/renew/stripe/success', [SubscriptionController::class, 'stripeRenewalSuccess'])->name('membership.renew.stripe.success');
+    Route::post('/membership/renew/bank-transfer', [SubscriptionController::class, 'renewByBankTransfer'])->name('membership.renew.bank.submit');
+
     // Support tickets
     Route::prefix('member/support')->group(function () {
         Route::get('/', [SupportTicketController::class, 'index'])->name('member.tickets.index');
