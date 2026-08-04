@@ -29,21 +29,29 @@
                                 <li>
                                     <span class="dropdown-header">{{ __tr('My Account') }}</span>
                                 </li>
-                                <li>
-                                    @if (auth()->user()->type === config('settings.user_type.admin'))
-                                        <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
-                                        <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
-                                    @else
-                                        <a class="dropdown-item" href="{{ route('member.dashboard') }}">
-                                    @endif
-                                        <i class="las la-tachometer-alt"></i>
-                                        {{ __tr('Dashboard') }}
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
+                                @php
+                                    // A reseller whose portal has been switched off keeps only the logout entry.
+                                    $resellerPortalOff =
+                                        auth()->user()->type === config('settings.user_type.reseller') &&
+                                        !reseller_system_enabled();
+                                @endphp
+                                @unless ($resellerPortalOff)
+                                    <li>
+                                        @if (auth()->user()->type === config('settings.user_type.admin'))
+                                            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                        @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                            <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
+                                        @else
+                                            <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                        @endif
+                                            <i class="las la-tachometer-alt"></i>
+                                            {{ __tr('Dashboard') }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                @endunless
                                 <li>
                                     @if (auth()->user()->type === config('settings.user_type.admin'))
                                         <a class="dropdown-item logout-item" href="{{ route('admin.auth.logout') }}">
@@ -174,21 +182,29 @@
                                 <li>
                                     <span class="dropdown-header">{{ __tr('My Account') }}</span>
                                 </li>
-                                <li>
-                                    @if (auth()->user()->type === config('settings.user_type.admin'))
-                                        <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
-                                    @elseif (auth()->user()->type === config('settings.user_type.reseller'))
-                                        <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
-                                    @else
-                                        <a class="dropdown-item" href="{{ route('member.dashboard') }}">
-                                    @endif
-                                        <i class="las la-tachometer-alt"></i>
-                                        {{ __tr('Dashboard') }}
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
+                                @php
+                                    // A reseller whose portal has been switched off keeps only the logout entry.
+                                    $resellerPortalOff =
+                                        auth()->user()->type === config('settings.user_type.reseller') &&
+                                        !reseller_system_enabled();
+                                @endphp
+                                @unless ($resellerPortalOff)
+                                    <li>
+                                        @if (auth()->user()->type === config('settings.user_type.admin'))
+                                            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                        @elseif (auth()->user()->type === config('settings.user_type.reseller'))
+                                            <a class="dropdown-item" href="{{ route('reseller.dashboard') }}">
+                                        @else
+                                            <a class="dropdown-item" href="{{ route('member.dashboard') }}">
+                                        @endif
+                                            <i class="las la-tachometer-alt"></i>
+                                            {{ __tr('Dashboard') }}
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                @endunless
                                 <li>
                                     @if (auth()->user()->type === config('settings.user_type.admin'))
                                         <a class="dropdown-item logout-item" href="{{ route('admin.auth.logout') }}">

@@ -67,6 +67,15 @@ return [
 
     [
         'type'          => 'link',
+        'label'         => 'Reseller Settings',
+        'icon'          => 'fas fa-store',
+        'route'         => 'admin.system.settings.reseller',
+        'active_routes' => ['admin.system.settings.reseller'],
+        'permission'    => null,
+    ],
+
+    [
+        'type'          => 'link',
         'label'         => 'App Codes',
         'icon'          => 'fas fa-download',
         'route'         => 'admin.downloader-codes.index',

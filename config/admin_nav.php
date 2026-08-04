@@ -40,6 +40,8 @@ return [
         'route'        => 'admin.resellers.index',
         'icon'         => 'fas fa-store',
         'active_routes' => ['admin.resellers.*'],
+        // Hidden while this setting is off (see 'setting' handling in the sidebar view).
+        'setting'      => 'reseller_system_enabled',
     ],
     [
         'label'        => 'Support Tickets',

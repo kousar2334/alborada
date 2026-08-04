@@ -29,9 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $middleware->alias([
-            'admin'    => \App\Http\Middleware\IsAdmin::class,
-            'member'   => \App\Http\Middleware\IsMember::class,
-            'reseller' => \App\Http\Middleware\IsReseller::class,
+            'admin'           => \App\Http\Middleware\IsAdmin::class,
+            'member'          => \App\Http\Middleware\IsMember::class,
+            'reseller'        => \App\Http\Middleware\IsReseller::class,
+            'reseller.system' => \App\Http\Middleware\ResellerSystemEnabled::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             '/ad/impression',

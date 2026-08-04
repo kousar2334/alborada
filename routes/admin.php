@@ -326,7 +326,7 @@ Route::prefix('admin')->group(function () {
         /**
          * Reseller Management
          */
-        Route::prefix('resellers')->group(function () {
+        Route::prefix('resellers')->middleware('reseller.system')->group(function () {
             Route::get('/', [ResellerManagementController::class, 'index'])->name('admin.resellers.index');
             Route::post('/store', [ResellerManagementController::class, 'store'])->name('admin.resellers.store');
             Route::post('/top-up', [ResellerManagementController::class, 'topUpCredits'])->name('admin.resellers.top.up');
@@ -346,7 +346,8 @@ Route::prefix('admin')->group(function () {
             Route::get('/revenue-chart', [ReportController::class, 'revenueChart'])->name('admin.reports.revenue.chart');
             Route::get('/subscribers-chart', [ReportController::class, 'activeSubscribersChart'])->name('admin.reports.subscribers.chart');
             Route::get('/expiring-soon', [ReportController::class, 'expiringSoon'])->name('admin.reports.expiring.soon');
-            Route::get('/reseller-performance', [ReportController::class, 'resellerPerformance'])->name('admin.reports.reseller.performance');
+            Route::get('/reseller-performance', [ReportController::class, 'resellerPerformance'])
+                ->middleware('reseller.system')->name('admin.reports.reseller.performance');
             Route::get('/export', [ReportController::class, 'exportCsv'])->name('admin.reports.export');
         });
 
@@ -362,6 +363,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/system/settings/iptv/update', [SettingController::class, 'iptvSettingsUpdate'])->name('admin.system.settings.iptv.update');
         Route::post('/system/settings/iptv/sync-packages', [SettingController::class, 'syncIptvPackages'])->name('admin.system.settings.iptv.sync-packages');
         Route::post('/system/settings/iptv/test-connection', [SettingController::class, 'testIptvConnection'])->name('admin.system.settings.iptv.test');
+
+        /**
+         * Reseller Settings (master switch for the reseller module)
+         */
+        Route::get('/system/settings/reseller', [SettingController::class, 'resellerSettings'])->name('admin.system.settings.reseller');
+        Route::post('/system/settings/reseller/update', [SettingController::class, 'resellerSettingsUpdate'])->name('admin.system.settings.reseller.update');
 
         /**
          * Media Management (shared picker — requires at least media view access)

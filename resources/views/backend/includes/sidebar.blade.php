@@ -38,6 +38,11 @@
                             $canAccess = true;
                         }
 
+                        // Feature-flag settings default to on, so a missing row keeps the item visible.
+                        if ($canAccess && isset($item['setting'])) {
+                            $canAccess = (bool) get_setting($item['setting'], 1);
+                        }
+
                         $isActive = Request::routeIs($item['active_routes']);
                         $hasChildren = !empty($item['children']);
                     @endphp
@@ -61,6 +66,10 @@
                                                 $canAccessChild = $user->canAny($child['any_permissions']);
                                             } else {
                                                 $canAccessChild = true;
+                                            }
+
+                                            if ($canAccessChild && isset($child['setting'])) {
+                                                $canAccessChild = (bool) get_setting($child['setting'], 1);
                                             }
 
                                             $isChildActive = Request::routeIs($child['active_routes']);

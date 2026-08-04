@@ -43,7 +43,7 @@ class DashboardController extends Controller
             ->whereNotIn('status', [SupportTicket::STATUS_CLOSED])
             ->count();
 
-        $total_resellers = User::where('type', 1)->count();
+        $total_resellers = User::where('type', config('settings.user_type.reseller'))->count();
 
         $latest_members = User::where('type', '!=', 0)->latest()->take(8)->get();
 

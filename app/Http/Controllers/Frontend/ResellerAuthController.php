@@ -93,7 +93,9 @@ class ResellerAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         toastNotification('success', 'Logged out successfully.', 'Success');
-        return redirect()->route('reseller.login');
+
+        // The login page is gone while the reseller system is off — send them home instead.
+        return redirect()->route(reseller_system_enabled() ? 'reseller.login' : 'home');
     }
 
     public function forgotPasswordPage()

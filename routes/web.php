@@ -122,6 +122,13 @@ Route::group(['middleware' => ['auth', 'member']], function () {
 
 // ── Reseller Portal ────────────────────────────────────────────────────────────
 Route::prefix('reseller')->group(function () {
+    // Always reachable so a reseller with a live session can still sign out after
+    // the reseller system has been switched off in admin settings.
+    Route::get('/logout', [ResellerAuthController::class, 'logout'])
+        ->middleware('auth')->name('reseller.logout');
+});
+
+Route::prefix('reseller')->middleware('reseller.system')->group(function () {
 
     // Guest-only auth
     Route::middleware('guest')->group(function () {
@@ -137,7 +144,6 @@ Route::prefix('reseller')->group(function () {
 
     // Authenticated reseller routes
     Route::middleware(['auth', 'reseller'])->group(function () {
-        Route::get('/logout', [ResellerAuthController::class, 'logout'])->name('reseller.logout');
         Route::get('/dashboard', [ResellerController::class, 'dashboard'])->name('reseller.dashboard');
         Route::get('/clients', [ResellerController::class, 'clients'])->name('reseller.clients');
         Route::post('/clients/add', [ResellerController::class, 'addClient'])->name('reseller.clients.add');

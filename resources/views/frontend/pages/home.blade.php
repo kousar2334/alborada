@@ -646,8 +646,10 @@
                                     Portal</a>
                                 <a href="{{ route('member.register') }}" class="btn btn-ghost btn-lg">Create
                                     Account</a>
-                                <a href="{{ route('reseller.login') }}"
-                                    class="btn btn-outline btn-lg btn-reseller-login">Reseller Login</a>
+                                @if (reseller_system_enabled())
+                                    <a href="{{ route('reseller.login') }}"
+                                        class="btn btn-outline btn-lg btn-reseller-login">Reseller Login</a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -914,7 +916,7 @@
         <div class="section-divider"></div>
 
         {{-- ── RESELLER ── --}}
-        @if (!isset($sections['reseller']) || $sections['reseller']->is_active)
+        @if (reseller_system_enabled() && (!isset($sections['reseller']) || $sections['reseller']->is_active))
             <section id="reseller">
                 <div class="wrap">
                     <div class="sec-label">{{ p_trans('home_reseller_label', null, 'Reseller Program') }}</div>

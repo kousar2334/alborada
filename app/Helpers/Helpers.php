@@ -127,6 +127,17 @@ if (!function_exists('set_setting')) {
     }
 }
 
+if (!function_exists('reseller_system_enabled')) {
+    /**
+     * Master switch for the whole reseller module (portal, API, admin management).
+     * Defaults to enabled so existing installs keep working before the setting row exists.
+     */
+    function reseller_system_enabled(): bool
+    {
+        return (bool) get_setting('reseller_system_enabled', 1);
+    }
+}
+
 if (!function_exists('getFilePath')) {
     function getFilePath(string|null $path, bool $placeholder = true, string|null $size = null): string
     {

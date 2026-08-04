@@ -11,7 +11,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Reseller API (Sanctum token-based)
-Route::prefix('reseller/v1')->middleware(['auth:sanctum', LogApiRequest::class])->group(function () {
+Route::prefix('reseller/v1')->middleware(['reseller.system', 'auth:sanctum', LogApiRequest::class])->group(function () {
     Route::get('/clients',            [ResellerController::class, 'listClients']);
     Route::post('/clients/create',    [ResellerController::class, 'createClient']);
     Route::post('/clients/suspend',   [ResellerController::class, 'suspendClient']);

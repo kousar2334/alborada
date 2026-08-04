@@ -224,6 +224,32 @@ class SettingController extends Controller
         return response()->json($result);
     }
 
+    /**
+     * Reseller module master switch + counters for the admin's context.
+     */
+    public function resellerSettings(): View
+    {
+        $resellerType = config('settings.user_type.reseller', 3);
+
+        return view('backend.modules.settings.reseller-settings', [
+            'totalResellers'   => \App\Models\User::where('type', $resellerType)->count(),
+            'pendingResellers' => \App\Models\User::where('type', $resellerType)->where('status', 0)->count(),
+        ]);
+    }
+
+    public function resellerSettingsUpdate(Request $request): RedirectResponse
+    {
+        $enabled = $request->boolean('reseller_system_enabled');
+
+        set_setting('reseller_system_enabled', $enabled ? 1 : 0);
+
+        toastNotification('success', $enabled
+            ? __tr('Reseller system enabled.')
+            : __tr('Reseller system disabled.'));
+
+        return back();
+    }
+
     public function chatWidget()
     {
         return view('backend.modules.settings.chat-widget');
