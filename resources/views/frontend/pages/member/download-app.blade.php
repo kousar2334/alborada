@@ -7,27 +7,64 @@
 
     <div class="dashboard-header">
         <h1 class="dash-page-title">{{ __tr('Download the App') }}</h1>
-        <p class="dash-page-subtitle">{{ __tr('Install Moissanite Visions on any device using the codes below.') }}</p>
+        <p class="dash-page-subtitle">{{ __tr('Install 8K VIP IPTV and start watching in a few simple steps.') }}</p>
     </div>
 
-    {{-- How-to Banner --}}
-    <div class="dashboard-card howto-card">
-        <div class="howto-body">
-            <div class="howto-icon-wrap">
-                <i class="fas fa-circle-info howto-icon"></i>
-            </div>
+    {{-- 8K VIP IPTV installation guide --}}
+    <section class="dashboard-card vip-install-guide">
+        <div class="vip-install-header">
+            <div class="vip-install-icon"><i class="fas fa-tv"></i></div>
             <div>
-                <h3 class="howto-title">{{ __tr('How to Install') }}</h3>
-                <ol class="howto-list">
-                    <li>{{ __tr('Open the') }} <strong class="text-white fw-bold">Downloader</strong>
-                        {{ __tr('app on your device (available free on all platforms).') }}</li>
-                    <li>{{ __tr('Enter the code shown below for your device type.') }}</li>
-                    <li>{{ __tr('The Moissanite Visions app will install automatically.') }}</li>
-                    <li>{{ __tr('Open the app and log in with your IPTV credentials from the Dashboard.') }}</li>
-                </ol>
+                <p class="vip-install-eyebrow">{{ __tr('8K VIP IPTV') }}</p>
+                <h2 class="vip-install-title">{{ __tr('App Installation Guide') }}</h2>
             </div>
         </div>
-    </div>
+
+        <div class="vip-download-details">
+            <div class="vip-detail-item">
+                <span>{{ __tr('Our app') }}</span>
+                <strong>8K Player VIP</strong>
+            </div>
+            <div class="vip-detail-item">
+                <span>{{ __tr('Downloader code') }}</span>
+                <strong>2213196</strong>
+            </div>
+            <a class="vip-download-link" href="https://aftv.news/439873" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-download"></i> {{ __tr('Open download link') }}
+            </a>
+        </div>
+
+        <ol class="vip-install-steps">
+            <li>
+                <strong>{{ __tr('Download and install') }}</strong>
+                <span>{{ __tr('Download the 8K VIP IPTV application, install it on your device, then open it.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Select Playlist') }}</strong>
+                <span>{{ __tr('On the Playlist screen, select 8K VIP.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Edit Playlist') }}</strong>
+                <span>{{ __tr('Tap Edit, then select XTREAM-CODES-API.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Enter your M3U details') }}</strong>
+                <span>{{ __tr('Enter your M3U IPTV username and password from the customer dashboard. Your MAC address is filled in automatically.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Update Playlist') }}</strong>
+                <span>{{ __tr('Tap Update Playlist and wait a few seconds for the update to finish successfully.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Connect') }}</strong>
+                <span>{{ __tr('Return to the playlist screen, select 8K VIP again, and tap Connect.') }}</span>
+            </li>
+            <li>
+                <strong>{{ __tr('Enjoy your IPTV') }}</strong>
+                <span>{{ __tr('Your content will load automatically, including Live TV, Movies, Series, Sports, and Playlist.') }}</span>
+            </li>
+        </ol>
+    </section>
 
     @php
         $deviceOrder = ['firestick', 'android', 'smart_tv', 'ios', 'desktop', 'other'];
